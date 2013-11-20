@@ -273,7 +273,6 @@ C.......Compute tidal potential terms
 C.......Compute LDG auxiliary equations
          
          IF (EVMSUM.NE.0.D0.or.artdif.eq.1) CALL LDG_HYDRO(IT)
-         !IF (EVMSUM.NE.0.D0) CALL LDG_HYDRO(IT)
          
 C.......Compute elevation specified edges
 
@@ -465,6 +464,17 @@ C.......Apply the wet-dry algorithm if appropriate
          CALL WETDRY()
 #endif
 
+c$$$C.......Apply the slopelimiter again if auxiliary variable is being used
+c$$$
+c$$$         if (EVMSUM.NE.0.D0.or.artdif.eq.1) then
+c$$$#ifdef SLOPEALL
+c$$$            CALL SLOPELIMITER()
+c$$$#endif
+c$$$            
+c$$$#ifdef SLOPE5
+c$$$            CALL SLOPELIMITER() 
+c$$$#endif
+c$$$         endif
 
 C.......For parallel run update for dofs if slope limiter and/or wetting and
 C.......drying is being used
@@ -581,7 +591,7 @@ C.......Filter the transported tracer term if flagged
 
 #endif
 
-C......Fitler chemistry transported terms if flagged
+C......Filter chemistry transported terms if flagged
 
 #ifdef CHEM
             iota(K,J,NRK+1) =  iota(K,J,nrk+1) 

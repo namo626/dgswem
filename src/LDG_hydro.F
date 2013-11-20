@@ -18,6 +18,7 @@ C.....Use appropriate modules
       USE SIZES,ONLY : SZ, myproc
       USE GLOBAL
       USE DG
+      USE NodalAttributes, ONLY : EVM
 
 #ifdef CMPI
       USE MESSENGER_ELEM,ONLY : UPDATELZ_ELEM,UPDATEMZ_ELEM
@@ -30,7 +31,7 @@ C.....Declare local variables
       INTEGER IT,L,GED,NBOREL,NNBORS,NDRYNBORS,k,i,ll
       INTEGER Detected
       REAL(SZ) QBCT1,QBCT2,QBC1,QBC2,ZP(3)
-      REAL(SZ) DPAVG
+      REAL(SZ) DPAVG,lim_by
       Real(SZ),Allocatable :: tmp_mz(:,:,:,:)
 
       Allocate ( tmp_mz(dofh,2,1,MNE) )
@@ -45,11 +46,7 @@ C.....Initialize for viscosity/diffusion
 #ifdef SED_LAY
       MZ = 0.d0
 #endif
-      
-C.....Loop over interior elements
-
-      CALL RHS_LDG_HYDRO()
-
+     
 C.....Compute elevation specified edges
 
       IF (NEEDS.GT.0)  CALL OCEAN_EDGE_LDG_HYDRO()
@@ -69,6 +66,115 @@ C.....Compute no-normal flow edges
 C.....Compute internal edges
 
       CALL INTERNAL_EDGE_LDG_HYDRO()
+
+C.....Loop over interior elements
+
+      CALL RHS_LDG_HYDRO()
+      do L=1,NE
+
+         N1 = NM(L,1)
+         N2 = NM(L,2)
+         N3 = NM(L,3)
+         EVMAvg = (EVM(N1)+EVM(N2)+EVM(N3))/3.d0
+         bg_dif = 0.D0 
+         trc_dif = 0.D0 
+         
+#ifdef SED_LAY
+         SEVDMAvg = SEVDM 
+#endif
+ 
+#ifdef ARTDIF
+
+         lim_by = 1.D0
+         
+         if (entrop(1,L).gt.s0+kappa) then
+            
+            HZ(:,:,:,L) = (bg_dif+e1(1)) *
+     &           (abs(lim_by+balance(1)))**pa * HZ(:,:,:,L)
+
+         else
+
+            HZ(:,:,:,L) = bg_dif*HZ(:,:,:,L)
+
+         endif
+
+         if (entrop(2,L).gt.s0+kappa) then
+            
+            LZ(:,1,1,L) = (EVMAvg+e1(2)) * 
+     &           (abs(lim_by+balance(2)))**pa * LZ(:,1,1,L)
+            LZ(:,1,2,L) = sqrt( (EVMAvg+e1(2) *
+     &           (abs(lim_by+balance(2)))**pa ) * LZ(:,1,2,L))
+            LZ(:,2,1,L) = sqrt( (EVMAvg+e1(2) *
+     &           (abs(lim_by+balance(2)))**pa ) * LZ(:,2,1,L))
+     
+         else
+
+            LZ(:,1,:,L) = EVMAvg* LZ(:,1,:,L)
+            LZ(:,2,1,L) = sqrt(EVMAvg+e1(2) * LZ(:,2,1,L))
+            
+         endif
+
+         if (entrop(3,L).gt.s0+kappa) then
+            
+            LZ(:,2,2,L) = (EVMAvg+e1(3)) * 
+     &           (abs(lim_by+balance(3)))**pa * LZ(:,2,2,L)
+            LZ(:,2,1,L) = sqrt( (EVMAvg+e1(3) *
+     &           (abs(lim_by+balance(3)))**pa ) * LZ(:,2,1,L))
+            LZ(:,1,2,L) = sqrt( (EVMAvg+e1(3) *
+     &           (abs(lim_by+balance(3)))**pa ) * LZ(:,1,2,L))
+            
+         else
+            
+            LZ(:,1,2,L) = EVMAvg* LZ(:,1,2,L)
+            LZ(:,2,:,L) = sqrt(EVMAvg * LZ(:,2,:,L))
+            
+         endif
+
+#ifdef TRACE
+         if (entrop(4,L).gt.s0+kappa) then
+            
+            TZ(:,:,:,L) = (trc_dif+e1(4)) *
+     &           (abs(lim_by+balance(4)))**pa * TZ(:,:,:,L)
+
+         else
+
+            TZ(:,:,:,L) = trc_dif*TZ(:,:,:,L)
+
+         endif
+#endif
+
+#ifdef SED_LAY
+
+         if (entrop(5,L).gt.s0+kappa) then
+            
+            MZ(:,:,:,L) = (SEVDMAvg+e1(5)) *
+     &           (abs(lim_by+balance(5)))**pa * MZ(:,:,:,L)
+
+         else
+
+            MZ(:,:,:,L) = MZ(:,:,:,L)*SEVDMAvg
+            
+         endif
+#endif
+         
+#else
+
+         HZ(:,:,:,L) = bg_dif*HZ(:,:,:,L)
+         LZ(:,:,:,L) = EVMAvg*LZ(:,:,:,L)
+               
+#ifdef TRACE
+         TZ(:,:,:,L) = trc_dif*TZ(:,:,:,L)
+#endif
+
+#ifdef SED_LAY
+         MZ(:,:,:,L) = MZ(:,:,:,L)*SEVDMAvg
+#endif
+
+
+#endif
+
+      enddo
+C********************************************
 
 #ifdef CMPI
       CALL UPDATELZ_ELEM(HZ)
@@ -262,7 +368,6 @@ C.....Use appropriate modules
       USE SIZES,ONLY : SZ,layers
       USE GLOBAL
       USE DG
-      USE NodalAttributes, ONLY : EVM
       IMPLICIT NONE
 
 C.....Declare local variables
@@ -270,13 +375,9 @@ C.....Declare local variables
 
       INTEGER K,L,LED,GED,GP,i,kk,ll
       REAL(SZ) AREA, IMASS
-      real(sz) ze_sensor1, qx_sensor1, qy_sensor1
-      real(sz) ze_sensor2, qx_sensor2, qy_sensor2
-      real(sz) iota_sensor1,iota_sensor2,lim_by
       REAL(SZ) TX, TY, QX_AVG, QY_AVG, bed_AVG(layers)
       REAL(SZ) ZE_AVG,iota_AVG
-      logical fl1,fl2,fl3,fl4,fl5
-
+      
       DO 1000 L = 1,NLEDS
          
 C.....Retrieve the global and local edge number
@@ -388,91 +489,6 @@ C.....Compute the edge integral
             ENDDO
 
          ENDDO
-
-c$$$C.... We can add viscosity settings if we want (more expensive, not super useful?) -- rec. if your boundary is broken adjust your boundary type
-c$$$         
-c$$$         N1 = NM(EL_IN,1)
-c$$$         N2 = NM(EL_IN,2)
-c$$$         N3 = NM(EL_IN,3)
-c$$$         EVMAvg = (EVM(N1)+EVM(N2)+EVM(N3))/3.d0
-c$$$         bg_dif = 0.D0 
-c$$$         trc_dif = 0.D0 
-c$$$#ifdef SED_LAY
-c$$$         SEVDMAvg = SEVDM
-c$$$#endif
-
-c$$$         
-c$$$#ifdef ARTDIF
-c$$$            fl1 = .false.
-c$$$            fl2 = .false.
-c$$$            fl3 = .false.
-c$$$#ifdef TRACE
-c$$$            fl4 = .false.
-c$$$#endif
-c$$$#ifdef SED_LAY
-c$$$            fl5 = .false.
-c$$$#endif
-c$$$
-c$$$            if (entrop(1,EL_IN).gt.s0+kappa) then
-c$$$               
-c$$$               HZ(:,:,:,EL_IN) = 0.D0 !e1(1)*HZ(:,:,:,EL_IN)
-c$$$               fl1 = .true.
-c$$$               
-c$$$            endif
-c$$$            if ( fl1 == .false. ) then
-c$$$
-c$$$               HZ(:,:,:,EL_IN) = bg_dif*HZ(:,:,:,EL_IN)
-c$$$
-c$$$            endif
-c$$$
-c$$$            if (entrop(2,EL_IN).gt.s0+kappa.or.entrop(3,EL_IN).gt.s0+kappa) 
-c$$$     &           then
-c$$$               
-c$$$               LZ(:,:,:,EL_IN) = 0.D0 !e1(2)*LZ(:,:,:,EL_IN)
-c$$$               fl2 = .true.
-c$$$               fl3 = .true.
-c$$$
-c$$$            endif
-c$$$            if ( fl2 == .false. ) then
-c$$$
-c$$$               LZ(:,:,:,EL_IN) = EVMAvg*LZ(:,:,:,EL_IN)
-c$$$
-c$$$            endif
-c$$$
-c$$$
-c$$$#ifdef TRACE
-c$$$            if (entrop(4,EL_IN).gt.s0+kappa) then
-c$$$               
-c$$$               TZ(:,:,:,EL_IN) = 0.D0 !e1(4)*TZ(:,:,:,EL_IN)            
-c$$$               fl4 = .true.
-c$$$               
-c$$$            endif
-c$$$            
-c$$$            if ( fl4 == .false. ) then
-c$$$               
-c$$$               TZ(:,:,:,EL_IN) = trc_dif*TZ(:,:,:,EL_IN)
-c$$$               
-c$$$            endif
-c$$$#endif
-c$$$
-c$$$#ifdef SEDLAY
-c$$$
-c$$$            if (entrop(5,EL_IN).gt.s0+kappa) then
-c$$$
-c$$$               MZ(:,:,:,EL_IN) = 0.D0 !e1(5)*MZ(:,:,:,EL_IN)
-c$$$               fl5 = .true.
-c$$$
-c$$$            endif
-c$$$
-c$$$            if ( fl5 == .false. ) then
-c$$$
-c$$$               MZ(:,:,:,EL_IN) =  SEVDMAvg*MZ(:,:,:,EL_IN)
-c$$$
-c$$$            endif
-c$$$
-c$$$            
-c$$$#endif
-c$$$#endif
             
  1000 CONTINUE
       
@@ -785,7 +801,6 @@ C.....Use appropriate modules
       USE SIZES,ONLY : SZ,layers
       USE GLOBAL
       USE DG
-      USE NodalAttributes, ONLY : EVM
 
       IMPLICIT NONE
 
@@ -793,7 +808,7 @@ C.....Declare local variables
 
       INTEGER L, LED_IN, LED_EX, GED, GP_IN, GP_EX,k,i,ll
       REAL(SZ) ZE_AVG,QX_AVG,QY_AVG,bed_AVG(layers),W_IN,W_EX
-      real(sz) iota_AVG,lim_by
+      real(sz) iota_AVG
 
 
       DO 1000 L = 1,NIEDS
@@ -945,180 +960,6 @@ C.....Compute the edge integral
 
             enddo
          enddo
-
-C.... We need to retrieve the nodal viscosity/diffusion values
-         N1 = NM(EL,1)
-         N2 = NM(EL,2)
-         N3 = NM(EL,3)
-         EVMAvg = (EVM(N1)+EVM(N2)+EVM(N3))/3.d0
-         bg_dif = 0.D0 
-         trc_dif = 0.D0 
-         
-#ifdef SED_LAY
-         SEVDMAvg = SEVDM 
-#endif
- 
-#ifdef ARTDIF
-
-         lim_by = 1.D0
-  
-         if (entrop(1,EL_IN).gt.s0+kappa) then
-            
-            HZ(:,:,:,EL_IN) = (bg_dif+e1(1)) *
-     &           (abs(lim_by+balance(1)))**pa * HZ(:,:,:,EL_IN)
-
-         else
-
-            HZ(:,:,:,EL_IN) = bg_dif*HZ(:,:,:,EL_IN)
-
-         endif
-         if (entrop(1,EL_EX).gt.s0+kappa) then
-            
-            HZ(:,:,:,EL_EX) = (bg_dif+e1(1)) *
-     &           (abs(lim_by+balance(1)))**pa * HZ(:,:,:,EL_EX)
-            
-         else
-
-            HZ(:,:,:,EL_EX) = bg_dif*HZ(:,:,:,EL_EX)
-            
-         endif
-
-         if (entrop(2,EL_IN).gt.s0+kappa) then
-            
-            LZ(:,1,1,EL_IN) = (EVMAvg+e1(2)) * 
-     &           (abs(lim_by+balance(2)))**pa * LZ(:,1,1,EL_IN)
-            LZ(:,1,2,EL_IN) = sqrt( (EVMAvg+e1(2) *
-     &           (abs(lim_by+balance(2)))**pa ) * LZ(:,1,2,EL_IN))
-            LZ(:,2,1,EL_IN) = sqrt( (EVMAvg+e1(2) *
-     &           (abs(lim_by+balance(2)))**pa ) * LZ(:,2,1,EL_IN))
-     
-         else
-
-            LZ(:,1,:,EL_IN) = EVMAvg* LZ(:,1,:,EL_IN)
-            LZ(:,2,1,EL_IN) = sqrt(EVMAvg+e1(2) * LZ(:,2,1,EL_IN))
-            
-         endif
-         if (entrop(2,EL_EX).gt.s0+kappa) then
-            
-            LZ(:,1,1,EL_EX) = (EVMAvg+e1(2)) * 
-     &           (abs(lim_by+balance(2)))**pa * LZ(:,1,1,EL_EX)
-            LZ(:,1,2,EL_EX) = sqrt( (EVMAvg+e1(2) *
-     &           (abs(lim_by+balance(2)))**pa ) * LZ(:,1,2,EL_EX))
-            LZ(:,2,1,EL_EX) = sqrt( (EVMAvg+e1(2) *
-     &           (abs(lim_by+balance(2)))**pa ) * LZ(:,2,1,EL_EX))
-     
-         else
-
-            LZ(:,1,:,EL_EX) = EVMAvg* LZ(:,1,:,EL_EX)
-            LZ(:,2,1,EL_EX) = sqrt(EVMAvg * LZ(:,2,1,EL_EX))
-            
-         endif
-
-         if (entrop(3,EL_IN).gt.s0+kappa) then
-            
-            LZ(:,2,2,EL_IN) = (EVMAvg+e1(3)) * 
-     &           (abs(lim_by+balance(3)))**pa * LZ(:,2,2,EL_IN)
-            LZ(:,2,1,EL_IN) = sqrt( (EVMAvg+e1(3) *
-     &           (abs(lim_by+balance(3)))**pa ) * LZ(:,2,1,EL_IN))
-            LZ(:,1,2,EL_IN) = sqrt( (EVMAvg+e1(3) *
-     &           (abs(lim_by+balance(3)))**pa ) * LZ(:,1,2,EL_IN))
-     
-         else
-
-            LZ(:,1,2,EL_IN) = EVMAvg* LZ(:,1,2,EL_IN)
-            LZ(:,2,:,EL_IN) = sqrt(EVMAvg * LZ(:,2,:,EL_IN))
-            
-         endif
-
-         if (entrop(3,EL_EX).gt.s0+kappa) then
-            
-            LZ(:,2,2,EL_EX) = (EVMAvg+e1(3)) * 
-     &           (abs(lim_by+balance(3)))**pa * LZ(:,2,2,EL_EX)
-            LZ(:,2,1,EL_EX) = sqrt( (EVMAvg+e1(3) *
-     &           (abs(lim_by+balance(3)))**pa ) * LZ(:,2,1,EL_EX))
-            LZ(:,1,2,EL_EX) = sqrt( (EVMAvg+e1(3) *
-     &           (abs(lim_by+balance(3)))**pa ) * LZ(:,1,2,EL_EX))
-     
-         else
-
-            LZ(:,1,2,EL_EX) = EVMAvg* LZ(:,1,2,EL_EX)
-            LZ(:,2,:,EL_EX) = sqrt(EVMAvg * LZ(:,2,:,EL_IN))
-            
-         endif
-
-
-#ifdef TRACE
-         if (entrop(4,EL_IN).gt.s0+kappa) then
-            
-            TZ(:,:,:,EL_IN) = (trc_dif+e1(4)) *
-     &           (abs(lim_by+balance(4)))**pa * TZ(:,:,:,EL_IN)
-
-         else
-
-            TZ(:,:,:,EL_IN) = trc_dif*TZ(:,:,:,EL_IN)
-
-         endif
-
-         if (entrop(4,EL_EX).gt.s0+kappa) then
-
-            TZ(:,:,:,EL_EX) = (trc_dif+e1(4)) *
-     &           (abs(lim_by+balance(4)))**pa * TZ(:,:,:,EL_EX)
-
-         else
-
-            TZ(:,:,:,EL_EX) = trc_dif*TZ(:,:,:,EL_EX)
-
-         endif
-
-#endif
-         
-#else
-         
-         HZ(:,:,:,EL_IN) = bg_dif*HZ(:,:,:,EL_IN)
-         LZ(:,:,:,EL_IN) = EVMAvg*LZ(:,:,:,EL_IN)
-         HZ(:,:,:,EL_EX) = bg_dif*HZ(:,:,:,EL_EX)
-         LZ(:,:,:,EL_EX) = EVMAvg*LZ(:,:,:,EL_EX)
-         
-#ifdef TRACE
-         TZ(:,:,:,EL_IN) = trc_dif*TZ(:,:,:,EL_IN)
-         TZ(:,:,:,EL_EX) = trc_dif*TZ(:,:,:,EL_EX)
-#endif
-         
-#endif
-         
-#ifdef SED_LAY
-
-#ifdef ARTDIF
-
-         if (entrop(5,EL_IN).gt.s0+kappa) then
-            
-            MZ(:,:,:,EL_IN) = (SEVDMAvg+e1(5)) *
-     &           (abs(lim_by+balance(5)))**pa * MZ(:,:,:,EL_IN)
-
-         else
-
-            MZ(:,:,:,EL_IN) = MZ(:,:,:,EL_IN)*SEVDMAvg
-            
-         endif
-
-         if (entrop(5,EL_EX).gt.s0+kappa) then
-            
-            MZ(:,:,:,EL_EX) = (SEVDMAvg+e1(5)) *
-     &           (abs(lim_by+balance(5)))**pa * MZ(:,:,:,EL_EX)
-
-         else
-
-            MZ(:,:,:,EL_EX) = MZ(:,:,:,EL_EX)*SEVDMAvg
-            
-         endif
-
-         
-#else
-         MZ(:,:,:,EL_IN) = MZ(:,:,:,EL_IN)*SEVDMAvg
-         MZ(:,:,:,EL_EX) = MZ(:,:,:,EL_EX)*SEVDMAvg
-#endif
-#endif
-
          
  1000 CONTINUE
       RETURN
@@ -1143,7 +984,7 @@ C***********************************************************************
 C.....Use appropriate modules
 
       USE SIZES,ONLY : SZ,layers
-      USE GLOBAL,ONLY : AREAS,nm,entrop
+      USE GLOBAL,ONLY : AREAS,nm
       USE DG,ONLY : M_INV,XLEN,PHI_EDGE,WEGP,LZ,HZ,TZ
  
       IMPLICIT NONE
@@ -1206,7 +1047,7 @@ C***********************************************************************
 C.....Use appropriate modules
 
       USE SIZES,ONLY : SZ,layers
-      USE GLOBAL,ONLY : AREAS,entrop
+      USE GLOBAL,ONLY : AREAS
       USE DG,ONLY : M_INV,XLEN,PHI_EDGE,WEGP,MZ
 
       IMPLICIT NONE
