@@ -304,6 +304,9 @@ C.....Initialize the DG arrays
       hbo = 0.D0
       hb = 0.D0
       LZ = 0.d0
+      HZ = 0.D0
+      TZ = 0.D0
+      MZ = 0.D0
       iota = 0.D0
       iota2 = 0.D0
       iotaa = 0.D0

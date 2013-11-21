@@ -62,7 +62,7 @@ C.....Declare local variables
       REAL(SZ) MAX_BOA          ! Maximum of beta_il/alpha_il for all l
       REAL(SZ) NLEQG_TMP, G_TMP
       REAL(SZ) F_HAT_O, G_HAT_O, H_HAT_O,i_hat_o,j_hat_o
-      REAL(SZ) G_HAT_IN, H_HAT_IN, f_HAT_IN
+      REAL(SZ) G_HAT_IN, H_HAT_IN
       REAL(SZ) G_HAT_EX, H_HAT_EX
       REAL(SZ) K_HAT_O
       Real(SZ) bed_HAT_IN(layers),bed_HAT_EX(layers)
@@ -579,8 +579,17 @@ C........Check to make sure mass flux is not coming from a dry element
                      CALL NUMERICAL_FLUX(IT,test_el)
                      NLEQG = NLEQG_TMP
                      G = G_TMP
+                     F_HAT_O = F_HAT
                      G_HAT_EX = G_HAT
                      H_HAT_EX = H_HAT
+#ifdef TRACE
+                     I_HAT_O  = I_HAT
+#endif
+#ifdef CHEM
+                     I_HAT_O  = I_HAT
+                     J_HAT_O  = J_HAT
+#endif
+
 #ifdef SED_LAY
                      bed_HAT_EX(:) =  bed_HAT(:)
 #endif
@@ -590,8 +599,8 @@ C........Check to make sure mass flux is not coming from a dry element
 
                                 !Let us add some diffusive penalties
 
-            F_HAT_O = F_HAT_O + 0.5D0*(HZ_X_IN+HZ_X_EX)*SFAC_IN*NX + 
-     &           0.5D0*(HZ_Y_EX+HZ_Y_EX)*NY
+            F_HAT_O = F_HAT_O + 0.5D0*(HZ_X_IN*SFAC_IN+HZ_X_EX*SFAC_EX)*NX + 
+     &           0.5D0*(HZ_Y_IN+HZ_Y_EX)*NY
             !F_HAT_EX = F_HAT_EX + 0.5D0*(HZ_X_IN+HZ_X_EX)*SFAC_IN*NX + 
             !&           0.5D0*(HZ_Y_EX+HZ_Y_EX)*NY
 
@@ -599,26 +608,26 @@ C........Check to make sure mass flux is not coming from a dry element
      &           LZ_XX_EX*SFAC_EX)*NX
      &           + 0.5D0*(LZ_XY_IN + LZ_XY_EX)*NY
 cnd try adding the penalty term in the LDG method
-     $           +ESLM*.01D0*(QX_IN-QX_EX)
+      !$           +ESLM*.01D0*(QX_IN-QX_EX)
             H_HAT_IN = H_HAT_IN + 0.5D0*(LZ_YX_IN*SFAC_IN + 
      &           LZ_YX_EX*SFAC_EX)*NX
      &           + 0.5D0*(LZ_YY_IN + LZ_YY_EX)*NY
 cnd try adding the penalty term in the LDG method
-     $           +ESLM*.01D0*(QY_IN-QY_EX)
+      !$           +ESLM*.01D0*(QY_IN-QY_EX)
             G_HAT_EX = G_HAT_EX + 0.5D0*(LZ_XX_IN*SFAC_IN
      &           + LZ_XX_EX*SFAC_EX)*NX
      &           + 0.5D0*(LZ_XY_IN + LZ_XY_EX)*NY
 cnd try adding the penalty term in the LDG method
-     $           +ESLM*.01D0*(QX_IN-QX_EX)
+      !$           +ESLM*.01D0*(QX_IN-QX_EX)
             H_HAT_EX = H_HAT_EX + 0.5D0*(LZ_YX_IN*SFAC_IN
      &           + LZ_YX_EX*SFAC_EX)*NX
      &           + 0.5D0*(LZ_YY_IN + LZ_YY_EX)*NY
 cnd try adding the penalty term in the LDG method
-     $           +ESLM*.01D0*(QY_IN-QY_EX)
+      !$           +ESLM*.01D0*(QY_IN-QY_EX) 
 
 #ifdef TRACE
 
-            I_HAT_O = I_HAT_O + 0.5D0*(TZ_X_IN+TZ_X_EX)*SFAC_IN*NX + 
+            I_HAT_O = I_HAT_O + 0.5D0*(TZ_X_IN*SFAC_IN+TZ_X_EX*SFAC_EX)*NX + 
      &           0.5D0*(TZ_Y_IN+TZ_Y_EX)*NY
       !&           +ESLM*.01D0*(iota_IN-iota_EX)
 
@@ -628,11 +637,11 @@ cnd try adding the penalty term in the LDG method
                                 !Let us add some sediment diffusion
 #ifdef SED_LAY
             do ll=1,layers
-               bed_HAT_IN(ll) = bed_HAT_IN(ll) + (MZ_X_IN(ll)+
-     &              MZ_X_EX(ll))*SFAC_IN*NX+(MZ_Y_IN(ll)+MZ_Y_EX(ll))*NY
+               bed_HAT_IN(ll) = bed_HAT_IN(ll) + 0.5D0 * ( (MZ_X_IN(ll)+
+     &              MZ_X_EX(ll))*SFAC_IN*NX+(MZ_Y_IN(ll)+MZ_Y_EX(ll))*NY)
 
-               bed_HAT_EX(ll) = bed_HAT_EX(ll) + (MZ_X_IN(ll)+
-     &              MZ_X_EX(ll))*SFAC_IN*NX+(MZ_Y_IN(ll)+MZ_Y_EX(ll))*NY
+               bed_HAT_EX(ll) = bed_HAT_EX(ll) + 0.5D0 * ( (MZ_X_IN(ll)+
+     &              MZ_X_EX(ll))*SFAC_IN*NX+(MZ_Y_IN(ll)+MZ_Y_EX(ll))*NY)
             enddo
 #endif
 
@@ -786,7 +795,7 @@ C     ----------------------------- EL_IN ------------------------------
                HZ_X_IN = HZ_X_IN
      &              + HZ(K,1,1,EL_IN)*PHI_EDGE(K,GP_IN,LED_IN,pa)
                HZ_Y_IN = HZ_Y_IN
-     &              + LZ(K,2,2,EL_IN)*PHI_EDGE(K,GP_IN,LED_IN,pa)
+     &              + HZ(K,2,2,EL_IN)*PHI_EDGE(K,GP_IN,LED_IN,pa)
 
                LZ_XX_IN = LZ_XX_IN
      &              + LZ(K,1,1,EL_IN)*PHI_EDGE(K,GP_IN,LED_IN,pa)

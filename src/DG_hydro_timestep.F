@@ -587,15 +587,15 @@ C.......Filter the layers if flagged
 C.......Filter the transported tracer term if flagged
 
 #ifdef TRACE
-            iota(K,J,NRK+1) = iota(K,J,nrk+1)
+            iota(K,J,NRK+1) = sigma*iota(K,J,nrk+1)
 
 #endif
 
 C......Filter chemistry transported terms if flagged
 
 #ifdef CHEM
-            iota(K,J,NRK+1) =  iota(K,J,nrk+1) 
-            iota2(K,J,NRK+1) = iota2(K,J,nrk+1) 
+            iota(K,J,NRK+1) =  sigma*iota(K,J,nrk+1) 
+            iota2(K,J,NRK+1) = sigma*iota2(K,J,nrk+1) 
 
 #endif
 
@@ -665,6 +665,18 @@ C......Filter chemistry transported terms if flagged
             ENDDO
          ENDDO
       ENDDO
+
+
+      DO J = 1,MNE
+
+         if (myproc.eq.241.and.SLAM(NM(J,1))/DEG2RAD.eq.-89.79832600D0.
+     &        and.SFEA(NM(J,1))/DEG2RAD.eq.30.06944900D0) then
+            print*, 'ze = ', ZE(:,J,1), 'timestp = ', it
+            print*, 'qx = ', qx(:,J,1), 'timestp = ', it
+            print*, 'qy = ', ZE(:,J,1), 'timestp = ', it
+         endif
+         
+      enddo
 
       RETURN
       END SUBROUTINE

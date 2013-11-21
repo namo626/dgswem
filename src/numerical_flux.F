@@ -63,7 +63,7 @@ C.....Declare local variables
       
       INTEGER II,GED,ll,w,IT,kk,jj,MM,fast
       REAL(SZ) DEN, U_AVG, V_AVG, VEL_NORMAL, q_RoeX, q_RoeY, q_Roe
-      Real(SZ) bedX_IN,bedX_EX,dtildeQx(4),dtildeQy(4),eigmax
+      Real(SZ) bedX_IN,bedX_EX,dtildeQx(4),dtildeQy(4)
       Real(SZ) bedY_IN,bedY_EX, bed_AVG(layers),lambda4_IN,lambda4_EX
       Real(SZ) rVncU,rVncV,lambda1_IN,lambda1_EX,lambda2_IN,lambda2_EX
       Real(SZ) lambda3_IN,lambda3_EX,Select_IN,Select_EX
@@ -101,8 +101,8 @@ C.....Evaluate the eigenvalues at the Roe averaged variables
       EIGVAL(1) = EIGVAL(2) + C_ROE
       EIGVAL(3) = EIGVAL(2) - C_ROE
 
-      eigmax = max(abs(EIGVAL(1)),abs(EIGVAL(2)),abs(EIGVAL(3)))
-      cfl_max = max(EIGMAX,cfl_max)
+      !eigmax = max(abs(EIGVAL(1)),abs(EIGVAL(2)),abs(EIGVAL(3)))
+      !cfl_max = max(EIGMAX,cfl_max)
       
 C.....Evaluate right eigenvectors at Roe averaged variables
 
@@ -1006,7 +1006,7 @@ C.....Find the maximum eigenvalue (in absolute value)
       EIGMAX = MAX( EIGVALS(1), EIGVALS(2), EIGVALS(3),
      &     EIGVALS(4), EIGVALS(5), EIGVALS(6) )
 
-      cfl_max = max(EIGMAX,cfl_max)
+      !cfl_max = max(EIGMAX,cfl_max)
                                 !print*,eigmax
 
 C.....Compute the Local Lax Friedrichs Fluxes
