@@ -37,8 +37,9 @@ C.....Declare local variables
       Allocate ( tmp_mz(dofh,2,1,MNE) )
 
 C.....Initialize for viscosity/diffusion
-
+#ifdef WAVE_DIF
       HZ = 0.D0
+#endif 
       LZ = 0.D0
 #ifdef TRACE
       TZ = 0.d0
@@ -51,6 +52,10 @@ C.....Compute elevation specified edges
 
       IF (NEEDS.GT.0)  CALL OCEAN_EDGE_LDG_HYDRO()
 
+C.....Compute no-normal flow edges
+
+      IF (NLEDS.GT.0)  CALL LAND_EDGE_LDG_HYDRO()
+
 C.....Compute non-zero flow edges
 
       IF (NFEDS.GT.0)  CALL FLOW_EDGE_LDG_HYDRO()
@@ -59,10 +64,6 @@ C.....Compute radiation edges
 
       IF (NREDS.GT.0)  CALL RADIATION_EDGE_LDG_HYDRO()
 
-C.....Compute no-normal flow edges
-
-      IF (NLEDS.GT.0)  CALL LAND_EDGE_LDG_HYDRO()
-
 C.....Compute internal edges
 
       CALL INTERNAL_EDGE_LDG_HYDRO()
@@ -70,6 +71,7 @@ C.....Compute internal edges
 C.....Loop over interior elements
 
       CALL RHS_LDG_HYDRO()
+
       do L=1,NE
 
          N1 = NM(L,1)
@@ -87,6 +89,7 @@ C.....Loop over interior elements
 
          lim_by = 1.D0
          
+#ifdef WAVE_DIF
          if (entrop(1,L).gt.s0+kappa) then
             
             HZ(:,:,:,L) = (bg_dif+e1(1)) *
@@ -97,6 +100,7 @@ C.....Loop over interior elements
             HZ(:,:,:,L) = bg_dif*HZ(:,:,:,L)
 
          endif
+#endif
 
          if (entrop(2,L).gt.s0+kappa) then
             
@@ -158,8 +162,9 @@ C.....Loop over interior elements
 #endif
          
 #else
-
+#ifdef WAVE_DIF
          HZ(:,:,:,L) = bg_dif*HZ(:,:,:,L)
+#endif
          LZ(:,:,:,L) = EVMAvg*LZ(:,:,:,L)
                
 #ifdef TRACE
@@ -177,7 +182,9 @@ C.....Loop over interior elements
 C********************************************
 
 #ifdef CMPI
+#ifdef WAVE_DIF
       CALL UPDATELZ_ELEM(HZ)
+#endif
       CALL UPDATELZ_ELEM(LZ)
 #ifdef TRACE
       CALL UPDATELZ_ELEM(TZ)
@@ -258,9 +265,10 @@ C.....Compute ZE, QX, QY, and HB at each edge Gauss quadrature point
 
          DO I = 1,NEGP(pa)
 
+#ifdef WAVE_DIF
             ZE_IN = 0.D0
             ZE_EX = 0.D0
-
+#endif
             QX_IN = 0.D0
             QY_IN = 0.D0
 
@@ -283,9 +291,9 @@ C.....Compute ZE, QX, QY, and HB at each edge Gauss quadrature point
 C.....Compute the solution at the interior state
 
             DO K = 1,DOFS(EL_IN)
-
+#ifdef WAVE_DIF
                ZE_IN = ZE_IN + ZE(K,EL_IN,IRK)*PHI_EDGE(K,I,LED,pa)
-
+#endif
                QX_IN = QX_IN + QX(K,EL_IN,IRK)*PHI_EDGE(K,I,LED,pa)
                QY_IN = QY_IN + QY(K,EL_IN,IRK)*PHI_EDGE(K,I,LED,pa)
 #ifdef TRACE
@@ -311,7 +319,9 @@ C.....Set the exterior state flows equal to the interior state flows
 #endif
 
 C.....Take the average
+#ifdef WAVE_DIF
             ZE_AVG = ZE_IN
+#endif
             QX_AVG = 0.5D0*(QX_IN + QX_EX)*SFACED(I,LED,EL_IN,pa)
             QY_AVG = 0.5D0*(QY_IN + QY_EX)
 #ifdef TRACE
@@ -410,7 +420,9 @@ C.....Set the components for the tangential vector to the edge
 C.....Compute ZE, QX, QY, and HB at each Gauss point
 
          DO I = 1,NEGP(pa)
+#ifdef WAVE_DIF
             ZE_IN = 0.D0
+#endif
             QX_IN = 0.D0
             QY_IN = 0.D0
 #ifdef TRACE
@@ -425,7 +437,9 @@ C.....Compute ZE, QX, QY, and HB at each Gauss point
 C.....Compute the solution at the interior state
 
             DO K = 1,DOFS(EL_IN)
+#ifdef WAVE_DIF
                ZE_IN = ZE_IN + ZE(K,EL_IN,IRK)*PHI_EDGE(K,I,LED,pa)
+#endif
                QX_IN = QX_IN + QX(K,EL_IN,IRK)*PHI_EDGE(K,I,LED,pa)
                QY_IN = QY_IN + QY(K,EL_IN,IRK)*PHI_EDGE(K,I,LED,pa)
 #ifdef TRACE
@@ -462,7 +476,9 @@ C.....Compute the x and y components of the external state flow
 
 
 C.....Take the average
+#ifdef WAVE_DIF
             ZE_AVG = ZE_IN
+#endif
             QX_AVG = 0.5D0*(QX_IN + QX_EX)*SFACED(I,LED,EL_IN,pa)
             QY_AVG = 0.5D0*(QY_IN + QY_EX)
 #ifdef TRACE
@@ -561,8 +577,10 @@ C.....Compute ZE, QX, QY, and HB at each edge Gauss quadrature point
 
          DO I = 1,NEGP(pa)
 
+#ifdef WAVE_DIF
             ZE_IN = 0.D0
             ZE_EX = 0.D0
+#endif
 
             QX_IN = 0.D0
             QY_IN = 0.D0
@@ -611,7 +629,9 @@ C.....Compute the solution at the interior state
 
             DO K = 1,DOFS(EL_IN)
 
+#ifdef WAVE_DIF
                ZE_IN = ZE_IN + ZE(K,EL_IN,IRK)*PHI_EDGE(K,I,LED,pa)
+#endif
 
                QX_IN = QX_IN + QX(K,EL_IN,IRK)*PHI_EDGE(K,I,LED,pa)
                QY_IN = QY_IN + QY(K,EL_IN,IRK)*PHI_EDGE(K,I,LED,pa)
@@ -630,7 +650,9 @@ C.....Compute the solution at the interior state
             
 C.....Take the average
 
+#ifdef WAVE_DIF
                ZE_AVG = ZE_IN
+#endif
                QX_AVG = 0.5*(QX_IN + QX_EX)*SFACED(I,LED,EL_IN,pa)
                QY_AVG = 0.5*(QY_IN + QY_EX)
 #ifdef TRACE
@@ -723,8 +745,9 @@ C.....Compute ZE, QX, QY, and HB at each Gauss point
 
          DO I = 1,NEGP(pa)
             
+#ifdef WAVE_DIF
             ZE_IN = 0.D0
-
+#endif
             QX_IN = 0.D0
             QY_IN = 0.D0
 #ifdef TRACE
@@ -740,7 +763,9 @@ C.....Compute the solution at the interior state
 
             DO K = 1,DOFS(EL_IN)
                
+#ifdef WAVE_DIF
                ZE_IN = ZE_IN + ZE(K,EL_IN,IRK)*PHI_EDGE(K,I,LED,pa)
+#endif
                QX_IN = QX_IN + QX(K,EL_IN,IRK)*PHI_EDGE(K,I,LED,pa)
                QY_IN = QY_IN + QY(K,EL_IN,IRK)*PHI_EDGE(K,I,LED,pa)
 #ifdef TRACE
@@ -850,11 +875,14 @@ C.....Compute ZE, QX, QY, and HB at each edge Gauss quadrature point
             GP_IN = I
             GP_EX = NEGP(pa) - I + 1
             
+#ifdef WAVE_DIF
             ZE_IN = 0.D0
+#endif
             QX_IN = 0.D0
             QY_IN = 0.D0
-
+#ifdef WAVE_DIF
             ZE_EX = 0.D0
+#endif
             QX_EX = 0.D0
             QY_EX = 0.D0
 #ifdef TRACE
@@ -872,11 +900,14 @@ C.....Compute ZE, QX, QY, and HB at each edge Gauss quadrature point
 
             DO K = 1,DOFS(EL)
 
+#ifdef WAVE_DIF
                ZE_IN = ZE_IN + ZE(K,EL_IN,IRK)*PHI_EDGE(K,GP_IN,LED_IN,pa)
+#endif
                QX_IN = QX_IN + QX(K,EL_IN,IRK)*PHI_EDGE(K,GP_IN,LED_IN,pa)
                QY_IN = QY_IN + QY(K,EL_IN,IRK)*PHI_EDGE(K,GP_IN,LED_IN,pa)
-
+#ifdef WAVE_DIF
                ZE_EX = ZE_EX + ZE(K,EL_EX,IRK)*PHI_EDGE(K,GP_EX,LED_EX,pa)
+#endif
                QX_EX = QX_EX + QX(K,EL_EX,IRK)*PHI_EDGE(K,GP_EX,LED_EX,pa)
                QY_EX = QY_EX + QY(K,EL_EX,IRK)*PHI_EDGE(K,GP_EX,LED_EX,pa)
 #ifdef TRACE
@@ -897,7 +928,9 @@ C.....Compute ZE, QX, QY, and HB at each edge Gauss quadrature point
 
 C.....Take the average
 
+#ifdef WAVE_DIF
             ZE_AVG = 0.5D0*(ZE_IN + ZE_EX)
+#endif
 
             QX_AVG = 0.5D0*(QX_IN*SFACED(I,LED_IN,EL_IN,pa) 
      &           + QX_EX*SFACED(I,LED_EX,EL_EX,pa))
@@ -922,17 +955,19 @@ C.....Compute the edge integral
                W_EX = 2.0*M_INV(K,pa)/AREAS(EL_EX)*XLEN(GED)*
      &              PHI_EDGE(K,GP_EX,LED_EX,pa)*WEGP(GP_EX,pa)
                
+#ifdef WAVE_DIF
                HZ(K,1,1,EL_IN) = HZ(K,1,1,EL_IN) - ZE_AVG*NX*W_IN
                HZ(K,2,2,EL_IN) = HZ(K,2,2,EL_IN) - ZE_AVG*NY*W_IN
-
+#endif
                LZ(K,1,1,EL_IN) = LZ(K,1,1,EL_IN) - QX_AVG*NX*W_IN
                LZ(K,1,2,EL_IN) = LZ(K,1,2,EL_IN) - QX_AVG*NY*W_IN
                LZ(K,2,1,EL_IN) = LZ(K,2,1,EL_IN) - QY_AVG*NX*W_IN
                LZ(K,2,2,EL_IN) = LZ(K,2,2,EL_IN) - QY_AVG*NY*W_IN
                
+#ifdef WAVE_DIF
                HZ(K,1,1,EL_EX) = HZ(K,1,1,EL_EX) + ZE_AVG*NX*W_EX
                HZ(K,2,2,EL_EX) = HZ(K,2,2,EL_EX) + ZE_AVG*NY*W_EX
-
+#endif
                LZ(K,1,1,EL_EX) = LZ(K,1,1,EL_EX) + QX_AVG*NX*W_EX
                LZ(K,1,2,EL_EX) = LZ(K,1,2,EL_EX) + QX_AVG*NY*W_EX
                LZ(K,2,1,EL_EX) = LZ(K,2,1,EL_EX) + QY_AVG*NX*W_EX
@@ -1004,11 +1039,12 @@ C.....Comput the edge integral
 
       IMASS = M_INV(K,pa)/(0.5D0*AREA)
 
+#ifdef WAVE_DIF
       HZ(K,1,1,EL) = HZ(K,1,1,EL)
      &     - IMASS*XLEN(GED)*0.5*ZE_Avg*PHI_EDGE(K,GP,LED,pa)*NX*WEGP(GP,pa)
       HZ(K,2,2,EL) = HZ(K,2,2,EL)
      &     - IMASS*XLEN(GED)*0.5*ZE_Avg*PHI_EDGE(K,GP,LED,pa)*NY*WEGP(GP,pa)
-
+#endif
       LZ(K,1,1,EL) = LZ(K,1,1,EL)
      &     - IMASS*XLEN(GED)*0.5*QX_Avg*PHI_EDGE(K,GP,LED,pa)*NX*WEGP(GP,pa)
       LZ(K,1,2,EL) = LZ(K,1,2,EL)
@@ -1129,7 +1165,9 @@ C.....Compute ZE, QX, QY, and HB at each area Gauss quadrature point
 
          DO I = 1,NAGP(pa)
             
+#ifdef WAVE_DIF
             ZE_IN = 0.D0
+#endif
             QX_IN = 0.D0
             QY_IN = 0.D0
 #ifdef TRACE
@@ -1143,8 +1181,9 @@ C.....Compute ZE, QX, QY, and HB at each area Gauss quadrature point
 #endif
             
             DO K = 1,DOFS(L)
-
+#ifdef WAVE_DIF
                ZE_IN = ZE_IN + ZE(K,L,IRK)*PHI_AREA(K,I,pa)
+#endif
                QX_IN = QX_IN + QX(K,L,IRK)*PHI_AREA(K,I,pa)
                QY_IN = QY_IN + QY(K,L,IRK)*PHI_AREA(K,I,pa)
 #ifdef TRACE
@@ -1162,6 +1201,7 @@ C.....Compute ZE, QX, QY, and HB at each area Gauss quadrature point
 C.....Build the rhs
                 
             DO K = 1,DOFS(L)
+#ifdef WAVE_DIF
                HZ(K,1,1,L) = HZ(K,1,1,L)
      &              + M_INV(K,pa)*ZE_IN*SFAC_ELEM(I,L,pa)* ! <--- ZE/Mk
      &              ( DRPHI(K,I,pa)*DRDX(L) + DSPHI(K,I,pa)*DSDX(L) )* ! <--- dphi/dx
@@ -1170,6 +1210,8 @@ C.....Build the rhs
      &              + M_INV(K,pa)*ZE_IN* ! <--- ZE/Mk
      &              ( DRPHI(K,I,pa)*DRDY(L) + DSPHI(K,I,pa)*DSDY(L) )* ! <--- dphi/dy
      &              WAGP(I,pa)  ! <--- weight
+#endif
+
                LZ(K,1,1,L) = LZ(K,1,1,L)
      &              + M_INV(K,pa)*QX_IN*SFAC_ELEM(I,L,pa)* ! <--- QX/Mk
      &              ( DRPHI(K,I,pa)*DRDX(L) + DSPHI(K,I,pa)*DSDX(L) )* ! <--- dphi/dx
@@ -1223,11 +1265,14 @@ C.....Build the rhs
          slimit3 = -100.D0
 
          entrop(:,L) = -100.D0
-            
-         ze_sensor1 = 0.d0             
+           
+#ifdef WAVE_DIF 
+         ze_sensor1 = 0.d0
+         ze_sensor2 = 0.d0  
+#endif             
          qx_sensor1 = 0.d0
          qy_sensor1 = 0.d0
-         ze_sensor2 = 0.d0            
+           
          qx_sensor2 = 0.d0
          qy_sensor2 = 0.d0
 
@@ -1246,8 +1291,10 @@ C.....Build the rhs
          do I = 1,NAGP(pa)
             
             do kk = 2, dofs(L)  !Compute the first sensor
+#ifdef WAVE_DIF 
                ze_sensor1 = ze_sensor1 + (ze(kk,L,irk)* 
      &              phi_area(kk,I,pa))**2.D0 * wagp(I,pa)
+#endif
                qx_sensor1 = qx_sensor1 + (qx(kk,L,irk)* 
      &              phi_area(kk,I,pa))**2.D0 * wagp(I,pa)
                qy_sensor1 = qy_sensor1 + (qy(kk,L,irk)* 
@@ -1267,8 +1314,10 @@ C.....Build the rhs
             enddo
             
             do kk = 1,dofs(L) !Compute the second sensor
+#ifdef WAVE_DIF 
                ze_sensor2 = ze_sensor2 + (ze(kk,L,irk)* 
      &              phi_area(kk,I,pa))**2.D0 * wagp(I,pa)
+#endif
                qx_sensor2 = qx_sensor2 + (qx(kk,L,irk)* 
      &              phi_area(kk,I,pa))**2.D0 * wagp(I,pa)
                qy_sensor2 = qy_sensor2 + (qy(kk,L,irk)* 
@@ -1288,11 +1337,12 @@ C.....Build the rhs
             enddo
             
          enddo
-
+#ifdef WAVE_DIF 
          if  (ze_sensor2.gt.1.0e-4.and.ze_sensor1.gt.1.0e-4 ) then
             slimit1 = log10( ze_sensor1/ze_sensor2 ) + balance(1)
             entrop(1,L) = slimit1
          endif
+#endif
          if (qx_sensor2.gt.1.0e-4.and.qx_sensor1.gt.1.0e-4 ) then
             slimit2 = log10( qx_sensor1/qx_sensor2 ) + balance(2)
             entrop(2,L) = slimit2

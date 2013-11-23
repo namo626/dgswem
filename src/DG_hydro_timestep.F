@@ -667,7 +667,16 @@ C......Filter chemistry transported terms if flagged
       ENDDO
 
 
-   
+      DO J = 1,MNE
+
+         if (SLAM(NM(J,1))/DEG2RAD.eq.-78.97904500000D0.
+     &        and.SFEA(NM(J,1))/DEG2RAD.eq.20.81854100000D0) then
+            print*, 'ze = ', ZE(:,J,1), 'timestp = ', it, 'proc =', myproc
+            print*, 'qx = ', qx(:,J,1), 'timestp = ', it, 'proc =', myproc
+            print*, 'qy = ', ZE(:,J,1), 'timestp = ', it, 'proc =', myproc
+         endif
+         
+      enddo 
 
       RETURN
       END SUBROUTINE

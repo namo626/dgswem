@@ -118,8 +118,10 @@ C.....Compute ZE, QX, QY, and HB at each edge Gauss quadrature point
             MZ_Y_IN(:) = 0.D0
 #endif
 
+#ifdef WAVE_DIF
             HZ_X_IN = 0.D0
             HZ_Y_IN = 0.D0
+#endif
 
             LZ_XX_IN = 0.D0
             LZ_XY_IN = 0.D0
@@ -248,9 +250,9 @@ C.....Set the exterior bed and surface elevation equal to the interior
             CALL NUMERICAL_FLUX(IT,L)
 
 C.....Add LDG terms
-
+#ifdef WAVE_DIF
             F_HAT = F_HAT + HZ_X_IN*NX*SFAC_IN + HZ_Y_IN*NY
-            
+#endif
             G_HAT = G_HAT + LZ_XX_IN*NX*SFAC_IN + LZ_XY_IN*NY
             H_HAT = H_HAT + LZ_YX_IN*NX*SFAC_IN + LZ_YY_IN*NY
 

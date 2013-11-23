@@ -78,9 +78,10 @@ C.....Compute ZE, QX, QY, and HB at each Gauss point
             HB_IN = BATHED(I,LED,EL_IN,pa)
 
             SFAC_IN = SFACED(I,LED,EL_IN,pa)
-
+#ifdef WAVE_DIF 
             HZ_X_IN = HZ(1,1,1,EL_IN)
             HZ_Y_IN = HZ(1,2,2,EL_IN)
+#endif
 
             LZ_XX_IN = LZ(1,1,1,EL_IN)
             LZ_XY_IN = LZ(1,1,2,EL_IN)
@@ -125,8 +126,10 @@ C.....Compute the solution at the interior state
                QY_IN = QY_IN + QY(K,EL_IN,IRK)*PHI_EDGE(K,I,LED,pa)
 
                                 ! LDG terms
+#ifdef WAVE_DIF 
                HZ_X_IN = HZ_X_IN + HZ(K,1,1,EL_IN)*PHI_EDGE(K,I,LED,pa)
                HZ_Y_IN = HZ_Y_IN + HZ(K,2,2,EL_IN)*PHI_EDGE(K,I,LED,pa)
+#endif
 
                LZ_XX_IN = LZ_XX_IN + LZ(K,1,1,EL_IN)*PHI_EDGE(K,I,LED,pa)
                LZ_XY_IN = LZ_XY_IN + LZ(K,1,2,EL_IN)*PHI_EDGE(K,I,LED,pa)

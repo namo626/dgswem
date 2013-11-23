@@ -267,12 +267,12 @@ C.....Compute ZE, QX, QY, and HB at each edge Gauss quadrature point
 #endif
 
                                 !LDG terms
-
+#ifdef WAVE_DIF
             HZ_X_IN = HZ(1,1,1,EL_IN)
             HZ_Y_IN = HZ(1,2,2,EL_IN)
             HZ_X_EX = HZ(1,1,1,EL_EX)
             HZ_Y_EX = HZ(1,2,2,EL_EX)
-
+#endif
             LZ_XX_IN = LZ(1,1,1,EL_IN)
             LZ_XY_IN = LZ(1,1,2,EL_IN)
             LZ_YX_IN = LZ(1,2,1,EL_IN)
@@ -327,7 +327,7 @@ C.....Compute ZE, QX, QY, and HB at each edge Gauss quadrature point
 #endif
 
                                 ! LDG terms
-
+#ifdef WAVE_DIF
                HZ_X_IN = HZ_X_IN 
      &              + HZ(K,1,1,EL_IN)*PHI_EDGE(K,GP_IN,LED_IN,pa)
                HZ_Y_IN = HZ_Y_IN 
@@ -336,7 +336,7 @@ C.....Compute ZE, QX, QY, and HB at each edge Gauss quadrature point
      &              + HZ(K,1,1,EL_EX)*PHI_EDGE(K,GP_EX,LED_EX,pa)
                HZ_Y_EX = HZ_Y_EX 
      &              + HZ(K,2,2,EL_EX)*PHI_EDGE(K,GP_EX,LED_EX,pa)
-
+#endif
                LZ_XX_IN = LZ_XX_IN 
      &              + LZ(K,1,1,EL_IN)*PHI_EDGE(K,GP_IN,LED_IN,pa)
                LZ_XY_IN = LZ_XY_IN 
@@ -598,12 +598,12 @@ C........Check to make sure mass flux is not coming from a dry element
             ENDIF
 
                                 !Let us add some diffusive penalties
-
+#ifdef WAVE_DIF
             F_HAT_O = F_HAT_O + 0.5D0*(HZ_X_IN*SFAC_IN+HZ_X_EX*SFAC_EX)*NX + 
      &           0.5D0*(HZ_Y_IN+HZ_Y_EX)*NY
             !F_HAT_EX = F_HAT_EX + 0.5D0*(HZ_X_IN+HZ_X_EX)*SFAC_IN*NX + 
             !&           0.5D0*(HZ_Y_EX+HZ_Y_EX)*NY
-
+#endif
             G_HAT_IN = G_HAT_IN + 0.5D0*(LZ_XX_IN*SFAC_IN + 
      &           LZ_XX_EX*SFAC_EX)*NX
      &           + 0.5D0*(LZ_XY_IN + LZ_XY_EX)*NY
@@ -746,10 +746,10 @@ C     ----------------------------- EL_IN ------------------------------
 #endif
 
             !diffusion
-
+#ifdef WAVE_DIF
             HZ_X_IN = HZ(1,1,1,EL_IN)
             HZ_Y_IN = HZ(1,2,2,EL_IN)
-
+#endif
             LZ_XX_IN = LZ(1,1,1,EL_IN)
             LZ_XY_IN = LZ(1,1,2,EL_IN)
             LZ_YX_IN = LZ(1,2,1,EL_IN)
@@ -791,12 +791,12 @@ C     ----------------------------- EL_IN ------------------------------
                enddo
 #endif
                                 ! LDG terms
-
+#ifdef WAVE_DIF
                HZ_X_IN = HZ_X_IN
      &              + HZ(K,1,1,EL_IN)*PHI_EDGE(K,GP_IN,LED_IN,pa)
                HZ_Y_IN = HZ_Y_IN
      &              + HZ(K,2,2,EL_IN)*PHI_EDGE(K,GP_IN,LED_IN,pa)
-
+#endif
                LZ_XX_IN = LZ_XX_IN
      &              + LZ(K,1,1,EL_IN)*PHI_EDGE(K,GP_IN,LED_IN,pa)
                LZ_XY_IN = LZ_XY_IN
@@ -870,9 +870,10 @@ C     CALL NUMERICAL_FLUX(IT)
 
 C.....Add LDG terms for eddy viscosity
 
+#ifdef WAVE_DIF
             F_HAT = F_HAT + HZ_X_IN*NX*SFAC_IN
      &           + HZ_Y_IN*NY
-
+#endif
             G_HAT = G_HAT + LZ_XX_IN*NX*SFAC_IN
      &           + LZ_XY_IN*NY
             H_HAT = H_HAT + LZ_YX_IN*NX*SFAC_IN
@@ -959,9 +960,10 @@ C     ----------------------------- EL_EX ------------------------------
 #endif
 
             !LDG
+#ifdef WAVE_DIF
             HZ_X_EX = HZ(1,1,1,EL_EX)
             HZ_Y_EX = HZ(1,2,2,EL_EX)
-
+#endif
             LZ_XX_EX = LZ(1,1,1,EL_EX)
             LZ_XY_EX = LZ(1,1,2,EL_EX)
             LZ_YX_EX = LZ(1,2,1,EL_EX)
@@ -1004,11 +1006,12 @@ C     ----------------------------- EL_EX ------------------------------
 #endif
 
                                 ! LDG terms
+#ifdef WAVE_DIF
                HZ_X_EX = HZ_X_EX
      &              + HZ(K,1,1,EL_EX)*PHI_EDGE(K,GP_EX,LED_EX,pa)
                HZ_Y_EX = HZ_Y_EX
      &              + HZ(K,2,2,EL_EX)*PHI_EDGE(K,GP_EX,LED_EX,pa)
-
+#endif
                LZ_XX_EX = LZ_XX_EX
      &              + LZ(K,1,1,EL_EX)*PHI_EDGE(K,GP_EX,LED_EX,pa)
                LZ_XY_EX = LZ_XY_EX
@@ -1086,9 +1089,10 @@ C     CALL NUMERICAL_FLUX(IT,L)
             F_HAT = 0.D0        ! Ensure zero mass flux
 
 C.....Add LDG terms for eddy viscosity
-
+#ifdef WAVE_DIF
             F_HAT = F_HAT + HZ_X_EX*NX*SFAC_EX
      &           + HZ_Y_EX*NY
+#endif
             G_HAT = G_HAT + LZ_XX_EX*NX*SFAC_EX
      &           + LZ_XY_EX*NY
             H_HAT = H_HAT + LZ_YX_EX*NX*SFAC_EX

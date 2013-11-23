@@ -150,8 +150,10 @@ C.......Compute ZE, QX, QY, and HB at each area Gauss quadrature point
             enddo
 #endif
 
+#ifdef WAVE_DIF 
             HZ_X = HZ(1,1,1,L)
             HZ_Y = HZ(1,2,2,L)
+#endif
             
             LZ_XX = LZ(1,1,1,L)
             LZ_XY = LZ(1,1,2,L)
@@ -173,8 +175,10 @@ C.......Compute ZE, QX, QY, and HB at each area Gauss quadrature point
                QX_IN = QX_IN + QX(K,L,IRK)*PHI_AREA(K,I,pa)
                QY_IN = QY_IN + QY(K,L,IRK)*PHI_AREA(K,I,pa)
 
+#ifdef WAVE_DIF 
                HZ_X = HZ_X + HZ(K,1,1,L)*PHI_AREA(K,I,pa)
                HZ_Y = HZ_Y + HZ(K,2,2,L)*PHI_AREA(K,I,pa)
+#endif
 
                LZ_XX = LZ_XX + LZ(K,1,1,L)*PHI_AREA(K,I,pa)
                LZ_XY = LZ_XY + LZ(K,1,2,L)*PHI_AREA(K,I,pa)
@@ -223,7 +227,13 @@ C.........Compute sediment discharge model
 C.........Compute continuity fluxes
 
             F1_NL = NLEQ + LEQ*HB_IN
+
+#ifdef WAVE_DIF 
             FX_IN = (QX_IN+HZ_X)*F1_NL*SFACQUAD
+#else
+            FX_IN = QX_IN*F1_NL*SFACQUAD
+#endif
+
             FY_IN = (QY_IN+HZ_Y)*F1_NL
 
 C.........Compute momentum flux terms
@@ -429,7 +439,7 @@ C.........Build the rhs
 
 #ifdef TRACE
                RHS_iota(K,L,IRK) = RHS_iota(K,L,IRK) 
-     &              + XFAC(K,I,L,pa)*(iota_IN*QX_IN*FH_NL+TZ_X*SFACQUAD) !problems!
+     &              + XFAC(K,I,L,pa)*(iota_IN*QX_IN*FH_NL+TZ_X*SFACQUAD) 
      &              + YFAC(K,I,L,pa)*(iota_IN*QY_IN*FH_NL+TZ_Y) 
 #endif
 
