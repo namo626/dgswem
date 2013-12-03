@@ -24,9 +24,9 @@ Casey 091216: Added another coupling variable.
 
 Casey 090302: These arrays contain the radiation stresses.
 Casey 090820: Be explicit about the size of these REAL variables.
-      REAL(4) ,ALLOCATABLE :: ADCIRC_SXX(:,:)
-      REAL(4) ,ALLOCATABLE :: ADCIRC_SXY(:,:)
-      REAL(4) ,ALLOCATABLE :: ADCIRC_SYY(:,:)
+      REAL(SZ) ,ALLOCATABLE :: ADCIRC_SXX(:,:)
+      REAL(SZ) ,ALLOCATABLE :: ADCIRC_SXY(:,:)
+      REAL(SZ) ,ALLOCATABLE :: ADCIRC_SYY(:,:)
 
 Casey 090302: The interpolation weight controls which value
 C             is taken when information is passed between ADCIRC

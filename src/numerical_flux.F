@@ -306,7 +306,10 @@ C.....Compute the remaining Roe averaged variables
       QY_ROE  = (QY_IN + QY_EX) / 2.D0
       bed_ROE = (bed_IN(1)+bed_EX(1)) / 2.D0
 
-      if (it.eq.1.and.mm.eq.1) then !do this only once, because it is Slooooow ....
+
+      !if (it.eq.1.and.mm.eq.1) then !do this only once, because it is Slooooow ....
+      if (.not.init_parser) then
+
          open(446, file = "./db_partials_X")
          read(446,'(a)') funcx(1)
          read(446,'(a)') funcx(2)
@@ -327,6 +330,8 @@ C.....Compute the remaining Roe averaged variables
             CALL parsef (w, funcx(w), varx) ! Parse and bytecompile w-th function string 
             CALL parsef2 (w, funcy(w), vary) ! Parse and bytecompile w-th function string 
          enddo
+
+         init_parser = .true.
 
       endif
       

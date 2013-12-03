@@ -202,7 +202,8 @@ C.....Print out header for output including version number and copyright
      &     /,10X,'Shintaro Bunya, The University of Tokyo (sb)',
      &     /,10X,'Craig Michoski, UT ICES (cem)',
      &     /,10X,'Christopher Mirabito, MIT',
-     &     /,10X,'Damrongsak Wirasaet, University of Notre Dame'//)
+     &     /,10X,'Damrongsak Wirasaet, University of Notre Dame',
+     &     /,10X,'Casey Dietrich, North Carolina State University',//)
 
 
 C.....Write out header information describing how code has been set up

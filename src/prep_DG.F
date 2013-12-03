@@ -93,6 +93,11 @@ C.....Allocate some DG stuff
 
       endif
 
+#ifdef SED_LAY
+C.....Initialize funtion parser for sediment types
+      init_parser = .false.
+#endif
+
 C.....Compute the number of gauss points needed for the edge integrals
 
       CALL ALLOC_DG4()          !moved here 6.28.10, for p_adapt because of messenger_elem      
@@ -1049,9 +1054,9 @@ C.....Read in modal dof for hot start conditions
 #ifdef DYNP
          OPEN(291,FILE=DIRNAME//'/'//'Hot_start.291')
 #endif
-#ifdef SED_LAY
-         OPEN(290,FILE=DIRNAME//'/'//'Hot_start.290')
-#endif
+c$$$#ifdef SED_LAY
+c$$$         OPEN(290,FILE=DIRNAME//'/'//'Hot_start.290')
+c$$$#endif
          READ(263,*) P_READ
          READ(264,*) P_READ,P_READ
          READ(214,*) ITHS
@@ -1073,11 +1078,11 @@ C.....Read in modal dof for hot start conditions
 #ifdef DYNP
                READ(291,*) dynP(K,J,1)
 #endif
-#ifdef SED_LAY
-               do ll=1,layers
-                  READ(290,*) bed(K,J,1,ll)
-               enddo
-#endif
+c$$$#ifdef SED_LAY
+c$$$               do ll=1,layers
+c$$$                  READ(290,*) bed(K,J,1,ll)
+c$$$               enddo
+c$$$#endif
             ENDDO
          ENDDO
          CLOSE(263)
@@ -1089,9 +1094,9 @@ C.....Read in modal dof for hot start conditions
 #ifdef CHEM
          CLOSE(289)
 #endif
-#ifdef SED_LAY
-         CLOSE(290)
-#endif
+c$$$#ifdef SED_LAY
+c$$$         CLOSE(290)
+c$$$#endif
 #ifdef DYNP
          CLOSE(291)
 #endif

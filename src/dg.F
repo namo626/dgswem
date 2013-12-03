@@ -39,6 +39,7 @@ C.....Declare integer variables
       INTEGER FLUXTYPE, test_el
       INTEGER RK_STAGE, RK_ORDER
       Integer padapt,pflag,pl,ph,px,lebesgueP,pa, gflag
+      logical init_parser
 c     
       integer iwrite
 

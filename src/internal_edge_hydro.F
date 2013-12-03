@@ -115,7 +115,7 @@ C.......If both elements on either side of edge are dry then skip
 
          IF((WDFLG(EL_IN).EQ.0).AND.(WDFLG(EL_EX).EQ.0)) GOTO 1000
 
-         test_el = test_el+1
+         !test_el = test_el+1
 
 C.....Save the current RHS
 

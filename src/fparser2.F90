@@ -135,7 +135,7 @@ CONTAINS
     INTEGER,                INTENT(in) :: i                  ! Function identifier
     REAL(sz), DIMENSION(:), INTENT(in) :: Val                ! Variable values
     REAL(sz)                           :: res                ! Result
-    INTEGER                            :: IP,              & ! Instruction pointer
+    INTEGER,target                     :: IP,              & ! Instruction pointer
                                           DP,              & ! Data pointer
                                           SP                 ! Stack pointer
     REAL(sz),                PARAMETER :: zero = 0._sz

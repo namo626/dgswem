@@ -234,8 +234,11 @@ C.........Compute continuity fluxes
             FX_IN = QX_IN*F1_NL*SFACQUAD
 #endif
 
+#ifdef WAVE_DIF 
             FY_IN = (QY_IN+HZ_Y)*F1_NL
-
+#else
+            FY_IN = QY_IN*F1_NL
+#endif
 C.........Compute momentum flux terms
 
             FU_NL = NLEQ*QX_IN

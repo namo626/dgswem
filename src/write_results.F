@@ -130,7 +130,7 @@ C.....to single nodal values
             UU2(I)  = 0.D0
             VV2(I)  = 0.D0
 
-            IF(SEDFLAG.GE.1) DP(I) = 0.D0
+            IF(SEDFLAG.GE.2) DP(I) = 0.D0
 
             DO J = 1,NO_NBORS
                NBOR_EL = ELETAB(I,1+J)
@@ -159,7 +159,7 @@ C.....to single nodal values
                if (etamax(i).lt.eta2(i)) etamax(i)=eta2(i)
                UU2(I)  = UU2(I)  + AREA*QX_DG(J)*FH_NL
                VV2(I)  = VV2(I)  + AREA*QY_DG(J)*FH_NL
-               IF(SEDFLAG.GE.1) DP(I) = DP(I) + (AREA/AREA_SUM)*HB_DG(J)
+               IF(SEDFLAG.GE.2) DP(I) = DP(I) + (AREA/AREA_SUM)*HB_DG(J)
             ENDDO
          ENDDO
 
@@ -402,12 +402,14 @@ C...
                   NM1=NM(NNC(I),1)
                   NM2=NM(NNC(I),2)
                   NM3=NM(NNC(I),3)
-                  HH2N1=DP(NM1)+IFNLFA*ETA2(NM1)
-                  HH2N2=DP(NM2)+IFNLFA*ETA2(NM2)
-                  HH2N3=DP(NM3)+IFNLFA*ETA2(NM3)
+                  HH2N1=dpe(nnc(i))+IFNLFA*ETA2(nnv(i))  !DP(NM1)+IFNLFA*ETA2(NM1)
+                  !HH2N2=  DP(NM2)+IFNLFA*ETA2(NM2)
+                  !HH2N3=  DP(NM3)+IFNLFA*ETA2(NM3)
                   C1=CH1(NM1)/HH2N1
-                  C2=CH1(NM2)/HH2N2
-                  C3=CH1(NM3)/HH2N3
+                  C2=0.D0
+                  C3=0.D0
+                  !C2=CH1(NM2)/HH2N2
+                  !C3=CH1(NM3)/HH2N3
                   NC1=NODECODE(NM1)
                   NC2=NODECODE(NM2)
                   NC3=NODECODE(NM3)
@@ -619,7 +621,7 @@ C.....Write DG.65 results, elemental statuses (wet/dry)
                         WRITE(63,REC=IGEP+I)ETA2(I)
                                 !IF (NODECODE(I).EQ.0) WRITE(63,REC=IGEP+I) -99999.
                      ENDDO
-                     IF(SEDFLAG.GE.1) THEN
+                     IF(SEDFLAG.GE.2) THEN
                         WRITE(84,REC=IGEP+1) TIME_A
                         WRITE(84,REC=IGEP+2) IT
                         DO I = 1,NP
@@ -837,10 +839,10 @@ C     V22=VV2(NM(NNV(I),2))
 C     V33=VV2(NM(NNV(I),3))
 C     UU00(I)=U11*STAIV1(I)+U22*STAIV2(I)+U33*STAIV3(I)
 C     VV00(I)=V11*STAIV1(I)+V22*STAIV2(I)+V33*STAIV3(I)
-                     DP1     = DP(NM(NNV(I),1))
-                     DP2     = DP(NM(NNV(I),2))
-                     DP3     = DP(NM(NNV(I),3))
-                     DP00    = DP1*STAIV1(I) + DP2*STAIV2(I) +DP3*STAIV3(I)
+                     DP1     = DPE(nnv(i)) !DP(NM(NNV(I),1))
+                     !DP2     = DPE(nnv(i)) !DP(NM(NNV(I),2))
+                     !DP3     = DPE(nnv(i)) !DP(NM(NNV(I),3))
+                     !DP00    = DP1*STAIV1(I) + DP2*STAIV2(I) +DP3*STAIV3(I)
                      ZE00    = ZE(1,NNV(I),1)
                      UU00(I) = QX(1,NNV(I),1)
                      VV00(I) = QY(1,NNV(I),1)
@@ -849,7 +851,7 @@ C     VV00(I)=V11*STAIV1(I)+V22*STAIV2(I)+V33*STAIV3(I)
                         UU00(I) = UU00(I) + QX(K,NNV(I),1)*PHI_STAV(K,I)
                         VV00(I) = VV00(I) + QY(K,NNV(I),1)*PHI_STAV(K,I)
                      ENDDO
-                     DEPTH   = ZE00 + DP00
+                     DEPTH   = ZE00 + DP1 !DP00
                      FH_NL   = 1.D0/(NLEQ*DEPTH + LEQ)
                      UU00(I) = UU00(I)*FH_NL
                      VV00(I) = VV00(I)*FH_NL

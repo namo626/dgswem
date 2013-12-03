@@ -179,8 +179,8 @@ c     write(200+myproc,*) 'back from prep_dg'
 !Casey 120813: Begin the OUT_TEC conditional.
 #ifdef OUT_TEC
 #ifdef CMPI
-      tecfile = "./tecplot.out_pe000000"
-      tecfile_max = "./tecplot.max_pe000000"
+      tecfile = "./tecplot_output/tecplot.out_pe000000"
+      tecfile_max = "./tecplot_max/tecplot.max_pe000000"
                                 !call iwrite(tecfile,14,19,myproc)
       write(tecfile(19:23), "(i4.4)") myproc
       write(tecfile_max(19:23), "(i4.4)") myproc

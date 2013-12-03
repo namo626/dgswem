@@ -33,6 +33,12 @@ C.....Set the wind drag limit
 
       WindDragLimit = 0.002
       RampMete = rampdg
+
+Casey 130710: Added this section.
+      IF(WTIME1.LT.ITHS*DTDP)THEN
+         WTIME1 = ITHS*DTDP
+         WTIME2 = WTIME1 + WTIMINC
+      ENDIF
 C-----------------------------------------------------------------------
 C
 C     NWS = 1

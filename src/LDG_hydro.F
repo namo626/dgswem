@@ -341,8 +341,7 @@ C.....Compute the edge integral
 #ifdef SED_LAY
                do ll=1,layers
                   CALL EDGE_INT_LDG_sediment
-     &                (K,EL_IN,LED,GED,I,bed_AVG(ll),NX,NY,pa,
-                  ll)
+     &                (K,EL_IN,LED,GED,I,bed_AVG(ll),NX,NY,pa,ll)
                enddo
 #endif
             ENDDO
@@ -498,8 +497,7 @@ C.....Compute the edge integral
 #ifdef SED_LAY
                do ll=1,layers
                   CALL EDGE_INT_LDG_sediment
-     &                 (K,EL_IN,LED,GED,I,bed_AVG(ll),NX,NY,pa,
-                  ll)
+     &                 (K,EL_IN,LED,GED,I,bed_AVG(ll),NX,NY,pa,ll)
                enddo
 #endif
             ENDDO
@@ -673,8 +671,7 @@ C.....Compute the edge integral
 #ifdef SED_LAY
                do ll=1,layers
                   CALL EDGE_INT_LDG_sediment
-     &                 (K,EL_IN,LED,GED,I,bed_AVG(ll),NX,NY,pa,
-                  ll)
+     &                 (K,EL_IN,LED,GED,I,bed_AVG(ll),NX,NY,pa,ll)
                enddo
 #endif
             ENDDO
@@ -791,8 +788,7 @@ C.....Compute the edge integral
 #ifdef SED_LAY
                do ll=1,layers
                   CALL EDGE_INT_LDG_sediment
-     &                 (K,EL_IN,LED,GED,I,bed_IN(ll),NX,NY,pa,
-                  ll)
+     &                 (K,EL_IN,LED,GED,I,bed_IN(ll),NX,NY,pa,ll)
                enddo
 #endif
             ENDDO
