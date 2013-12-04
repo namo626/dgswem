@@ -44,6 +44,10 @@ C***********************************************************************
 #ifdef SLOPE5 
         CALL SLOPELIMITER5()
 #endif
+
+#ifdef STBLZR
+        CALL SLOPELIMITER5()
+#endif
     
 
       RETURN
@@ -3767,6 +3771,550 @@ c$$$               endif
       END SUBROUTINE 
 
 #endif
+
+#ifdef STBLZR
+
+C***********************************************************************
+C     
+C     SUBROUTINE SLOPELIMITER5()
+C     
+C     Written by Clint Dawson - 30 June 2010
+C     01-10-2011 - cem - adapted for p_enrichment and multicomponent
+C     
+C     
+C***********************************************************************
+
+      SUBROUTINE SLOPELIMITER5()
+
+C.....Use appropriate modules
+
+      USE SIZES, ONLY : SZ,layers
+      USE GLOBAL
+      USE DG
+
+#ifdef CMPI
+      USE MESSENGER
+#endif
+
+      IMPLICIT NONE
+
+C.....Declare local variables
+
+      INTEGER L, LL, INC1,INC2,INC3,KDP,NN,IVAR,I,J,kk,k,varnum,bb,varnum_prev
+      REAL(SZ) ZEC(3),ZEVERTEX(3),DIF(3),SUMLOC,SUMDIF,SIGNDIF,
+     $     DIV,REDFAC,REDMAX,tmp1,tmp2,tmp3,bound
+      Real(SZ) ZEMIN1(3),ZEMAX1(3),QXMIN1(3),QXMAX1(3)
+      Real(SZ) QYMIN1(3),QYMAX1(3)
+      Real(SZ) iotaMIN1(3),iotaMAX1(3)
+      Real(SZ) iota2MIN1(3),iota2MAX1(3)
+      Real(SZ), Allocatable :: ZE_MIN1(:),ZE_MAX1(:),QX_MIN1(:),QX_MAX1(:)
+      Real(SZ), Allocatable :: QY_MIN1(:),QY_MAX1(:)
+      Real(SZ), Allocatable :: iota_MIN1(:),iota_MAX1(:)
+      Real(SZ), Allocatable :: iota2_MIN1(:),iota2_MAX1(:)
+      Real(SZ), Allocatable, target :: bed_min1(:,:), bed_max1(:,:)
+      Real(SZ), pointer:: arraymin(:),arraymax(:)
+
+      Allocate ( ZE_MIN1(NP),ZE_MAX1(NP),QX_MIN1(NP) )
+      Allocate ( QY_MIN1(NP),QY_MAX1(NP),QX_MAX1(NP) )
+      Allocate ( iota_MIN1(NP),iota_MAX1(NP) )
+      Allocate ( iota2_MIN1(NP),iota2_MAX1(NP) )
+      Allocate ( bed_MIN1(NP,layers),bed_MAX1(NP,layers) )
+
+C     FIND THE MAXIMUM AND MINIMUM OF EACH VARIABLE OVER ALL ELEMENTS 
+C     SHARING A NODE
+
+      bound = 0.0D0
+
+      DO I = 1,NP
+         ZE_MIN1(I)=99999.
+         ZE_MAX1(I)=-99999.
+         QX_MIN1(I)=99999.
+         QX_MAX1(I)=-99999.
+         QY_MIN1(I)=99999.
+         QY_MAX1(I)=-99999.
+
+#ifdef TRACE
+         iota_MIN1(I)=99999.
+         iota_MAX1(I)=-99999.
+#endif
+
+#ifdef CHEM
+         iota_MIN1(I)=99999.
+         iota_MAX1(I)=-99999.
+         iota2_MIN1(I)=99999.
+         iota2_MAX1(I)=-99999.
+#endif
+
+#ifdef SED_LAY
+         do l=1,layers
+            bed_MIN1(I,l) = 99999.
+            bed_MAX1(I,l) =-99999.
+         enddo
+#endif
+
+         NO_NBORS = EL_COUNT(I)
+
+         DO J = 1,NO_NBORS
+            NBOR_EL = ELETAB(I,1+J)
+
+c     IF(WDFLG(NBOR_EL).EQ.0) CYCLE ! DON'T COUNT DRY ELEMENTS  sb 02/26/07
+
+            ZE_DG(J) = ZE(1,NBOR_EL,IRK+1)
+            QX_DG(J) = QX(1,NBOR_EL,IRK+1)
+            QY_DG(J) = QY(1,NBOR_EL,IRK+1)
+
+#ifdef TRACE
+            iota_DG(J) = iota(1,NBOR_EL,IRK+1)
+#endif
+
+#ifdef CHEM
+            iota_DG(J) = iota(1,NBOR_EL,IRK+1)
+            iota2_DG(J) = iota2(1,NBOR_EL,IRK+1)
+#endif
+
+
+#ifdef SED_LAY
+            do l=1,layers
+               bed_DG(J,l) = bed(1,NBOR_EL,IRK+1,l)
+            enddo
+#endif
+
+C     
+            IF (ZE_DG(J).LT.ZE_MIN1(I))THEN
+               ZE_MIN1(I)=ZE_DG(J)
+            ENDIF
+            IF (ZE_DG(J).GT.ZE_MAX1(I)) THEN
+               ZE_MAX1(I)=ZE_DG(J)
+            ENDIF
+            IF (QX_DG(J).LT.QX_MIN1(I))THEN
+               QX_MIN1(I)=QX_DG(J)
+            ENDIF
+            IF (QX_DG(J).GT.QX_MAX1(I)) THEN
+               QX_MAX1(I)=QX_DG(J)
+            ENDIF
+            IF (QY_DG(J).LT.QY_MIN1(I))THEN
+               QY_MIN1(I)=QY_DG(J)
+            ENDIF
+            IF (QY_DG(J).GT.QY_MAX1(I)) THEN
+               QY_MAX1(I)=QY_DG(J)
+            ENDIF
+
+#ifdef TRACE
+            IF (iota_DG(J).LT.iota_MIN1(I))THEN
+               iota_MIN1(I)=iota_DG(J)
+            ENDIF
+
+            IF (iota_DG(J).GT.iota_MAX1(I)) THEN
+               iota_MAX1(I)=iota_DG(J)
+            ENDIF
+#endif
+
+#ifdef CHEM
+            IF (iota_DG(J).LT.iota_MIN1(I))THEN
+               iota_MIN1(I)=iota_DG(J)
+            ENDIF
+
+            IF (iota_DG(J).GT.iota_MAX1(I)) THEN
+               iota_MAX1(I)=iota_DG(J)
+            ENDIF
+
+            IF (iota2_DG(J).LT.iota2_MIN1(I))THEN
+               iota2_MIN1(I)=iota2_DG(J)
+            ENDIF
+
+            IF (iota2_DG(J).GT.iota2_MAX1(I)) THEN
+               iota2_MAX1(I)=iota2_DG(J)
+            ENDIF
+#endif
+
+#ifdef SED_LAY
+            do l=1,layers
+               IF (bed_DG(J,l).LT.bed_MIN1(I,l))THEN
+                  bed_MIN1(I,l)=bed_DG(J,l)
+               ENDIF
+               
+               IF (bed_DG(J,l).GT.bed_MAX1(I,l)) THEN
+                  bed_MAX1(I,l)=bed_DG(J,l)
+               ENDIF
+            enddo
+#endif
+
+         ENDDO
+      ENDDO
+#ifdef CMPI
+
+      CALL UPDATER(ZE_MIN1,ZE_MAX1,QX_MIN1,3)
+      CALL UPDATER(QX_MAX1,QY_MIN1,QY_MAX1,3)
+
+#ifdef TRACE
+      CALL UPDATER(iota_MAX1,iota_MIN1,QY_MAX1,2)
+#endif
+
+#ifdef CHEM
+      CALL UPDATER(iota_MAX1,iota_MIN1,QY_MAX1,2)
+      CALL UPDATER(iota2_MAX1,iota2_MIN1,QY_MAX1,2)
+#endif
+
+#ifdef SED_LAY
+         do l = 1,layers
+            arraymax => bed_max1(:,l)
+            arraymin => bed_min1(:,l)
+            CALL UPDATER(arraymax,arraymin,QY_MAX1,2 )
+         enddo
+#endif
+
+#endif
+C     
+C     LOOP OVER ELEMENTS TO CALCULATE NEW VERTEX VALUES
+C     
+
+      bb = 1
+
+      DO I=1,NE 
+         !IF(WDFLG(I).EQ.0) CYCLE ! DON'T COUNT DRY ELEMENTS  sb 02/26/07
+         N1=NM(I,1)
+         N2=NM(I,2)
+         N3=NM(I,3) 
+         
+         varnum = 3
+
+#ifdef TRACE
+         varnum = 4
+#endif
+
+#ifdef CHEM
+         varnum = 5
+#endif
+
+#ifdef SED_LAY
+         varnum_prev = varnum
+         varnum = varnum_prev + layers
+#endif
+
+         DO IVAR=1,varnum
+
+            IF (IVAR.EQ.1) THEN
+               ZEC(1)=ZE(1,I,IRK+1)
+               ZEC(2)=ZE(2,I,IRK+1)
+               ZEC(3)=ZE(3,I,IRK+1)
+               ZEMAX1(1)=ZE_MAX1(N1)
+               ZEMIN1(1)=ZE_MIN1(N1)
+               ZEMAX1(2)=ZE_MAX1(N2)
+               ZEMIN1(2)=ZE_MIN1(N2)
+               ZEMAX1(3)=ZE_MAX1(N3)
+               ZEMIN1(3)=ZE_MIN1(N3)
+            ENDIF
+
+            IF (IVAR.EQ.2) THEN
+               ZEC(1)=QX(1,I,IRK+1)
+               ZEC(2)=QX(2,I,IRK+1)
+               ZEC(3)=QX(3,I,IRK+1)
+               ZEMAX1(1)=QX_MAX1(N1)
+               ZEMIN1(1)=QX_MIN1(N1)
+               ZEMAX1(2)=QX_MAX1(N2)
+               ZEMIN1(2)=QX_MIN1(N2)
+               ZEMAX1(3)=QX_MAX1(N3)
+               ZEMIN1(3)=QX_MIN1(N3)
+            ENDIF
+
+            IF (IVAR.EQ.3) THEN
+               ZEC(1)=QY(1,I,IRK+1)
+               ZEC(2)=QY(2,I,IRK+1)
+               ZEC(3)=QY(3,I,IRK+1)
+               ZEMAX1(1)=QY_MAX1(N1)
+               ZEMIN1(1)=QY_MIN1(N1)
+               ZEMAX1(2)=QY_MAX1(N2)
+               ZEMIN1(2)=QY_MIN1(N2)
+               ZEMAX1(3)=QY_MAX1(N3)
+               ZEMIN1(3)=QY_MIN1(N3)
+            ENDIF
+
+#ifdef TRACE
+            IF (IVAR.EQ.4) THEN
+               ZEC(1)=iota(1,I,IRK+1)
+               ZEC(2)=iota(2,I,IRK+1)
+               ZEC(3)=iota(3,I,IRK+1)
+               ZEMAX1(1)=iota_MAX1(N1)
+               ZEMIN1(1)=iota_MIN1(N1)
+               ZEMAX1(2)=iota_MAX1(N2)
+               ZEMIN1(2)=iota_MIN1(N2)
+               ZEMAX1(3)=iota_MAX1(N3)
+               ZEMIN1(3)=iota_MIN1(N3)
+            ENDIF
+#endif
+
+#ifdef CHEM
+            IF (IVAR.EQ.4) THEN
+               ZEC(1)=iota(1,I,IRK+1)
+               ZEC(2)=iota(2,I,IRK+1)
+               ZEC(3)=iota(3,I,IRK+1)
+               ZEMAX1(1)=iota_MAX1(N1)
+               ZEMIN1(1)=iota_MIN1(N1)
+               ZEMAX1(2)=iota_MAX1(N2)
+               ZEMIN1(2)=iota_MIN1(N2)
+               ZEMAX1(3)=iota_MAX1(N3)
+               ZEMIN1(3)=iota_MIN1(N3)
+            ENDIF
+
+            IF (IVAR.EQ.5) THEN
+               ZEC(1)=iota2(1,I,IRK+1)
+               ZEC(2)=iota2(2,I,IRK+1)
+               ZEC(3)=iota2(3,I,IRK+1)
+               ZEMAX1(1)=iota2_MAX1(N1)
+               ZEMIN1(1)=iota2_MIN1(N1)
+               ZEMAX1(2)=iota2_MAX1(N2)
+               ZEMIN1(2)=iota2_MIN1(N2)
+               ZEMAX1(3)=iota2_MAX1(N3)
+               ZEMIN1(3)=iota2_MIN1(N3)
+            ENDIF
+#endif
+
+#ifdef SED_LAY
+            do l=1,layers
+               if (IVAR.eq.varnum_prev+l) then
+                  ZEC(1)=bed(1,I,IRK+1,l)
+                  ZEC(2)=bed(2,I,IRK+1,l)
+                  ZEC(3)=bed(3,I,IRK+1,l)
+                  ZEMAX1(1)=bed_MAX1(N1,l)
+                  ZEMIN1(1)=bed_MIN1(N1,l)
+                  ZEMAX1(2)=bed_MAX1(N2,l)
+                  ZEMIN1(2)=bed_MIN1(N2,l)
+                  ZEMAX1(3)=bed_MAX1(N3,l)
+                  ZEMIN1(3)=bed_MIN1(N3,l)
+               endif
+            enddo
+               
+            
+#endif
+            
+
+C     COMPUTE THE VERTEX VALUES
+
+            ZEVERTEX(1)=ZEC(1)
+            ZEVERTEX(2)=ZEC(1)
+            ZEVERTEX(3)=ZEC(1)
+            DO KK=2,3
+               ZEVERTEX(1)=ZEVERTEX(1)+ PHI_CORNER(KK,1,1)*ZEC(KK)
+               ZEVERTEX(2)=ZEVERTEX(2)+ PHI_CORNER(KK,2,1)*ZEC(KK)
+               ZEVERTEX(3)=ZEVERTEX(3)+ PHI_CORNER(KK,3,1)*ZEC(KK)
+            ENDDO
+
+            
+C     RESET THE VERTEX VALUE TO BE LESS THAN OR EQUAL TO THE MAX AND
+C     GREATER THAN OR EQUAL TO THE MIN AT THAT VERTEX
+C     
+            ZEVERTEX(1)=DMAX1(DMIN1(ZEVERTEX(1),ZEMAX1(1)),ZEMIN1(1))
+            ZEVERTEX(2)=DMAX1(DMIN1(ZEVERTEX(2),ZEMAX1(2)),ZEMIN1(2))
+            ZEVERTEX(3)=DMAX1(DMIN1(ZEVERTEX(3),ZEMAX1(3)),ZEMIN1(3))
+
+            tmp1 = ZEVERTEX(1)
+            tmp2 = ZEVERTEX(2)
+            tmp3 = ZEVERTEX(3)
+
+
+C     LOOP OVER THE VERTICES 3 TIMES
+C     IF THE VALUE AT THE VERTEX IS ABOVE (BELOW) THE MAX (MIN) AT THAT
+C     VERTEX THEN SUBTRACT OFF THE DIFFERENCE AND ADD IT TO THE OTHER
+C     VERTICES
+C     
+            DO LL=1,3
+               SUMLOC=(ZEVERTEX(1)+ZEVERTEX(2)+ZEVERTEX(3))/3.0D0
+               SUMDIF=(SUMLOC-ZEC(1))*3.0D0
+               SIGNDIF=DSIGN(1.D0,SUMDIF)
+               DIF(1)=(ZEVERTEX(1)-ZEC(1))*SIGNDIF
+               DIF(2)=(ZEVERTEX(2)-ZEC(1))*SIGNDIF
+               DIF(3)=(ZEVERTEX(3)-ZEC(1))*SIGNDIF
+               INC1=0
+               IF (DIF(1).GT.0) INC1=1
+               INC2=0
+               IF (DIF(2).GT.0) INC2=1
+               INC3=0
+               IF (DIF(3).GT.0) INC3=1
+               KDP=INC1+INC2+INC3
+C     
+               DO K=1,3
+                  DIV=DMAX1(1.D0,DFLOAT(KDP))
+                  IF (DIF(K).GT.0) THEN
+                     REDFAC=SUMDIF*SIGNDIF/DIV
+                     KDP=KDP-1
+                  ELSE
+                     REDFAC=0
+                  ENDIF
+                  IF (SIGNDIF.GT.0) THEN
+                     REDMAX=ZEVERTEX(K)-ZEMIN1(K)
+                  ELSE
+                     REDMAX=ZEMAX1(K)-ZEVERTEX(K)
+                  ENDIF
+                  REDFAC=DMIN1(REDFAC,REDMAX)
+                  SUMDIF=SUMDIF-REDFAC*SIGNDIF
+                  ZEVERTEX(K)=ZEVERTEX(K)-REDFAC*SIGNDIF
+               ENDDO
+            ENDDO
+            IF (IVAR.EQ.1) THEN
+
+c$$$               if( (abs(tmp1-ZEVERTEX(1)).ge.bound).or.
+c$$$     &              (abs(tmp2-ZEVERTEX(2)).ge.bound).or.
+c$$$     &              (abs(tmp3-ZEVERTEX(3)).ge.bound).and.
+c$$$     &              (slopeflag.eq.5) ) then
+c$$$
+c$$$                  ZE(4:dofs(i),i,irk+1)=0.D0
+c$$$
+c$$$                  if (padapt.eq.1) then
+c$$$                     pdg_el(i) = 1
+c$$$                  endif 
+c$$$
+c$$$               endif
+
+               ZE(2,I,IRK+1)=-1.d0/6.d0*(ZEVERTEX(1)+ZEVERTEX(2))
+     $              +1.d0/3.d0*ZEVERTEX(3)
+               ZE(3,I,IRK+1)=-.5d0*ZEVERTEX(1)+.5d0*ZEVERTEX(2)
+            ENDIF
+            IF (IVAR.EQ.2) THEN
+
+c$$$               if( (abs(tmp1-ZEVERTEX(1)).ge.bound).or.
+c$$$     &              (abs(tmp2-ZEVERTEX(2)).ge.bound).or.
+c$$$     &              (abs(tmp3-ZEVERTEX(3)).ge.bound).and.
+c$$$     &              (slopeflag.eq.5) ) then
+c$$$
+c$$$
+c$$$                  QX(4:dofs(i),i,irk+1)=0.D0
+c$$$
+c$$$                  if (padapt.eq.1) then
+c$$$                     pdg_el(i) = 1
+c$$$                  endif 
+c$$$
+c$$$               endif
+
+               QX(2,I,IRK+1)=-1.d0/6.d0*(ZEVERTEX(1)+ZEVERTEX(2))
+     $              +1.d0/3.d0*ZEVERTEX(3)
+               QX(3,I,IRK+1)=-.5d0*ZEVERTEX(1)+.5d0*ZEVERTEX(2)
+            ENDIF
+            IF (IVAR.EQ.3) THEN
+
+c$$$               if( (abs(tmp1-ZEVERTEX(1)).ge.bound).or.
+c$$$     &              (abs(tmp2-ZEVERTEX(2)).ge.bound).or.
+c$$$     &              (abs(tmp3-ZEVERTEX(3)).ge.bound).and.
+c$$$     &              (slopeflag.eq.5) ) then
+c$$$
+c$$$                  QY(4:dofs(i),i,irk+1)=0.D0
+c$$$
+c$$$                  if (padapt.eq.1) then
+c$$$                     pdg_el(i) = 1
+c$$$                  endif 
+c$$$
+c$$$               endif
+
+               QY(2,I,IRK+1)=-1.d0/6.d0*(ZEVERTEX(1)+ZEVERTEX(2))
+     $              +1.d0/3.d0*ZEVERTEX(3)
+               QY(3,I,IRK+1)=-.5d0*ZEVERTEX(1)+.5d0*ZEVERTEX(2)
+            ENDIF
+
+#ifdef TRACE
+            IF (IVAR.EQ.4) THEN
+               
+c$$$               if( (abs(tmp1-ZEVERTEX(1)).ge.bound).or.
+c$$$     &              (abs(tmp2-ZEVERTEX(2)).ge.bound).or.
+c$$$     &              (abs(tmp3-ZEVERTEX(3)).ge.bound).and.
+c$$$     &              (slopeflag.eq.5) ) then
+c$$$
+c$$$
+c$$$                  iota(4:dofs(i),i,irk+1)=0.D0
+c$$$
+c$$$                  if (padapt.eq.1) then
+c$$$                     pdg_el(i) = 1
+c$$$                  endif 
+c$$$
+c$$$               endif
+               
+               iota(2,I,IRK+1)=-1.d0/6.d0*(ZEVERTEX(1)+ZEVERTEX(2))
+     $              +1.d0/3.d0*ZEVERTEX(3)
+               iota(3,I,IRK+1)=-.5d0*ZEVERTEX(1)+.5d0*ZEVERTEX(2)
+
+            ENDIF
+#endif
+
+#ifdef CHEM
+            IF (IVAR.EQ.4) THEN
+               
+c$$$               if( (abs(tmp1-ZEVERTEX(1)).ge.bound).or.
+c$$$     &              (abs(tmp2-ZEVERTEX(2)).ge.bound).or.
+c$$$     &              (abs(tmp3-ZEVERTEX(3)).ge.bound).and.
+c$$$     &              (slopeflag.eq.5) ) then
+c$$$
+c$$$
+c$$$                  iota(4:dofs(i),i,irk+1)=0.D0
+c$$$
+c$$$                  if (padapt.eq.1) then
+c$$$                     pdg_el(i) = 1
+c$$$                  endif 
+c$$$
+c$$$               endif
+               
+               iota(2,I,IRK+1)=-1.d0/6.d0*(ZEVERTEX(1)+ZEVERTEX(2))
+     $              +1.d0/3.d0*ZEVERTEX(3)
+               iota(3,I,IRK+1)=-.5d0*ZEVERTEX(1)+.5d0*ZEVERTEX(2)
+
+            ENDIF
+            IF (IVAR.EQ.5) THEN
+
+c$$$               if( (abs(tmp1-ZEVERTEX(1)).ge.bound).or.
+c$$$     &              (abs(tmp2-ZEVERTEX(2)).ge.bound).or.
+c$$$     &              (abs(tmp3-ZEVERTEX(3)).ge.bound).and.
+c$$$     &              (slopeflag.eq.5) ) then
+c$$$
+c$$$
+c$$$                  iota2(4:dofs(i),i,irk+1)=0.D0
+c$$$
+c$$$                  if (padapt.eq.1) then
+c$$$                     pdg_el(i) = 1
+c$$$                  endif 
+c$$$
+c$$$               endif
+
+               iota2(2,I,IRK+1)=-1.d0/6.d0*(ZEVERTEX(1)+ZEVERTEX(2))
+     $              +1.d0/3.d0*ZEVERTEX(3)
+               iota2(3,I,IRK+1)=-.5d0*ZEVERTEX(1)+.5d0*ZEVERTEX(2)
+            ENDIF
+#endif
+         ENDDO
+
+#ifdef SED_LAY
+
+         do l=1,layers
+            if (IVAR.eq.varnum_prev+l) then
+
+c$$$              if( (abs(tmp1-ZEVERTEX(1)).ge.bound).or.
+c$$$     &              (abs(tmp2-ZEVERTEX(2)).ge.bound).or.
+c$$$     &              (abs(tmp3-ZEVERTEX(3)).ge.bound).and.
+c$$$     &              (slopeflag.eq.5) ) then
+c$$$
+c$$$
+c$$$                  bed(4:dofs(i),i,irk+1,l)=0.D0
+c$$$
+c$$$                  if (padapt.eq.1) then
+c$$$                     pdg_el(i) = 1
+c$$$                  endif 
+c$$$
+c$$$               endif
+               
+               bed(2,I,IRK+1,l)=-1.d0/6.d0*(ZEVERTEX(1)+ZEVERTEX(2))
+     $              +1.d0/3.d0*ZEVERTEX(3)
+               bed(3,I,IRK+1,l)=-.5d0*ZEVERTEX(1)+.5d0*ZEVERTEX(2)
+            
+            
+            endif
+         enddo
+
+#endif
+
+                                !endif
+
+      ENDDO
+      RETURN
+      END SUBROUTINE 
+
+#endif
+
 
 #ifdef SLOPEALL
 

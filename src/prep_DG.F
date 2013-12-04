@@ -98,6 +98,12 @@ C.....Initialize funtion parser for sediment types
       init_parser = .false.
 #endif
 
+#ifdef SED_LAY
+C.....Initialize stabilizer sweep for A.D.
+      stblzr = .false.
+#endif
+
+
 C.....Compute the number of gauss points needed for the edge integrals
 
       CALL ALLOC_DG4()          !moved here 6.28.10, for p_adapt because of messenger_elem      

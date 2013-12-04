@@ -39,7 +39,7 @@ C.....Declare integer variables
       INTEGER FLUXTYPE, test_el
       INTEGER RK_STAGE, RK_ORDER
       Integer padapt,pflag,pl,ph,px,lebesgueP,pa, gflag
-      logical init_parser
+      logical init_parser,stblzr
 c     
       integer iwrite
 
@@ -67,7 +67,6 @@ C.....Declare real variables
       REAL(SZ) ZE_EX, ZE_IN, QMag_IN, QMag_EX
       Real(SZ) subphi_IN,subphi_EX
       Real(SZ) iota_EX, iota_IN,iota2_EX, iota2_IN
-      Real(SZ) dynP_EX, dynP_IN 
 
 C     sb...Wetting and drying
       INTEGER, ALLOCATABLE :: WDFLG(:) ! = 1 if wet, =0 if dry
@@ -191,15 +190,17 @@ C.....These (below) are defined in prep_slopelim.F
       Real(SZ),Allocatable :: Nmatrix(:,:,:,:),NmatrixInv(:,:,:,:)
       Real(SZ),Allocatable :: deltx(:),delty(:),pmatrix(:,:,:)
 
-C.....These (below) are defined in slopelimiter.F (slopelimiter4)
-      
-      Real(SZ),Allocatable :: ZEtaylor(:,:,:),QXtaylor(:,:,:),QYtaylor(:,:,:)
-      Real(SZ),Allocatable :: iotataylor(:,:,:),iota2taylor(:,:,:)
+C.....These (below) are defined in slopelimiter.F 
+
+
       Real(SZ),Allocatable :: ZEmin(:,:),ZEmax(:,:),QXmin(:,:)
       Real(SZ),Allocatable :: QXmax(:,:),QYmin(:,:),QYmax(:,:)
       Real(SZ),Allocatable :: iotamin(:,:),iotamax(:,:)
-      Real(SZ),Allocatable :: dynPmin(:,:),dynPmax(:,:)
       Real(SZ),Allocatable :: iota2min(:,:),iota2max(:,:)
+
+#ifdef SLOPEALL
+      Real(SZ),Allocatable :: ZEtaylor(:,:,:),QXtaylor(:,:,:),QYtaylor(:,:,:)
+      Real(SZ),Allocatable :: iotataylor(:,:,:),iota2taylor(:,:,:)
       Real(SZ),Allocatable :: ZEtaylorvert(:,:,:),QXtaylorvert(:,:,:)
       Real(SZ),Allocatable :: QYtaylorvert(:,:,:),iotataylorvert(:,:,:)
       Real(SZ),Allocatable :: iota2taylorvert(:,:,:)
@@ -217,7 +218,7 @@ C.....These (below) are defined in slopelimiter.F (slopelimiter4)
       Real(SZ),Allocatable :: limitiota(:,:),limitiota2(:,:)
       Real(SZ),Allocatable :: ZEconst(:,:),QXconst(:,:),QYconst(:,:)
       Real(SZ),Allocatable :: iotaconst(:,:),iota2const(:,:)
-
+#endif
 
     
 C**********************END OF DATA DECLARATIONS ***********************
@@ -377,20 +378,21 @@ C.....These are defined in prep_slopelim.F
       Allocate ( varsigma0v(MNE,3,0:ph,0:ph) )
       Allocate ( pmatrix(MNE,dofh,dofh), var2sigmag(MNE,NAGP(ph),dofh) )
       Allocate ( Nmatrix(MNE,dofh,dofh,dofh),NmatrixInv(MNE,dofh,dofh,dofh) )
-      Allocate (  deltx(MNE),delty(MNE),var2sigmav(MNE,3,dofh))
+      Allocate ( deltx(MNE),delty(MNE),var2sigmav(MNE,3,dofh))
 
 C.....These (below) are defined in slopelimiter.F (slopelimiter4)
       
-      Allocate ( ZEtaylor(MNE,dofh,1),QXtaylor(MNE,dofh,1) )
-      Allocate ( iotataylor(MNE,dofh,1),iota2taylor(MNE,dofh,1) )
       Allocate ( ZEmin(MNP,dofh),ZEmax(MNP,dofh),QXmin(MNP,dofh) )
       Allocate ( QXmax(MNP,dofh),QYmin(MNP,dofh),QYmax(MNP,dofh) )
-      Allocate ( iotamin(MNP,dofh),iotamax(MNP,dofh),QYtaylor(MNE,dofh,1) )
-      Allocate ( dynPmin(MNP,dofh),dynPmax(MNP,dofh) )
+      Allocate ( iotamin(MNP,dofh),iotamax(MNP,dofh) )
       Allocate ( iota2min(MNP,dofh),iota2max(MNP,dofh) )
+
+#ifdef SLOPEALL
+      Allocate ( ZEtaylor(MNE,dofh,1),QXtaylor(MNE,dofh,1) )
+      Allocate ( iotataylor(MNE,dofh,1),iota2taylor(MNE,dofh,1) 
       Allocate ( ZEtaylorvert(MNE,dofh,3),QXtaylorvert(MNE,dofh,3) )
       Allocate ( QYtaylorvert(MNE,dofh,3),iotataylorvert(MNE,dofh,3) )
-      Allocate ( iota2taylorvert(MNE,dofh,3) )
+      Allocate ( iota2taylorvert(MNE,dofh,3), QYtaylor(MNE,dofh,1) )
       Allocate ( alphaZE0(MNE,dofh,3),alphaQX0(MNE,dofh,3) )
       Allocate ( alphaQY0(MNE,dofh,3),alphaiota0(MNE,dofh,3) )
       Allocate ( alphaiota20(MNE,dofh,3) )
@@ -405,7 +407,7 @@ C.....These (below) are defined in slopelimiter.F (slopelimiter4)
       Allocate ( limitiota(MNE,dofh),limitiota2(MNE,dofh) )
       Allocate ( ZEconst(MNE,dofh),QXconst(MNE,dofh),QYconst(MNE,dofh) )
       Allocate ( iotaconst(MNE,dofh),iota2const(MNE,dofh) )
-
+#endif
 
       RETURN
       END SUBROUTINE

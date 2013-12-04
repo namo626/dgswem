@@ -90,7 +90,7 @@ C.....Loop over interior elements
          lim_by = 1.D0
          
 #ifdef WAVE_DIF
-         if (entrop(1,L).gt.s0+kappa) then
+         if (entropls(1,L).gt.s0+kappa) then
             
             HZ(:,:,:,L) = (bg_dif+e1(1)) *
      &           (abs(lim_by+balance(1)))**pa * HZ(:,:,:,L)

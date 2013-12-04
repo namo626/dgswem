@@ -458,6 +458,14 @@ C.......Apply the slopelimiter if appropriate
          CALL SLOPELIMITER() 
 #endif
 
+#ifdef STBLZR
+         if (.not.stblzr) then
+            CALL SLOPELIMITER()
+            stblzr = .true.
+         endif
+#endif
+
+
 C.......Apply the wet-dry algorithm if appropriate
 
 #ifdef WETDR
