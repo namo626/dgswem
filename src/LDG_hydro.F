@@ -77,10 +77,15 @@ C.....Loop over interior elements
          N1 = NM(L,1)
          N2 = NM(L,2)
          N3 = NM(L,3)
-         EVMAvg = (EVM(N1)+EVM(N2)+EVM(N3))/3.d0
+         if (EVMSUM.NE.0.D0) then
+            EVMAvg = (EVM(N1)+EVM(N2)+EVM(N3))/3.d0
+         else
+            EVMAvg = 0.D0
+         endif
+
          bg_dif = 0.D0 
          trc_dif = 0.D0 
-         
+          
 #ifdef SED_LAY
          SEVDMAvg = SEVDM 
 #endif
@@ -104,33 +109,44 @@ C.....Loop over interior elements
 
          if (entrop(2,L).gt.s0+kappa) then
             
-            LZ(:,1,1,L) = (EVMAvg+e1(2)) * 
-     &           (abs(lim_by+balance(2)))**pa * LZ(:,1,1,L)
-            LZ(:,1,2,L) = sqrt( (EVMAvg+e1(2) *
-     &           (abs(lim_by+balance(2)))**pa ) * LZ(:,1,2,L))
-            LZ(:,2,1,L) = sqrt( (EVMAvg+e1(2) *
-     &           (abs(lim_by+balance(2)))**pa ) * LZ(:,2,1,L))
+            LZ(:,1,1,L) = (EVMAvg+e1(2) * 
+     &           (abs(lim_by+balance(2)))**pa)  * LZ(:,1,1,L)
+            LZ(:,1,2,L) = (EVMAvg+e1(2) *
+     &           (abs(lim_by+balance(2)))**pa ) * LZ(:,1,2,L)
+            LZ(:,2,1,L) = (EVMAvg+e1(2) *
+     &           (abs(lim_by+balance(2)))**pa ) * LZ(:,2,1,L)
      
          else
 
             LZ(:,1,:,L) = EVMAvg* LZ(:,1,:,L)
-            LZ(:,2,1,L) = sqrt(EVMAvg+e1(2) * LZ(:,2,1,L))
+            LZ(:,2,1,L) = EVMAvg* LZ(:,2,1,L)
             
          endif
 
          if (entrop(3,L).gt.s0+kappa) then
             
-            LZ(:,2,2,L) = (EVMAvg+e1(3)) * 
-     &           (abs(lim_by+balance(3)))**pa * LZ(:,2,2,L)
-            LZ(:,2,1,L) = sqrt( (EVMAvg+e1(3) *
-     &           (abs(lim_by+balance(3)))**pa ) * LZ(:,2,1,L))
-            LZ(:,1,2,L) = sqrt( (EVMAvg+e1(3) *
-     &           (abs(lim_by+balance(3)))**pa ) * LZ(:,1,2,L))
+            LZ(:,2,2,L) = (EVMAvg+e1(3) * 
+     &           (abs(lim_by+balance(3)))**pa) * LZ(:,2,2,L)
+
+            if (entrop(2,L).le.s0+kappa) then
+               
+               LZ(:,2,1,L) = (EVMAvg+e1(3) *
+     &              (abs(lim_by+balance(3)))**pa ) * LZ(:,2,1,L)
+               LZ(:,1,2,L) = (EVMAvg+e1(3) *
+     &              (abs(lim_by+balance(3)))**pa ) * LZ(:,1,2,L)
+               
+            endif
             
          else
             
-            LZ(:,1,2,L) = EVMAvg* LZ(:,1,2,L)
-            LZ(:,2,:,L) = sqrt(EVMAvg * LZ(:,2,:,L))
+            LZ(:,2,2,L) = EVMAvg* LZ(:,2,2,L)
+            
+            if (entrop(2,L).le.s0+kappa) then
+               
+               LZ(:,1,2,L) = EVMAvg* LZ(:,1,2,L)
+               LZ(:,2,1,L) = EVMAvg* LZ(:,2,1,L)
+               
+            endif
             
          endif
 

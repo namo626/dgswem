@@ -66,7 +66,7 @@ C.....Use appropriate modules
       
 #ifdef CMPI
       USE SIZES, ONLY : SZ,MYPROC,layers
-      USE MESSENGER_ELEM, ONLY: MESSAGE_FINI
+      USE MESSENGER_ELEM, ONLY: MESSAGE_FINI, ErrorElevSum
 #else
       USE SIZES, ONLY : SZ,layers
 #endif
@@ -81,8 +81,10 @@ C.....Declare local variables
       LOGICAL Detected
       REAL(SZ) DPAVG
 
+      INTEGER ErrorElevExceeded
+
 C.....Detect negative mass
-      
+      ErrorElevExceeded=0
       DO J = 1,NE
          DPAVG =  1.D0/ncheck(pdg_el(j)) * (sum(DP_NODE(:,J,pdg_el(j)))) !(DP(NM(J,1))+DP(NM(J,2))+DP(NM(J,3)))/3.D0
          Detected = .FALSE.
@@ -98,24 +100,48 @@ C.....Detect negative mass
             PRINT *, ' x,  y ',SLAM(NM(J,1))/DEG2RAD,
      $           SFEA(NM(J,1))/DEG2RAD
             Detected = .TRUE.
-         ENDIF
-
-         IF(Detected) THEN
-            PRINT *, ''
-            PRINT *,'  WRITING OUT THE LAST-MOMENT RESULTS...'
-            PRINT *, ''
-            CALL WRITE_RESULTS(IT,.TRUE.)
-            PRINT *, ''
-            PRINT *,'  PROGRAM WILL BE TERMINATED.'
-            PRINT *, ''
-#ifdef CMPI
-            call message_fini ()
-            STOP
-#else
-            stop
-#endif
+            ErrorElevExceeded=1    
          ENDIF
       ENDDO
+#ifdef CMPI
+      CALL ErrorElevSum(ErrorElevExceeded)
+      IF(ErrorElevExceeded.NE.0) THEN
+         if (myproc.eq.0) then
+            PRINT *, ''
+            PRINT *,'  PROGRAM WILL BE TERMINATED in DG_timestep'
+            PRINT *, ''
+         endif
+
+         call message_fini ()
+         STOP
+      endif
+#else
+c$$$      IF(ErrorElevExceeded.NE.0) THEN
+c$$$         PRINT *, ''
+c$$$         PRINT *,'  PROGRAM WILL BE TERMINATED in DG_timestep'
+c$$$         PRINT *, ''
+c$$$         stop
+c$$$      ENDIF
+#endif
+
+
+c$$$
+c$$$         IF(Detected) THEN
+c$$$            PRINT *, ''
+c$$$            PRINT *,'  WRITING OUT THE LAST-MOMENT RESULTS...'
+c$$$            PRINT *, ''
+c$$$            CALL WRITE_RESULTS(IT,.TRUE.)
+c$$$            PRINT *, ''
+c$$$            PRINT *,'  PROGRAM WILL BE TERMINATED.'
+c$$$            PRINT *, ''
+c$$$#ifdef CMPI
+c$$$            call message_fini ()
+c$$$            STOP
+c$$$#else
+c$$$            stop
+c$$$#endif
+c$$$         ENDIF
+c$$$      ENDDO
 
 C.....Detect NaN
       
@@ -132,6 +158,7 @@ C.....Detect NaN
                PRINT *, ' x,  y ',SLAM(NM(J,1))/DEG2RAD,
      $              SFEA(NM(J,1))/DEG2RAD
                Detected = .TRUE.
+               ErrorElevExceeded = 1
             ENDIF
             IF(QX(K,J,1).NE.QX(K,J,1)) THEN
 #ifdef CMPI
@@ -142,6 +169,7 @@ C.....Detect NaN
                PRINT *, ' x,  y ',SLAM(NM(J,1))/DEG2RAD,
      $              SFEA(NM(J,1))/DEG2RAD
                Detected = .TRUE.
+               ErrorElevExceeded = 1
             ENDIF
             IF(QY(K,J,1).NE.QY(K,J,1)) THEN
 #ifdef CMPI
@@ -152,6 +180,7 @@ C.....Detect NaN
                PRINT *, ' x,  y ',SLAM(NM(J,1))/DEG2RAD,
      $              SFEA(NM(J,1))/DEG2RAD
                Detected = .TRUE.
+               ErrorElevExceeded = 1
             ENDIF
 
 #ifdef TRACE
@@ -164,6 +193,7 @@ C.....Detect NaN
                PRINT *, '  iota(',K,',',J,',1) IS ',iota(K,J,1)
                PRINT *, ' x,  y ',X(NM(J,1)),Y(NM(J,1))
                Detected = .TRUE.
+               ErrorElevExceeded = 1
             ENDIF
 #endif
             
@@ -185,6 +215,7 @@ C.....Detect NaN
                PRINT *, '  iota2(',K,',',J,',1) IS ',iota2(K,J,1)
                PRINT *, ' x,  y ',X(NM(J,1)),Y(NM(J,1))
                Detected = .TRUE.
+               ErrorElevExceeded = 1
             ENDIF
 #endif
 
@@ -198,11 +229,9 @@ C.....Detect NaN
                PRINT *, '  dynP(',K,',',J,',1) IS ',dynP(K,J,1)
                PRINT *, ' x,  y ',X(NM(J,1)),Y(NM(J,1))
                Detected = .TRUE.
+               ErrorElevExceeded = 1
             ENDIF
 #endif
-
-
-
 #ifdef SED_LAY
             
             do l = 1,layers
@@ -215,27 +244,41 @@ C.....Detect NaN
                   PRINT *, '  bed(',K,',',J,',1,',l,') IS ', bed(K,J,1,l)
                   PRINT *, ' x,  y ',X(NM(J,1)),Y(NM(J,1))
                   Detected = .TRUE.
+                  ErrorElevExceeded = 1
                ENDIF
             enddo
 #endif
 
-            IF(Detected) THEN
-               PRINT *, ''
-               PRINT *,'  WRITING OUT THE LAST-MOMENT RESULTS...'
-               PRINT *, ''
-               CALL WRITE_RESULTS(IT,.TRUE.)
-               PRINT *, ''
-               PRINT *,'  PROGRAM WILL BE TERMINATED.'
-               PRINT *, ''
-#ifdef CMPI
-               call message_fini()
-               STOP
-#else
-               stop
-#endif
-            ENDIF
+c$$$            IF(Detected) THEN
+c$$$               PRINT *, ''
+c$$$               PRINT *,'  WRITING OUT THE LAST-MOMENT RESULTS...'
+c$$$               PRINT *, ''
+c$$$               CALL WRITE_RESULTS(IT,.TRUE.)
+c$$$               PRINT *, ''
+c$$$               PRINT *,'  PROGRAM WILL BE TERMINATED.'
+c$$$               PRINT *, ''
+c$$$#ifdef CMPI
+c$$$               call message_fini()
+c$$$               STOP
+c$$$#else
+c$$$               stop
+c$$$#endif
+c$$$            ENDIF
          ENDDO
       ENDDO
+#ifdef CMPI
+      CALL ErrorElevSum(ErrorElevExceeded)
+c      write(*,*) myproc,ErrorElevExceeded
+      IF (ErrorElevExceeded.NE.0) THEN
+         CALL MESSAGE_FINI()
+         stop
+      ENDIF
+#else
+!      write(*,*)ErrorElevExceeded
+c$$$      IF (ErrorElevExceeded.NE.0) THEN
+c$$$         STOP
+c$$$      ENDIF
+#endif
 
       RETURN
       END SUBROUTINE
