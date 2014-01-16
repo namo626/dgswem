@@ -533,6 +533,66 @@ C...
      &         ACCESS='DIRECT',RECL=NBYTE)
           ENDIF
 
+
+C...
+C....INITILIZE BATHYMETRY STATION SPOOL COUNTER
+C....OPEN ELEVATION STATION OUTPUT FILE
+C....WRITE OUT HEADER INFORMATION INCLUDING NTRSPE (NO. OF DATA PTS. AT EACH
+C....ELEVATION STATION), NSTAE, DT*NSPOOLE, NSPOOLE, IRTYPE
+C...
+        NSCOUE=0
+        IESTP=0
+
+        IF(ABS(NOUTE).EQ.1) THEN
+          OPEN(82,FILE=DIRNAME//'/'//'fort.82')
+          WRITE(82,3220) RUNDES,RUNID,AGRID
+          WRITE(82,3645) NTRSPE,NSTAE,DTDP*NSPOOLE,NSPOOLE,1
+          IESTP=2
+          ENDIF
+
+        IF(ABS(NOUTE).EQ.2) THEN
+          OPEN(82,FILE=DIRNAME//'/'//'fort.82',
+     &          ACCESS='DIRECT',RECL=NBYTE)
+          IF(NBYTE.EQ.4) THEN
+            DO I=1,8
+              WRITE(82,REC=IESTP+I) RDES4(I)
+              ENDDO
+            IESTP=IESTP+8
+            DO I=1,6
+              WRITE(82,REC=IESTP+I) RID4(I)
+              ENDDO
+            IESTP=IESTP+6
+            DO I=1,6
+              WRITE(82,REC=IESTP+I) AID4(I)
+              ENDDO
+            IESTP=IESTP+6
+            ENDIF
+          IF(NBYTE.EQ.8) THEN
+            DO I=1,4
+              WRITE(82,REC=IESTP+I) RDES8(I)
+              ENDDO
+            IESTP=IESTP+4
+            DO I=1,3
+              WRITE(82,REC=IESTP+I) RID8(I)
+              ENDDO
+            IESTP=IESTP+3
+            DO I=1,3
+              WRITE(82,REC=IESTP+I) AID8(I)
+              ENDDO
+            IESTP=IESTP+3
+            ENDIF
+          WRITE(82,REC=IESTP+1) NTRSPE
+          WRITE(82,REC=IESTP+2) NSTAE
+          WRITE(82,REC=IESTP+3) DT*NSPOOLE
+          WRITE(82,REC=IESTP+4) NSPOOLE
+          WRITE(82,REC=IESTP+5) 1
+          IESTP=IESTP+5
+          CLOSE(82)                    ! DO THIS TO FLUSH THE WRITE BUFFER
+          OPEN(82,FILE=DIRNAME//'/'//'fort.82',
+     &         ACCESS='DIRECT',RECL=NBYTE)
+          ENDIF
+
+
 C...
 C....INITILIZE METEOROLOGICAL STATION SPOOL COUNTERS
 C....OPEN METEOROLOGICAL STATION OUTPUT FILES
