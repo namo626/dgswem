@@ -31,7 +31,7 @@ Casey 101118: We need the following information to couple to unstructured SWAN.
 C--   
       IMPLICIT NONE
       
-      INTEGER TESTFLAG,OUTITER,istop,i
+      INTEGER TESTFLAG,OUTITER,istop,i,ModetoNode
 C     sb-PDG1
       REAL(4) CPU_TIME,CPU_SEC(2)
       REAL(4) TARRAY(2)
@@ -52,7 +52,7 @@ c     nd
 
       REAL(4) CPU_TIME,CPU_SEC(2)
       REAL(4) TARRAY(2)
-      INTEGER TESTFLAG,OUTITER,i
+      INTEGER TESTFLAG,OUTITER,i,ModetoNode
       character*80 tecfile, tecfile_max
 
       CALL MAKE_DIRNAME()       ! Establish Working Directory Name
@@ -178,6 +178,9 @@ c     write(200+myproc,*) 'back from prep_dg'
                                !cnd...for tecplot output
 !Casey 120813: Begin the OUT_TEC conditional.
 #ifdef OUT_TEC
+
+      ModetoNode = 0
+
 #ifdef CMPI
       tecfile = "./tecplot_output/tecplot.out_pe000000"
       tecfile_max = "./tecplot_max/tecplot.max_pe000000"
@@ -188,71 +191,98 @@ c     write(200+myproc,*) 'back from prep_dg'
       tecfile = "tecplot.out"
       tecfile_max = "tecplot.max"
 #endif
-      open(777, file = tecfile)
-      open(778, file = tecfile_max)
-      write(777,*) 'TITLE = "dgswem output"'
-      write(777,*) 
-     $     'VARIABLES = "x", "y", "b", "ze", "H", "u", "v", "|v|","|w|","p","iota","iota2","sum","diff"'
-      write(777,*) 'ZONE ZONETYPE=FETRIANGLE ',
-     $     'NODES=', np, 
-     $     ' ELEMENTS=', ne, 
-        !$     ' DATAPACKING=POINT ','SOLUTIONTIME=',time_a
-     $     ' DATAPACKING=BLOCK ',' VARLOCATION=([3,4,5,6,7,8,10,11,12,13,14]=CELLCENTERED) ',
-     $     'SOLUTIONTIME=',time_a 
-c$$$      do i=1,np
-c$$$      write(777,7777) x(i), y(i),  
-c$$$     $        dp(i), eta2(i), eta2(i)+dp(i),uu2(i),vv2(i),
-c$$$     $        sqrt(uu2(i)**2+vv2(i)**2),sqrt(wsx2(i)**2+wsy2(i)**2),
-c$$$     $        myproc,tracer(i),tracer2(i),abs(tracer(i)+tracer2(i)),
-c$$$     $        abs(tracer(i)-tracer2(i))
-c$$$      enddo
 
-      do i=1,np
-         write(777,7777)  x(i)
-      enddo
-      do i=1,np
-         write(777,7777)  y(i)
-      enddo
-      do i=1,ne
-         write(777,7777)  dpe(i)
-      enddo
-      do i=1,ne 
-         write(777,7777)  eta2(i)
-      enddo
-      do i=1,ne 
-         write(777,7777)  eta2(i)+dpe(i)
-      enddo
-      do i=1,ne 
-         write(777,7777)  uu2(i)
-      enddo
-      do i=1,ne 
-         write(777,7777)  vv2(i)
-      enddo
-      do i=1,ne 
-         write(777,7777)  sqrt(uu2(i)**2+vv2(i)**2)
-      enddo
-      do i=1,np 
-         write(777,7777)  sqrt(wsx2(i)**2+wsy2(i)**2)
-      enddo
-      do i=1,ne 
-         write(777,7777)  DBLE(pdg_el(i))
-      enddo
-      do i=1,ne 
-         write(777,7777)  tracer(i)
-      enddo
-      do i=1,ne 
-         write(777,7777)  tracer2(i)
-      enddo
-      do i=1,ne 
-         write(777,7777)  abs(tracer(i)+tracer2(i))
-      enddo
-      do i=1,ne 
-         write(777,7777)  abs(tracer(i)-tracer2(i))    
-      enddo
- 7777 format(9f20.8,i10)
-      do i=1,ne
-         write(777,"(3i12)") nm(i,1), nm(i,2), nm(i,3)
-      enddo
+      open(777, file = dirname//'/'//tecfile)
+      open(778, file = dirname//'/'//tecfile_max)
+      write(777,*)  'TITLE = "dgswem output"'
+
+      if (ModetoNode.eq.0) then
+         write(777,*) 
+     $        'VARIABLES = "x", "y", "b", "ze", "H", "u", "v", "|v|","|w|","p","iota","iota2","sum","diff"'
+         write(777,*) 'ZONE ZONETYPE=FETRIANGLE ',
+     $        'NODES=', np, 
+     $        ' ELEMENTS=', ne, 
+!     $     ' DATAPACKING=POINT ','SOLUTIONTIME=',time_a
+     $        ' DATAPACKING=BLOCK ',' VARLOCATION=([3,4,5,6,7,8,10,11,12,13,14]=CELLCENTERED) ',
+     $        'SOLUTIONTIME=',time_a 
+
+c$$$  write(777,7777) x(i), y(i),  
+c$$$  $        dp(i), eta2(i), eta2(i)+dp(i),uu2(i),vv2(i),
+c$$$  $        sqrt(uu2(i)**2+vv2(i)**2),sqrt(wsx2(i)**2+wsy2(i)**2),
+c$$$  $        myproc,tracer(i),tracer2(i),abs(tracer(i)+tracer2(i)),
+c$$$  $        abs(tracer(i)-tracer2(i))
+c$$$  enddo
+
+         do i=1,np
+            write(777,7777)  x(i)
+         enddo
+         do i=1,np
+            write(777,7777)  y(i)
+         enddo
+         do i=1,ne
+            write(777,7777)  dpe(i)
+         enddo
+         do i=1,ne 
+            write(777,7777)  eta2(i)
+         enddo
+         do i=1,ne 
+            write(777,7777)  eta2(i)+dpe(i)
+         enddo
+         do i=1,ne 
+            write(777,7777)  uu2(i)
+         enddo
+         do i=1,ne 
+            write(777,7777)  vv2(i)
+         enddo
+         do i=1,ne 
+            write(777,7777)  sqrt(uu2(i)**2+vv2(i)**2)
+         enddo
+         do i=1,np 
+            write(777,7777)  sqrt(wsx2(i)**2+wsy2(i)**2)
+         enddo
+         do i=1,ne 
+            write(777,7777)  DBLE(pdg_el(i))
+         enddo
+         do i=1,ne 
+            write(777,7777)  tracer(i)
+         enddo
+         do i=1,ne 
+            write(777,7777)  tracer2(i)
+         enddo
+         do i=1,ne 
+            write(777,7777)  abs(tracer(i)+tracer2(i))
+         enddo
+         do i=1,ne 
+            write(777,7777)  abs(tracer(i)-tracer2(i))    
+         enddo
+      else
+         write(777,*) 
+     $'VARIABLES = "x", "y", "b", "ze", "H", "u", "v", "|v|","|w|","PE"'
+         write(777,*) 'ZONE ZONETYPE=FETRIANGLE ',
+     $        'NODES=', np, 
+     $        ' ELEMENTS=', ne, 
+     $        ' DATAPACKING=POINT ','SOLUTIONTIME=',time_a
+         do i=1,np
+            if (ics.eq.2) then
+               write(777,7777) slam(i)/deg2rad, sfea(i)/deg2rad,  
+     $              dp(i), eta2(i), eta2(i)+dp(i),uu2(i),vv2(i),
+     $              sqrt(uu2(i)**2+vv2(i)**2),sqrt(wsx2(i)**2+wsy2(i)**2),
+     $              myproc
+            else
+               write(777,7777) x(i), y(i),
+     $              dp(i), eta2(i), eta2(i)+dp(i),uu2(i),vv2(i),
+     $              sqrt(uu2(i)**2+vv2(i)**2),sqrt(wsx2(i)**2+wsy2(i)**2),
+     $              myproc
+            endif
+         enddo
+
+      endif
+
+ 7777    format(9f20.8,i10)
+         do i=1,ne
+            write(777,"(3i12)") nm(i,1), nm(i,2), nm(i,3)
+         enddo
+
 !Casey 120813: End the OUT_TEC conditional.
 #endif
 

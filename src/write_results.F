@@ -537,7 +537,11 @@ C.....time step falls within the specified window
                   
                   if (mod(it,NSPOOLGE).eq.0) then
 !Casey 120813: Begin the OUT_TEC conditional.
+
 #ifdef OUT_TEC
+                     
+                     if (ModetoNode.eq.0) then
+
            write(777,*) 'ZONE ZONETYPE=FETRIANGLE ',
      $     'NODES=', np, 
      $     ' ELEMENTS=', ne, 
@@ -587,10 +591,36 @@ C.....time step falls within the specified window
                         write(777,7777)  abs(tracer(i)-tracer2(i))    
                      enddo
 
- 7777                format(9f20.8,i10)
-                     do i=1,ne
-                        write(777,"(3i12)") nm(i,1), nm(i,2), nm(i,3)
-                     enddo
+                  else
+
+                 write(777,*) 'ZONE ZONETYPE=FETRIANGLE ',
+     $                'NODES=', np, 
+     $                ' ELEMENTS=', ne, 
+     $                ' DATAPACKING=POINT ','SOLUTIONTIME=',time_a
+                 do i=1,np
+                    if (ics.eq.2) then
+                       write(777,7777) slam(i)/deg2rad, sfea(i)/deg2rad, 
+c                 write(777,7777) x(i), y(i), 
+     $                   dp(i), eta2(i), eta2(i)+dp(i),uu2(i),vv2(i),
+     $           sqrt(uu2(i)**2+vv2(i)**2),sqrt(wsx2(i)**2+wsy2(i)**2),
+     $                   myproc
+                    else
+                       write(777,7777) x(i), y(i), 
+     $                   dp(i), eta2(i), eta2(i)+dp(i),uu2(i),vv2(i),
+     $           sqrt(uu2(i)**2+vv2(i)**2),sqrt(wsx2(i)**2+wsy2(i)**2),
+     $                   myproc
+                    endif
+
+                 enddo
+              endif
+
+
+ 7777         format(9f20.8,i10)
+              do i=1,ne
+                 write(777,"(3i12)") nm(i,1), nm(i,2), nm(i,3)
+              enddo
+
+
 #endif
 
 C.....Write DG.63 results
@@ -738,22 +768,24 @@ C...
  9633    format(f20.8)
          close(963)
 #ifdef OUT_TEC
-         write(778,*) 'TITLE = "dgswem output"'
-         write(778,*) 
-     $        'VARIABLES = "x", "y", "maxeta"'
-         write(778,*) 'ZONE ZONETYPE=FETRIANGLE ',
-     $        'NODES=', np, 
-     $        ' ELEMENTS=', ne, 
-     $        ' DATAPACKING=POINT ','SOLUTIONTIME=',time_a
-         do i=1,np
-            write(778,7778) slam(i)/deg2rad, sfea(i)/deg2rad, 
-     $           etamax(i)
-         enddo
- 7778    format(3f20.8)
-         do i=1,ne
-            write(778,"(3i12)") nm(i,1), nm(i,2), nm(i,3)
-         enddo
-         close(778)
+         if (ModetoNode.eq.1) then
+            write(778,*) 'TITLE = "dgswem output"'
+            write(778,*) 
+     $           'VARIABLES = "x", "y", "maxeta"'
+            write(778,*) 'ZONE ZONETYPE=FETRIANGLE ',
+     $           'NODES=', np, 
+     $           ' ELEMENTS=', ne, 
+     $           ' DATAPACKING=POINT ','SOLUTIONTIME=',time_a
+            do i=1,np
+               write(778,7778) slam(i)/deg2rad, sfea(i)/deg2rad, 
+     $              etamax(i)
+            enddo
+ 7778       format(3f20.8)
+            do i=1,ne
+               write(778,"(3i12)") nm(i,1), nm(i,2), nm(i,3)
+            enddo
+            close(778)
+         endif
 #endif
       endif
 
