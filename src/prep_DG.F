@@ -1589,6 +1589,8 @@ C.... Compute the Runge-Kutta Chebyshev (RKC) version
          RKC_omega0 = 1.D0 + eps_const*nrk**(-2.D0)
 
          RKC_c(0) = 0.D0
+         RKC_b(0) = 0.D0
+         RKC_b(1) = 1.D0/RKC_omega0
 
          RKC_T(1) = RKC_omega0
          RKC_U(1) = 2.D0*RKC_omega0
@@ -1626,7 +1628,7 @@ C.... Compute the Runge-Kutta Chebyshev (RKC) version
 
          endif
 
-         RKC_b(1) = 1.D0/RKC_omega0
+
 
          RKC_omega1 =  RKC_Tprime(nrk)/RKC_Tdprime(nrk)
 
