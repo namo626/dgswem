@@ -193,8 +193,6 @@ c     write(200+myproc,*) 'back from prep_dg'
       write(tecfile(45:49), "(i4.4)") myproc
       write(tecfile_max(42:46), "(i4.4)") myproc
 
-      print*,tecfile
-      print*,tecfile_max
 #else
       tecfile = "tecplot.out"
       tecfile_max = "tecplot.max"
