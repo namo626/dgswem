@@ -119,8 +119,6 @@ C.......If both elements on either side of edge are dry then skip
 
 C.....Save the current RHS
 
-         print*,AREAS(EL_IN)*0.5D0
-
          DO K = 1,DOFS(EL)
 
             RHS_ZE_IN(K) = RHS_ZE(K,EL_IN,IRK)

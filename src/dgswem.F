@@ -188,8 +188,6 @@ c     write(200+myproc,*) 'back from prep_dg'
       tecfile_max = DIRNAME//'/'//'..'//'/'//'tecplot_max'//
      &     '/'//'tecplot.max_pe00000'
 
-      print*,tecfile
-      print*,tecfile_max
                                 !call iwrite(tecfile,14,19,myproc)
 
       write(tecfile(45:49), "(i4.4)") myproc
