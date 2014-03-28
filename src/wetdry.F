@@ -111,8 +111,6 @@ C.......and count number of dry nodes
          
 C.......Set "average" bathymetry based on p
 
-         
-
          !Notice that the average is the average over the sum of the layers
          !DP_AVG = 1.D0/ncheck(pa) * (sum(DP_NODE(:,J,pa)))        
          DP_AVG = C13*(DP_NODE(1,J,pa) + DP_NODE(2,J,pa) + DP_NODE(3,J,pa))
@@ -447,12 +445,9 @@ C.........Set flag to do element check
 
             endif
 #endif
-
-
-            
             
          ENDIF
-
+ 
 C-----------------------------------------------------------------------
 C     End of cases
 C-----------------------------------------------------------------------
@@ -462,7 +457,9 @@ C.......Not clear to me what Shintaro is checking here (EJK)
 C.......Setting the lower bound
          
          IF (ELEMENT_CHECK.EQ.1) THEN
-            IF (ZE_HAT(HT_MAX_I,pa).GT.(-DPE_MIN(J)+H0)) THEN
+
+!Now test to see if the water column at the min vertex is wet
+            IF (MINVAL(ZE_HAT(:,pa)+DP_NODE(:,J,pa)).GT.H0 ) THEN
 
 C.........Make no adjustments and set element and node flags to wet
 

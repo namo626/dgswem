@@ -178,22 +178,32 @@ c     write(200+myproc,*) 'back from prep_dg'
                                !cnd...for tecplot output
 !Casey 120813: Begin the OUT_TEC conditional.
 #ifdef OUT_TEC
-
+      
       ModetoNode = 0
 
 #ifdef CMPI
-      tecfile = "./tecplot_output/tecplot.out_pe000000"
-      tecfile_max = "./tecplot_max/tecplot.max_pe000000"
+      !CALL SYSTEM('mkdir'//'/'//'tecplot_output{00..'//'4'//'}')
+      tecfile = DIRNAME//'/'//'..'//'/'//'tecplot_output'//
+     &     '/'//'tecplot.out_pe00000'
+      tecfile_max = DIRNAME//'/'//'..'//'/'//'tecplot_max'//
+     &     '/'//'tecplot.max_pe00000'
+
+      print*,tecfile
+      print*,tecfile_max
                                 !call iwrite(tecfile,14,19,myproc)
-      write(tecfile(19:23), "(i4.4)") myproc
-      write(tecfile_max(19:23), "(i4.4)") myproc
+
+      write(tecfile(45:49), "(i4.4)") myproc
+      write(tecfile_max(42:46), "(i4.4)") myproc
+
+      print*,tecfile
+      print*,tecfile_max
 #else
       tecfile = "tecplot.out"
       tecfile_max = "tecplot.max"
 #endif
 
-      open(777, file = dirname//'/'//tecfile)
-      open(778, file = dirname//'/'//tecfile_max)
+      open(777, file = tecfile)
+      open(778, file = tecfile_max)
       write(777,*)  'TITLE = "dgswem output"'
 
       if (ModetoNode.eq.0) then
