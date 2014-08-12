@@ -1642,7 +1642,7 @@ C.... Compute the Runge-Kutta Chebyshev (RKC) version
             
             RKC_nu(j) = - RKC_b(j)/RKC_b(j-2)
             
-            RKC_gamma(j) = RKC_a(j-1)*RKC_tildemu(j)
+            RKC_gamma(j) = -RKC_a(j-1)*RKC_tildemu(j)
             
             RKC_c(j) = (j**(2.D0)-1.0) / ( nrk**(2.D0) - 1.D0 )
 
