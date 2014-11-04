@@ -101,10 +101,13 @@ C.....Compute ZE, QX, QY, and HB at each edge Gauss quadrature point
             iota2_EX = 0.D0
 #endif     
 
-#ifdef TRACE
-            dynP_IN = 0.D0
-            dynP_EX = 0.D0
 
+#ifdef DYNP 
+            dynP_IN = 0.D0
+            dynP_EX = 0.D
+#endif
+
+#ifdef TRACE
             TZ_X_IN = 0.D0
             TZ_Y_IN = 0.D0
 #endif
