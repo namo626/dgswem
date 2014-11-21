@@ -865,7 +865,7 @@ C     jgf46.25 If input tau0 is positive, set all nodes to that value.
      &           'A SPATIALLY CONSTANT WEIGHTING COEFFICIENT (Tau0)'
      &           ,/,5X,' WILL BE USED IN THE GENERALIZED WAVE',
      &           ' CONTINUITY EQUATION.',
-     &           /,5X,'Tau0 = ',E14.8,2X,'1/sec',/)
+     &           /,5X,'Tau0 = ',E15.8,2X,'1/sec',/)
          ELSE
             DO I=1,NP
                Tau0Var(I)=Tau0NodalValue(Tau0,DP(I))
@@ -1316,7 +1316,7 @@ C     ----------------------------------------------------------------
  2080    FORMAT(/,10X,'NODE',5X,'BOTTOM FRICTION FRIC',5X,/)
          DO I=1,NP
             WRITE(16,2087) I,FRIC(I)
- 2087       FORMAT(7X,I6,6X,E15.10)
+ 2087       FORMAT(7X,I6,6X,E17.10)
          END DO
       ELSE
          WRITE(16,3504)

@@ -528,7 +528,7 @@ C.....time step falls within the specified window
                                 !IF (NODECODE(I).EQ.0) WRITE(89,2453) I,0.\
                      IF (ABS(dpe(I)).LE.(10.0**(-30))) dpe(I) = 0.D0
                      write(4441,2453) I,dpe(I)
- 2453                FORMAT(2X,I8,2X,E15.8E3)
+ 2453                FORMAT(2X,I8,2X,E16.8E3)
                   ENDDO
  
 !     cnd...for tecplot results
@@ -687,7 +687,7 @@ C.....Had trouble writing out numbers with less than E-99 (EJK)
                      IF (ABS(UU2(I)).LE.(10.0**(-30))) UU2(I) = 0.D0
                      IF (ABS(VV2(I)).LE.(10.0**(-30))) VV2(I) = 0.D0
                      WRITE(64,2454) I,UU2(I),VV2(I)
- 2454                FORMAT(2X,I8,2(2X,E15.8E3))
+ 2454                FORMAT(2X,I8,2(2X,E16.8E3))
                   ENDDO
                   
 C.....Write DG.64 results
@@ -1183,8 +1183,8 @@ C     IF(ELMAX.LT.200.0.AND.KEMAX.GT.0) THEN
             print*,''
             WRITE(6,1992) IT,NUMITR,ETA2(KEMAX),KEMAX,VELMAX,KVMAX
  1992       FORMAT(1X,'TIME STEP =',I8,5X,'ITERATIONS =',I5,
-     &           /,2X,'ELMAX = ', E10.4,' AT NODE',I7,
-     &           2X,'SPEEDMAX = ',E10.4,' AT NODE',I7)
+     &           /,2X,'ELMAX = ', E11.4,' AT NODE',I7,
+     &           2X,'SPEEDMAX = ',E11.4,' AT NODE',I7)
                                 !write(6,*) 'elmaxe, imaxze, qmaxe, imaxq ',elmaxe,imaxze,
                                 !$           qmaxe,imaxq
 
@@ -1240,8 +1240,8 @@ C     IF(ELMAX.GT.200.0.AND.KEMAX.GT.0) THEN
           WRITE(6,1994) IT,NUMITR,ETA2(KEMAX),KEMAX,VELMAX,KVMAX
           WRITE(16,1994) IT,NUMITR,ETA2(KEMAX),KEMAX,VELMAX,KVMAX
  1994       FORMAT(1X,'TIME STEP =',I8,6X,'ITERATIONS =',I5,
-     &           /,2X,'ELMAX = ', E10.4,' AT NODE',I7,
-     &           2X,'SPEEDMAX = ',E10.4,' AT NODE',I7,
+     &           /,2X,'ELMAX = ', E11.4,' AT NODE',I7,
+     &           2X,'SPEEDMAX = ',E11.4,' AT NODE',I7,
      &           2X,' !!! WARNING - HIGH ELEVATION !!!')
             STOP
          ENDIF
@@ -1405,8 +1405,8 @@ C        CLOSE(652)
 C      ENDIF
 
 2120  FORMAT(2X,E20.10,5X,I10)
-2453  FORMAT(2X,I8,2X,E15.8E3)
-2454  FORMAT(2X,I8,2(2X,E15.8E3))
+2453  FORMAT(2X,I8,2X,E16.8E3)
+2454  FORMAT(2X,I8,2(2X,E16.8E3))
 2455  FORMAT(2X,I8,2X,I2)
 3220  FORMAT(1X,A32,2X,A24,2X,A24)
 3645  FORMAT(1X,I10,1X,I10,1X,E15.7,1X,I5,1X,I5)

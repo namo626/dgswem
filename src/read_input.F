@@ -1020,7 +1020,7 @@ C.....Read and process TAU0 - weighting coefficient in the GWCE
          WRITE(16,7) TAU0
  7       FORMAT(/,5X,'WEIGHTING COEFFICIENT FOR THE GENERALIZED',
      &        ' WAVE CONTINUITY EQUATION :',
-     &        /,5X, 'TAU0 = ',E14.8,2X,'1/sec',/)
+     &        /,5X, 'TAU0 = ',E15.8,2X,'1/sec',/)
       ENDIF
 
 C.....Input from unit 15 and output to unit 16 time integration info
@@ -1826,7 +1826,7 @@ C...
  2092       FORMAT(/,10X,' NODE ',5X,'NODAL CORIOLIS CORIF',/)
             DO I=1,NP
                WRITE(16,2096) I,CORIF(I)
- 2096          FORMAT(7X,I6,10X,E15.9)
+ 2096          FORMAT(7X,I6,10X,E16.9)
             END DO
          ENDIF
       ENDIF
@@ -1896,7 +1896,7 @@ C...
       DO I=1,NTIF
          WRITE(16,2107) TPK(I),AMIGT(I),ETRF(I),FFT(I),FACET(I),
      &        TIPOTAG(I)
- 2107    FORMAT(1X,F9.7,1X,F15.12,2X,F10.7,5X,F10.7,1X,F10.3,7X,A5)
+ 2107    FORMAT(1X,F10.7,1X,F15.12,2X,F10.7,5X,F10.7,1X,F10.3,7X,A5)
       END DO
 C...  
 C...  CONVERT FACET(I) VALUES FROM DEGREES TO RADIANS
