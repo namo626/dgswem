@@ -1,0 +1,8 @@
+*.mod
+*.o
+*.a
+*~
+adcpost
+adcprep
+dgswem
+dgswem_serial
