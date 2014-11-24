@@ -91,7 +91,7 @@ C.....Compute the Roe averaged variables
       T2    = SQRT(HT_EX)
       T3    = SQRT(HT_IN + HT_EX)
       T4    = 1.0D0/(T1 + T2)
-      C_ROE = G2ROOT*T3
+      C_ROE = G2ROOT*T3*SQRT(NY**2 + (NX*SFAC_IN)**2) !srb - spherical coordinate correction
       U_ROE = T4*(U_IN*T1 + U_EX*T2)
       V_ROE = T4*(V_IN*T1 + V_EX*T2)
 
@@ -107,15 +107,15 @@ C.....Evaluate the eigenvalues at the Roe averaged variables
 C.....Evaluate right eigenvectors at Roe averaged variables
 
       RI(1,1) = 1.D0
-      RI(2,1) = U_ROE*IFNLCT + (IFNLCT*C_ROE + (1-IFNLCT)*G/C_ROE)*NX
+      RI(2,1) = U_ROE*IFNLCT + (IFNLCT*C_ROE + (1-IFNLCT)*G/C_ROE)*NX*SFAC_IN !srb - spherical coordinate correction
       RI(3,1) = V_ROE*IFNLCT + (IFNLCT*C_ROE + (1-IFNLCT)*G/C_ROE)*NY
 
       RI(1,2) = 0.D0
       RI(2,2) = -NY
-      RI(3,2) =  NX
+      RI(3,2) =  NX*SFAC_IN
 
       RI(1,3) = 1.D0
-      RI(2,3) = U_ROE*IFNLCT - (IFNLCT*C_ROE + (1-IFNLCT)*G/C_ROE)*NX
+      RI(2,3) = U_ROE*IFNLCT - (IFNLCT*C_ROE + (1-IFNLCT)*G/C_ROE)*NX*SFAC_IN !srb - spherical coordinate correction
       RI(3,3) = V_ROE*IFNLCT - (IFNLCT*C_ROE + (1-IFNLCT)*G/C_ROE)*NY
 
 C.....Evaluate left eigenvectors at Roe averaged variables
@@ -995,13 +995,13 @@ C.....Compute the average flux function
 C.....Evaluate the eigenvalues at the interior and exterior states
 
       UN_IN = (U_IN*NX + V_IN*NY)*NLEQ
-      C_IN = SQRT(G*HT_IN)
+      C_IN = SQRT(G*HT_IN*(NY**2 + (NX*SFAC_IN)**2)) !srb - spherical coordinate correction
       EIGVALS(1) = ABS(UN_IN + C_IN)
       EIGVALS(2) = ABS(UN_IN)
       EIGVALS(3) = ABS(UN_IN - C_IN)
 
       UN_EX = (U_EX*NX + V_EX*NY)*NLEQ
-      C_EX = SQRT(G*HT_EX)
+      C_EX = SQRT(G*HT_EX*(NY**2 + (NX*SFAC_EX)**2)) !srb - spherical coordinate correction
       EIGVALS(4) = ABS(UN_EX + C_EX)
       EIGVALS(5) = ABS(UN_EX)
       EIGVALS(6) = ABS(UN_EX - C_EX)
