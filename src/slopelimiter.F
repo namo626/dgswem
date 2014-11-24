@@ -42,7 +42,9 @@ C***********************************************************************
 #endif
 
 #ifdef SLOPE5 
+      IF (SLOPEFLAG .NE. 0) THEN
         CALL SLOPELIMITER5()
+      ENDIF
 #endif
 
 #ifdef STBLZR
