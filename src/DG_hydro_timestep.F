@@ -468,9 +468,9 @@ C.......Apply the slopelimiter if appropriate
 
 C.......Apply the wet-dry algorithm if appropriate
 
-#ifdef WETDR
+      IF (NOLIFA .GE. 2) THEN
          CALL WETDRY()
-#endif
+      ENDIF
 
 c$$$C.......Apply the slopelimiter again if auxiliary variable is being used
 c$$$
