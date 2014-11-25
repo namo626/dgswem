@@ -1099,8 +1099,8 @@ C     IF(MYPROC.EQ.0.AND.ELMAX.LT.200.0.AND.KEMAX.GT.0) THEN
          WRITE(6,1991) IT,NUMITR,ETA2(KEMAX),KEMAX,VELMAX,KVMAX,
      &           MYPROC
  1991   FORMAT(1X,'TIME STEP =',I8,5X,'ITERATIONS =',I5,
-     &           /,2X,'ELMAX = ', E10.4,' AT NODE',I7,
-     &           2X,'SPEEDMAX = ',E10.4,' AT NODE',I7,
+     &           /,2X,'ELMAX = ', E11.4,' AT NODE',I7,
+     &           2X,'SPEEDMAX = ',E11.4,' AT NODE',I7,
      &           2X,'ON MYPRnOC = ',I4)
    !write(6,*) 'elmaxe, imaxze, qmaxe, imaxq ',elmaxe,imaxze,
                                 !$           qmaxe,imaxq
@@ -1163,8 +1163,8 @@ C     IF(ELMAX.GT.200.0.AND.KEMAX.GT.0) THEN
             WRITE(16,1993) IT,NUMITR,ETA2(KEMAX),KEMAX,VELMAX,KVMAX,
      &           MYPROC
  1993       FORMAT(1X,'TIME STEP =',I8,6X,'ITERATIONS =',I5,
-     &      /,2X,'ELMAX = ', E10.4,' AT NODE',I7,
-     &      2X,'SPEEDMAX = ',E10.4,' AT NODE',I7,
+     &      /,2X,'ELMAX = ', E11.4,' AT NODE',I7,
+     &      2X,'SPEEDMAX = ',E11.4,' AT NODE',I7,
      &      2X,'ON MYPROC = ',I4,' !!! WARNING - HIGH ELEVATION !!!')
             STOP
          ENDIF
