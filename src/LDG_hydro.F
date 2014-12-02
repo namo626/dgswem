@@ -944,8 +944,8 @@ C.....Take the average
             ZE_AVG = 0.5D0*(ZE_IN + ZE_EX)
 #endif
 
-            QX_AVG = 0.5D0*(QX_IN*SFACED(I,LED_IN,EL_IN,pa) 
-     &           + QX_EX*SFACED(I,LED_EX,EL_EX,pa))
+            QX_AVG = 0.5D0*(QX_IN*SFACED(GP_IN,LED_IN,EL_IN,pa) 
+     &           + QX_EX*SFACED(GP_EX,LED_EX,EL_EX,pa))
             QY_AVG = 0.5D0*(QY_IN + QY_EX)
 
 #ifdef TRACE
