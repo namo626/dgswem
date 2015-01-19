@@ -373,6 +373,7 @@ C.....Compute the numerical flux
             
             CALL NUMERICAL_FLUX(IT,test_el)
 
+C......... dummy
             F_HAT_O  = F_HAT
 
 #ifdef TRACE
@@ -441,14 +442,19 @@ C...........Put back the saved RHS
 #endif
 
                ENDDO
+
                GOTO 100
             ENDIF
             
 C........Check to make sure mass flux is not coming from a dry element
 
             IF (abs(F_HAT).gt.1.d-12) THEN
+               !
                IF (WDFLG(EL_IN).EQ.0) THEN
+                  ! EL_IN is dry !
                   IF (F_HAT.GT.0) THEN
+                     ! Flux going from the dry element (in)
+                     ! On the wet side (ex): reflect boundary
                      Q_N_EXT = QX_EX*NX + QY_EX*NY
                      Q_T_EXT = QX_EX*TX + QY_EX*TY
                      Q_N_INT = -Q_N_EXT
@@ -478,11 +484,16 @@ C........Check to make sure mass flux is not coming from a dry element
                      HB_IN = HB_EX
                      SFAC_IN = SFAC_EX
                      CALL NUMERICAL_FLUX(IT,test_el)
+
                      F_HAT_O  = F_HAT
-                     G_HAT_IN = G_HAT
-                     H_HAT_IN = H_HAT
                      G_HAT_EX = G_HAT
                      H_HAT_EX = H_HAT
+
+                     ! on the dry side (in): do nothing
+                     G_HAT_IN = G_HAT
+                     H_HAT_IN = H_HAT
+                     G_HAT_IN = 0.D0 
+                     H_HAT_IN = 0.D0 
 
 #ifdef TRACE
                      I_HAT_O  = I_HAT
@@ -503,6 +514,8 @@ C........Check to make sure mass flux is not coming from a dry element
 #endif
 
                   ELSE
+                     ! Flux coming from wet side (ex)
+                     ! Leave fluxes on ex side intact and use zero gravtity flux for dry side      
                      NLEQG_TMP = NLEQG
                      NLEQG = 0.D0
                      G_TMP = G
@@ -516,8 +529,13 @@ C........Check to make sure mass flux is not coming from a dry element
                      bed_HAT_IN(:) = bed_HAT(:)
 #endif
                   ENDIF
+                  
                ELSEIF (WDFLG(EL_EX).EQ.0) THEN
+                  
+                  ! EL_EX is dry
                   IF (F_HAT.LT.0) THEN
+                     ! Flux comming from dry size (ex)
+                     ! On the wet side (in): reflect boundary
                      Q_N_INT = QX_IN*NX + QY_IN*NY
                      Q_T_INT = QX_IN*TX + QY_IN*TY
                      Q_N_EXT = -Q_N_INT
@@ -566,12 +584,18 @@ C........Check to make sure mass flux is not coming from a dry element
                      bed_HAT_IN(:) = bed_HAT(:)
                      bed_HAT_EX(:) = bed_HAT(:)
 #endif
-
+                     
                      G_HAT_IN = G_HAT
                      H_HAT_IN = H_HAT
+
+                     ! zero out mentum flux on the dry side (ex)
                      G_HAT_EX = G_HAT
                      H_HAT_EX = H_HAT
+                     G_HAT_EX = 0.D0 
+                     H_HAT_EX = 0.D0 
                   ELSE
+                     ! Flux comming from the wet side (in)
+                     ! Leave fluxes on in side intact and use zero gravtity for flux for dry (ex) side     
                      NLEQG_TMP = NLEQG
                      NLEQG = 0.D0
                      G_TMP = G
@@ -579,7 +603,6 @@ C........Check to make sure mass flux is not coming from a dry element
                      CALL NUMERICAL_FLUX(IT,test_el)
                      NLEQG = NLEQG_TMP
                      G = G_TMP
-                     F_HAT_O = F_HAT
                      G_HAT_EX = G_HAT
                      H_HAT_EX = H_HAT
 #ifdef TRACE

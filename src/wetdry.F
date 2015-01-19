@@ -46,7 +46,9 @@ C.....Declare local variables
       REAL(SZ) HT_NODE(NCHECK(ph))
       REAL(SZ) QX_HAT(3), QX_NODE(3), QY_HAT(3), QY_NODE(3)
       REAL(SZ) ZE_HAT(NCHECK(ph),ph), ZE_NODE(NCHECK(ph),ph)
-      
+
+      REAL(SZ), PARAMETER:: HUGEVEL = 1.D+5  
+      REAL(SZ):: HS0, U_HAT(3), V_HAT(3)
 C.....Initialize node codes to dry
 
       DO I = 1,NP
@@ -79,13 +81,14 @@ C.......and count number of dry nodes
          HT_MIN = HUGE
          HT_MAX = ZERO
          DO I = 1,NCHECK(pa)
+            !
             ZE_NODE(I,pa) = ZE(1,J,IRK+1)
             DO K = 2,DOFS(J)
                ZE_NODE(I,pa) = ZE_NODE(I,pa) + PHI_CHECK(K,I,pa)*ZE(K,J,IRK+1)
-                                !print*,phi_check(k,i,pa),k,i,pa
+                                ! print*,phi_check(k,i,pa),k,i,pa
             ENDDO
             HT_NODE(I) = ZE_NODE(I,pa) + DP_NODE(I,J,pa)
-                                !print*,DP_node(i,j,pa), i,j
+                                ! print*,DP_node(i,j,pa), i,j
 #ifdef SED_LAY   
             HT_NODE(I) = 0.D0
             do l=1,layers !notice we are summing over layers at nodes
@@ -111,6 +114,7 @@ C.......and count number of dry nodes
          
 C.......Set "average" bathymetry based on p
 
+         
          !Notice that the average is the average over the sum of the layers
          !DP_AVG = 1.D0/ncheck(pa) * (sum(DP_NODE(:,J,pa)))        
          DP_AVG = C13*(DP_NODE(1,J,pa) + DP_NODE(2,J,pa) + DP_NODE(3,J,pa))
@@ -125,8 +129,6 @@ C.......Set "average" bathymetry based on p
 C-----------------------------------------------------------------------
 C.......Case 1: All nodes are wet
 C-----------------------------------------------------------------------
-
-                                !print*,ndrynode
 
          IF (NDRYNODE.EQ.0) THEN
 
@@ -163,31 +165,48 @@ C-----------------------------------------------------------------------
 
          ELSEIF (NDRYNODE.EQ.NCHECK(pa)) THEN
             
+  
 C.........Set surface elevation parallel to bathymetry such that total
-C..........water depth at all points = average water depth
-
+C.........water depth at all points = average water depth
+            IF (pa.EQ.0) THEN
+               HT_AVG = H0
+            ELSEIF (pa.EQ.1) THEN
+               HT_AVG = ZE(1,J,IRK+1) + DP_AVG
+            ELSE
+               ZE_VOL = 0.D0
+               DO K = 1,DOFS(J)
+                  ZE_VOL = ZE_VOL + ZE(K,J,IRK+1)*PHI_INTEGRATED(K,pa)
+               ENDDO
+               HT_VOL = DP_VOL(J,pa) + 0.25D0*AREAS(J)*ZE_VOL
+               HT_AVG = HT_VOL/(0.5D0*AREAS(J))
+            ENDIF
+            
             ZE(:,J,IRK+1) = 0.D0
-            ZE(1,J,IRK+1) = H0 - DP_AVG
+            ZE(1,J,IRK+1) = HT_AVG - DP_AVG ! for pa = 0, i.e FVM
+            IF ( pa > 0 ) THEN 
+               ! Prevent water from becoming dangeously low by            !
+               ! bumping the water depth back to ZERO, i.e. a small value !
+               IF ( HT_AVG < ZERO ) ZE(1,J,IRK+1) = ZERO - DP_AVG 
+            END IF
             ZE(2,J,IRK+1) = -HB(2,J,1)
             ZE(3,J,IRK+1) = -HB(3,J,1)
 
 C.........Zero out the fluxes
-
             QX(:,J,IRK+1) = 0.D0
             QY(:,J,IRK+1) = 0.D0
             
 C.........Set flags to dry and skip element check
-
             WDFLG(J) = 0
             ELEMENT_CHECK = 0
 
-            !zero out higher order stuff
-            do i = 4,dofh
-               
-               ZE(i,J,IRK+1) = 0.D0
-               QX(i,J,IRK+1) = 0.D0
-               QY(i,J,IRK+1) = 0.D0
-
+!          
+!            !zero out higher order stuff
+!            do i = 4,dofh
+!               
+!               ZE(i,J,IRK+1) = 0.D0
+!               QX(i,J,IRK+1) = 0.D0
+!               QY(i,J,IRK+1) = 0.D0
+!
 c$$$#ifdef SED_LAY !is this more stable?
 c$$$               do l=1,layers 
 c$$$
@@ -195,8 +214,9 @@ c$$$                  bed(i,J,IRK+1,l) = 0.D0
 c$$$
 c$$$               enddo
 c$$$#endif
-               
-            enddo
+!               
+!            enddo
+!
 
             !transported quantities should still be stable
 c$$$            if (tracer_flag.eq.1) then
@@ -219,7 +239,6 @@ C----------------------------------------------------------------------------
          ELSE
 
 C.........Set averages based on p
-
             IF (pa.EQ.0) THEN
                HT_AVG = H0
             ELSEIF (pa.EQ.1) THEN
@@ -243,13 +262,17 @@ C...........Set surface elevation parallel to bathymetry such that total
 C...........water depth at all points = average water depth
 
                ZE(:,J,IRK+1) = 0.D0
-               ZE(1,J,IRK+1) = HT_AVG - DP_AVG
+               ZE(1,J,IRK+1) = HT_AVG - DP_AVG 
+               IF ( pa > 0 ) THEN
+                  ! dw: just in case, it is not likely to happen 
+                  IF ( HT_AVG < ZERO ) ZE(1,J,IRK+1) = ZERO - DP_AVG
+
+               END IF
                ZE(2,J,IRK+1) = -HB(2,J,1)
                ZE(3,J,IRK+1) = -HB(3,J,1)
                ZE_HAT(:,pa) = ZE(1,J,IRK+1)
 
 C...........Zero out the fluxes
-
                QX(:,J,IRK+1) = 0.D0
                QY(:,J,IRK+1) = 0.D0
 
@@ -265,6 +288,9 @@ C...........water depth and the same linear components
                IF (pa.GT.1) THEN
                                 !Notice the trick here.  Nodes = vertices
                                 !since we NOW restrict to a linear regime
+                  !c--- dw: should it be (?)
+                  ! HT_MODE(2) = -(ZE(2,J,1) + HB(2,J,1))
+                  ! HT_MODE(3) = -(ZE(3,J,1) + HB(3,J,1))
                   HT_MODE(1) = HT_AVG
                   HT_MODE(2) = -(ZE(2,J,1) + HB(2,J,1))
                   HT_MODE(3) = -(ZE(3,J,1) + HB(3,J,1))
@@ -328,6 +354,7 @@ C...........fluxes on dry nodes, and count new # of dry nodes/vertices
 C...........If all adjusted nodes/vertices are dry then zero out fluxes
 
                IF (NDRYNODE.EQ.3) THEN
+                  
                   QX(:,J,IRK+1) = 0.D0
                   QY(:,J,IRK+1) = 0.D0
 
@@ -353,6 +380,7 @@ c$$$  endif
 C...........Else re-distribute nodal/vertex fluxes
 
                ELSE
+                  !
                   QX_SUMs = QX_SUMs/(3.D0-REAL(NDRYNODE))
                   QY_SUMs = QY_SUMs/(3.D0-REAL(NDRYNODE))
                   DO I = 1,3
@@ -360,18 +388,42 @@ C...........Else re-distribute nodal/vertex fluxes
                         QX_HAT(I) = 0.D0
                         QY_HAT(I) = 0.D0
                      ELSE
-                        IF(QX_SUMs*QX_NODE(I).LT.0.D0) THEN
-                           QX_HAT(I) = QX_NODE(I) + QX_SUMs
-                        ELSE
-                           QX_HAT(I) = QX_NODE(I)
-                        ENDIF
-                        IF(QY_SUMs*QY_NODE(I).LT.0.D0) THEN
-                           QY_HAT(I) = QY_NODE(I) + QY_SUMs
-                        ELSE
-                           QY_HAT(I) = QY_NODE(I)
-                        ENDIF
+                        !c
+                        !c... dw: seem to not agree with sb's paper (??)
+                        !c       (momemtum could be increased)
+                        !IF(QX_SUMs*QX_NODE(I).LT.0.D0) THEN
+                        !   QX_HAT(I) = QX_NODE(I) + QX_SUMs
+                        !ELSE
+                        !   QX_HAT(I) = QX_NODE(I)
+                        !ENDIF
+                        !IF(QY_SUMs*QY_NODE(I).LT.0.D0) THEN
+                        !   QY_HAT(I) = QY_NODE(I) + QY_SUMs
+                        !ELSE
+                        !   QY_HAT(I) = QY_NODE(I)
+                        !ENDIF
+
+                        !c
+                        !c--- dw: make it consistant with sb's paper
+                        !c
+                        QX_HAT(I) = QX_NODE(I) + QX_SUMs 
+                        QY_HAT(I) = QY_NODE(I) + QY_SUMs  
                      ENDIF
                   ENDDO
+                  !
+                  
+!c                  !c............. dw, consider cliping velocity greater than HUGEVEL 
+!c                  !c               (experimental)
+!c                  U_HAT(1:3) = QX_HAT(1:3)/HT_HAT(1:3) ;
+!c                  V_HAT(1:3) = QY_HAT(1:3)/HT_HAT(1:3) ;
+!c                  DO I = 1, 3
+!c                     IF ( abs(U_HAT(I)) > HUGEVEL ) U_HAT(I) = HUGEVEL ;
+!c                     IF ( abs(V_HAT(I)) > HUGEVEL ) V_HAT(I) = HUGEVEL ;
+!c                  END 
+!c                  QX_HAT(1:3) = U_HAT(1:3)*HT_HAT(1:3) ;
+!c                  QY_HAT(1:3) = U_HAT(1:3)*HT_HAT(1:3) ;
+!c                  !c............
+
+
 
 C.............Compute new linear modal dofs for x-direction flux
 
@@ -384,7 +436,6 @@ C.............Compute new linear modal dofs for y-direction flux
                   QY(1,J,IRK+1) =  C13*(QY_HAT(1) + QY_HAT(2) + QY_HAT(3))
                   QY(2,J,IRK+1) = -C16*(QY_HAT(1) + QY_HAT(2))+C13*QY_HAT(3)
                   QY(3,J,IRK+1) = -0.5D0*QY_HAT(1) + 0.5D0*QY_HAT(2)
-
                ENDIF
 
 C...........Compute new nodal surface elevations
@@ -445,9 +496,12 @@ C.........Set flag to do element check
 
             endif
 #endif
+
+
+            
             
          ENDIF
- 
+
 C-----------------------------------------------------------------------
 C     End of cases
 C-----------------------------------------------------------------------
@@ -459,7 +513,8 @@ C.......Setting the lower bound
          IF (ELEMENT_CHECK.EQ.1) THEN
 
 !Now test to see if the water column at the min vertex is wet
-            IF (MINVAL(ZE_HAT(:,pa)+DP_NODE(:,J,pa)).GT.H0 ) THEN
+            IF (MINVAL(ZE_HAT(:,pa)+DP_NODE(:,J,pa)).GT.H0 ) THEN  ! cem fix
+!            IF (ZE_HAT(HT_MAX_I,pa).GT.(-DPE_MIN(J)+H0)) THEN     ! Shintaro's criteria 
 
 C.........Make no adjustments and set element and node flags to wet
 
