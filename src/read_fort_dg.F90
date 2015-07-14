@@ -54,7 +54,7 @@
         
         INTEGER :: vartype              ! target type indicator: 1=integer, 2=real, 3=character
         
-        LOGICAL :: required             ! required/optional flag
+        INTEGER :: required             ! required/optional flag
         
         INTEGER :: flag                 ! successful read flag
       END TYPE key_val
@@ -74,7 +74,7 @@
       
       USE global, ONLY: dgswe,dg_to_cg,sedflag,reaction_rate,sed_equationX,sed_equationY, &
                         rhowat0,vertexslope
-      USE sizes, ONLY: layers,dirname
+      USE sizes, ONLY: myproc,layers,dirname
       USE dg, ONLY: padapt,pflag,gflag,diorism,pl,ph,px,slimit,plimit, &
                     pflag2con1,pflag2con2,lebesgueP,fluxtype,rk_stage,rk_order, &
                     modal_ic,dghot,dghotspool,slopeflag,slope_weight,porosity, &
@@ -91,9 +91,11 @@
 
       OPEN(25,FILE=DIRNAME//'/'//'fort.dg',POSITION="rewind")  
       
-      PRINT*, ""
-      PRINT("(A)"), "READING FIXED FORMAT FORT.DG..."
-      PRINT*, ""      
+      IF (myproc == 0) THEN
+        PRINT*, ""
+        PRINT("(A)"), "READING FIXED FORMAT FORT.DG..."
+        PRINT*, ""      
+      ENDIF
       
       READ(25,*) DGSWE
       READ(25,*) padapt,pflag
@@ -151,27 +153,32 @@
       READ(25,'(a)') sed_equationY
       
       IF(FLUXTYPE.NE.1.AND.FLUXTYPE.NE.2.AND.FLUXTYPE.NE.3.AND.FLUXTYPE.NE.4) THEN
-         PRINT *, 'SPECIFIED FLUXTYPE (=', FLUXTYPE,') IS NOT ALLOWED.'
-         PRINT *, 'EXECUTION WILL BE TERMINATED.'
-         STOP 'SPECIFIED FLUXTYPE IS NOT ALLOWED.'
+         IF (myproc == 0) THEN 
+           PRINT *, 'SPECIFIED FLUXTYPE (=', FLUXTYPE,') IS NOT ALLOWED.'
+           PRINT *, 'EXECUTION WILL BE TERMINATED.'
+         ENDIF 
+         
+         STOP 
       ENDIF     
       
       ! print inputs
-      DO i = 1,maxopt        
-        IF (ASSOCIATED(fortdg(i)%iptr)) THEN  
-          PRINT("(A,A,I8)"), fortdg(i)%key," = ",fortdg(i)%iptr
-        ENDIF
+      IF (myproc == 0) THEN
+        DO i = 1,maxopt        
+          IF (ASSOCIATED(fortdg(i)%iptr)) THEN  
+            PRINT("(A,A,I8)"), fortdg(i)%key," = ",fortdg(i)%iptr
+          ENDIF
         
-        IF (ASSOCIATED(fortdg(i)%rptr)) THEN 
-          PRINT("(A,A,E21.8)"), fortdg(i)%key," = ",fortdg(i)%rptr
-        ENDIF
+          IF (ASSOCIATED(fortdg(i)%rptr)) THEN 
+            PRINT("(A,A,E21.8)"), fortdg(i)%key," = ",fortdg(i)%rptr
+          ENDIF
         
-        IF (ASSOCIATED(fortdg(i)%cptr)) THEN 
-          PRINT("(A,A,A)"), fortdg(i)%key," = ",fortdg(i)%cptr 
-        ENDIF
-      ENDDO      
+          IF (ASSOCIATED(fortdg(i)%cptr)) THEN 
+            PRINT("(A,A,A)"), fortdg(i)%key," = ",fortdg(i)%cptr 
+          ENDIF
+        ENDDO      
+        PRINT*, " "
+      ENDIF 
       
-      PRINT*, " "
       CLOSE(25)
       
       RETURN
@@ -182,7 +189,7 @@
  
       SUBROUTINE READ_KEYWORD_FORT_DG()
       
-      USE sizes, ONLY: dirname
+      USE sizes, ONLY: myproc,dirname
       USE global, ONLY: nfover
 
       IMPLICIT NONE
@@ -192,7 +199,7 @@
       INTEGER :: opt_read
       INTEGER :: comment,blank
       INTEGER :: eqind,exind
-      LOGICAL :: found      
+      INTEGER :: found      
       CHARACTER(100) :: temp,line,empty
       CHARACTER(15) :: test_opt
       CHARACTER(100) :: test_val
@@ -206,10 +213,11 @@
       
       
       OPEN(25,FILE=DIRNAME//'/'//'fort.dg',POSITION="rewind")   
-      
-      PRINT*, ""
-      PRINT("(A)"), "READING KEYWORD FORMAT FORT.DG..."
-      PRINT*, ""
+      IF (myproc == 0) THEN
+        PRINT*, ""
+        PRINT("(A)"), "READING KEYWORD FORMAT FORT.DG..."
+        PRINT*, ""
+      ENDIF
      
       
       DO WHILE (opt_read < nopt)
@@ -242,7 +250,7 @@
           ENDIF         
           
           ! Look for a match for the keyword
-          found = .false.
+          found = 0
     test: DO opt = 1,nopt
     
             i = fortdg_ind(opt)    
@@ -253,16 +261,16 @@
               SELECT CASE (fortdg(i)%vartype) 
                 CASE(1)
                   READ(test_val,*) fortdg(i)%iptr
-                  PRINT("(A,A,I8)"), test_opt," = ",fortdg(i)%iptr
+                  IF (myproc == 0) PRINT("(A,A,I8)"), test_opt," = ",fortdg(i)%iptr
                 CASE(2)
                   READ(test_val,*) fortdg(i)%rptr
-                  PRINT("(A,A,E21.8)"), test_opt," = ",fortdg(i)%rptr                  
+                  IF (myproc == 0) PRINT("(A,A,E21.8)"), test_opt," = ",fortdg(i)%rptr                  
                 CASE(3)
                   fortdg(i)%cptr = TRIM(test_val)
-                  PRINT("(A,A,A)"), test_opt," = ",fortdg(i)%cptr                  
+                  IF (myproc == 0) PRINT("(A,A,A)"), test_opt," = ",fortdg(i)%cptr                  
               END SELECT
 
-              found = .true.          ! flag match
+              found = 1          ! flag match
               opt_read = opt_read + 1
               fortdg(i)%flag = 1      ! flag option as found
               
@@ -270,23 +278,25 @@
               
             ENDIF
           ENDDO test
-                    
-          IF (found == .false. .and. eqind > 0) THEN
-            ! unmatched lines with an equal sign are either incorrect or no longer supported
-            PRINT("(3A)"),"*** WARNING: ",test_opt, " is an incorrect or depreciated value ***"            
-          ELSE IF (found == .false.) THEN
-            ! unmatched lines without an equal sign are ignored
-            PRINT("(A)"), "*** WARNING: non-comment line does not contain a keyword assignment***"           
-          ENDIF
-          
+               
+          IF (myproc == 0 ) THEN     
+            IF (found == 0 .and. eqind > 0) THEN
+              ! unmatched lines with an equal sign are either incorrect or no longer supported
+              PRINT("(3A)"),"*** WARNING: ",test_opt, " is an incorrect or depreciated value ***"            
+            ELSE IF (found == 0) THEN
+              ! unmatched lines without an equal sign are ignored
+              PRINT("(A)"), "*** WARNING: non-comment line does not contain a keyword assignment***"           
+            ENDIF
+          ENDIF 
+           
         ENDIF
       ENDDO 
       
-      PRINT*, ""
+      IF (myproc == 0) PRINT*, ""
      
       CALL CHECK_ERRORS(opt_read)
       
-      PRINT*, ""
+      IF (myproc == 0) PRINT*, ""
       CLOSE(25)
             
       END SUBROUTINE READ_KEYWORD_FORT_DG
@@ -295,6 +305,8 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
      SUBROUTINE CHECK_ERRORS(opt_read)
+     
+      USE sizes, ONLY: myproc     
      
      IMPLICIT NONE
      
@@ -308,50 +320,55 @@
        quit = 0
        DO opt = 1,nopt
          i = fortdg_ind(opt)
-         IF (fortdg(i)%flag == 0 .and. fortdg(i)%required == .true.) THEN
+         IF ((fortdg(i)%flag == 0) .and. (fortdg(i)%required == 1)) THEN
            quit = 1   ! flag fatal error
          ENDIF
        ENDDO
         
        IF (quit == 1) THEN
         
-          PRINT("(A)"), "*** ERROR: There are missing required options in the fort.dg file ***"  
-          PRINT("(A)"), "           The following options must be specified: "      
-          j = 0        
-          DO opt = 1,nopt
-            i = fortdg_ind(opt)
-            IF (fortdg(i)%flag == 0 .and. fortdg(i)%required == .true.) THEN
-              j = j+1
-              PRINT "(A,I3,2A)", "              ",j,") ",fortdg(i)%key
-            ENDIF
-          ENDDO          
+          IF (myproc == 0) THEN
+            PRINT("(A)"), "*** ERROR: There are missing required options in the fort.dg file ***"  
+            PRINT("(A)"), "           The following options must be specified: "      
+            j = 0        
+            DO opt = 1,nopt
+              i = fortdg_ind(opt)
+              IF ((fortdg(i)%flag == 0) .and. (fortdg(i)%required == 1)) THEN
+                j = j+1
+                PRINT "(A,I3,2A)", "              ",j,") ",fortdg(i)%key
+              ENDIF
+            ENDDO          
           
-          PRINT("(A)"), "!!!!!! EXECUTION WILL NOW BE TERMINATED !!!!!!"
+            PRINT("(A)"), "!!!!!! EXECUTION WILL NOW BE TERMINATED !!!!!!"
+          ENDIF
+          
           STOP
           
        ELSE
         
-          PRINT("(A)"), "*** WARNING: There are missing optional options in the fort.dg file ***"
-          PRINT("(A)"), "             The following default values will be used: "    
-          j = 0        
-          DO opt = 1,nopt
-            i = fortdg_ind(opt)
-            IF (fortdg(i)%flag == 0 .and. fortdg(i)%required == .false.) THEN
+          IF (myproc == 0) THEN
+            PRINT("(A)"), "*** WARNING: There are missing optional options in the fort.dg file ***"
+            PRINT("(A)"), "             The following default values will be used: "    
+            j = 0        
+            DO opt = 1,nopt
+              i = fortdg_ind(opt)
+              IF ((fortdg(i)%flag == 0) .and. (fortdg(i)%required == 0)) THEN
               
-              j = j+1
-              SELECT CASE (fortdg(i)%vartype) 
-                CASE(1)
-                  PRINT("(A,I3,A,A,A,I8)"),     "              ",j,") ",fortdg(i)%key," = ",fortdg(i)%iptr
-                CASE(2)
-                  PRINT("(A,I3,A,A,A,E21.8)"),  "              ",j,") ",fortdg(i)%key," = ",fortdg(i)%rptr                  
-                CASE(3)
-                  PRINT("(A,I3,A,A,A,A)"),      "              ",j,") ",fortdg(i)%key," = ",fortdg(i)%cptr                  
-              END SELECT
+                j = j+1
+                SELECT CASE (fortdg(i)%vartype) 
+                  CASE(1)
+                    PRINT("(A,I3,A,A,A,I8)"),     "              ",j,") ",fortdg(i)%key," = ",fortdg(i)%iptr
+                  CASE(2)
+                    PRINT("(A,I3,A,A,A,E21.8)"),  "              ",j,") ",fortdg(i)%key," = ",fortdg(i)%rptr                  
+                  CASE(3)
+                    PRINT("(A,I3,A,A,A,A)"),      "              ",j,") ",fortdg(i)%key," = ",fortdg(i)%cptr                  
+                END SELECT
               
-            ENDIF
-          ENDDO 
+              ENDIF
+            ENDDO 
           
-          PRINT("(A)"), '!!!!!! EXECUTION WILL CONTINUE !!!!!!!!'
+            PRINT("(A)"), '!!!!!! EXECUTION WILL CONTINUE !!!!!!!!'
+          ENDIF
           
        ENDIF       
                   
@@ -377,7 +394,7 @@
       !          Note: pointer must agree with the associated variable type 
       !                (iptr=integer, rptr=real, cptr=character)      
       !          Note: the associated variable must be declared using the TARGET attribute
-      !       3) Specifying whether the variable is required 
+      !       3) Specifying whether the variable is required (1 = yes, 0 = no)
       !       4) Providing a default value
       ! 
       !   - Options can be removed from the fort.dg file by:
@@ -386,9 +403,9 @@
       !       
       !       OR
       !
-      !       2) Setting the fortdg(i)%required variable to .false.
+      !       2) Setting the fortdg(i)%required variable to 0
       ! 
-      !   - New features should be added as fortdg(i)%required = .false. as much as possible 
+      !   - New features should be added as fortdg(i)%required = 0 as much as possible 
       !     to maintain backward compatibility, older fort.dg files not containing these 
       !     options will cause provided default values to be used (these should be set so 
       !     the feature is turned off)
@@ -398,7 +415,7 @@
       
       
       USE global, ONLY: dgswe,dg_to_cg,sedflag,reaction_rate,sed_equationX,sed_equationY
-      USE sizes, ONLY: layers
+      USE sizes, ONLY: myproc,layers
       USE dg, ONLY: padapt,pflag,gflag,diorism,pl,ph,px,slimit,plimit, &
                     pflag2con1,pflag2con2,lebesgueP,fluxtype,rk_stage,rk_order, &
                     modal_ic,dghot,dghotspool,slopeflag,slope_weight,porosity, &
@@ -409,6 +426,7 @@
       INTEGER :: i
       INTEGER :: ncheck
       CHARACTER(15) :: empty
+      CHARACTER(28) :: sedXdef,sedYdef
       
       ! initialize fortdg structure
       DO i = 1,maxopt
@@ -416,7 +434,7 @@
         NULLIFY(fortdg(i)%rptr)
         NULLIFY(fortdg(i)%cptr)
         
-        fortdg(1)%key = empty
+        fortdg(i)%key = empty
         fortdg(i)%flag = 0        
       ENDDO
       
@@ -424,42 +442,45 @@
       ! Configure fort.dg options here:
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       
+      sedXdef = "(ZE_ROE+bed_ROE)**-1 *QX_ROE"
+      sedYdef = "(ZE_ROE+bed_ROE)**-1 *QY_ROE"
+      
       !    keywords                         target variables                      requirement                 default values
-      fortdg(1)%key = "dgswe";          fortdg(1)%iptr => dgswe ;          fortdg(1)%required = .true.;      fortdg(1)%iptr = 1
-      fortdg(2)%key = "padapt";         fortdg(2)%iptr => padapt;          fortdg(2)%required = .true.;      fortdg(2)%iptr = 0
-      fortdg(3)%key = "pflag";          fortdg(3)%iptr => pflag;           fortdg(3)%required = .true.;      fortdg(3)%iptr = 2
-      fortdg(4)%key = "gflag";          fortdg(4)%iptr => gflag;           fortdg(4)%required = .true.;      fortdg(4)%iptr = 1
-      fortdg(5)%key = "dis_tol";        fortdg(5)%rptr => diorism;         fortdg(5)%required = .true.;      fortdg(5)%rptr = 8
-      fortdg(6)%key = "pl";             fortdg(6)%iptr => pl;              fortdg(6)%required = .true.;      fortdg(6)%iptr = 1
-      fortdg(7)%key = "ph";             fortdg(7)%iptr => ph;              fortdg(7)%required = .true.;      fortdg(7)%iptr = 1
-      fortdg(8)%key = "px";             fortdg(8)%iptr => px;              fortdg(8)%required = .true.;      fortdg(8)%iptr = 1
-      fortdg(9)%key = "slimit";         fortdg(9)%rptr => slimit;          fortdg(9)%required = .true.;      fortdg(9)%rptr = 0.00005
-      fortdg(10)%key = "plimit";        fortdg(10)%rptr => plimit;         fortdg(10)%required = .true.;     fortdg(10)%rptr = 10
-      fortdg(11)%key = "k";             fortdg(11)%rptr => pflag2con1;     fortdg(11)%required = .true.;     fortdg(11)%rptr = 1
-      fortdg(12)%key = "ks";            fortdg(12)%rptr => pflag2con2;     fortdg(12)%required = .true.;     fortdg(12)%rptr = 0.5
-      fortdg(13)%key = "L";             fortdg(13)%iptr => lebesgueP;      fortdg(13)%required = .true.;     fortdg(13)%iptr = 2
-      fortdg(14)%key = "fluxtype";      fortdg(14)%iptr => fluxtype;       fortdg(14)%required = .true.;     fortdg(14)%iptr = 1
-      fortdg(15)%key = "rk_stage";      fortdg(15)%iptr => rk_stage;       fortdg(15)%required = .true.;     fortdg(15)%iptr = 2
-      fortdg(16)%key = "rk_order";      fortdg(16)%iptr => rk_order;       fortdg(16)%required = .true.;     fortdg(16)%iptr = 2
-!       fortdg(17)%key = "dg_to_cg";      fortdg(17)%iptr => dg_to_cg;     fortdg(17)%required = .true.;     fortdg(17)%iptr = 1
-      fortdg(18)%key = "modal_ic";      fortdg(18)%iptr => modal_ic;       fortdg(18)%required = .true.;     fortdg(18)%iptr = 0
-      fortdg(19)%key = "dghot";         fortdg(19)%iptr => dghot;          fortdg(19)%required = .true.;     fortdg(19)%iptr = 0
-      fortdg(20)%key = "dghotspool";    fortdg(20)%iptr => dghotspool;     fortdg(20)%required = .true.;     fortdg(20)%iptr = 86400
-      fortdg(21)%key = "slopeflag";     fortdg(21)%iptr => slopeflag;      fortdg(21)%required = .true.;     fortdg(21)%iptr = 5
-      fortdg(22)%key = "weight";        fortdg(22)%rptr => slope_weight;   fortdg(22)%required = .true.;     fortdg(22)%rptr = 1
-      fortdg(23)%key = "sedflag";       fortdg(23)%iptr => sedflag;        fortdg(23)%required = .true.;     fortdg(23)%iptr = 0
-      fortdg(24)%key = "porosity";      fortdg(24)%rptr => porosity;       fortdg(24)%required = .true.;     fortdg(24)%rptr = 0.0001
-      fortdg(25)%key = "sevdm";         fortdg(25)%rptr => sevdm;          fortdg(25)%required = .true.;     fortdg(25)%rptr = 0.00001
-      fortdg(26)%key = "layers";        fortdg(26)%iptr => layers;         fortdg(26)%required = .false.;    fortdg(26)%iptr = 1
-      fortdg(27)%key = "rxn_rate";      fortdg(27)%rptr => reaction_rate;  fortdg(27)%required = .true.;     fortdg(27)%rptr = 1.0
-      fortdg(28)%key = "nelem";         fortdg(28)%iptr => mnes;           fortdg(28)%required = .true.;     fortdg(28)%iptr = 23556
-      fortdg(29)%key = "artdif";        fortdg(29)%iptr => artdif;         fortdg(29)%required = .true.;     fortdg(29)%iptr = 0
-      fortdg(30)%key = "kappa";         fortdg(30)%rptr => kappa;          fortdg(30)%required = .true.;     fortdg(30)%rptr = -1.0
-      fortdg(31)%key = "s0";            fortdg(31)%rptr => s0;             fortdg(31)%required = .true.;     fortdg(31)%rptr = 0.0;
-      fortdg(32)%key = "uniform_dif";   fortdg(32)%rptr => uniform_dif;    fortdg(32)%required = .true.;     fortdg(32)%rptr = 2.5e-6;
-      fortdg(33)%key = "tune_by_hand";  fortdg(33)%iptr => tune_by_hand;   fortdg(33)%required = .true.;     fortdg(33)%iptr = 0;
-      fortdg(34)%key = "sed_equationX"; fortdg(34)%cptr => sed_equationX;  fortdg(34)%required = .false.;    fortdg(34)%cptr = "(ZE_ROE+bed_ROE)**-1 *QX_ROE";
-      fortdg(35)%key = "sed_equationY"; fortdg(35)%cptr => sed_equationY;  fortdg(35)%required = .false.;    fortdg(35)%cptr = "(ZE_ROE+bed_ROE)**-1 *QY_ROE";
+      fortdg(1)%key = "dgswe";          fortdg(1)%iptr => dgswe ;          fortdg(1)%required = 1;   fortdg(1)%iptr = 1
+      fortdg(2)%key = "padapt";         fortdg(2)%iptr => padapt;          fortdg(2)%required = 1;   fortdg(2)%iptr = 0
+      fortdg(3)%key = "pflag";          fortdg(3)%iptr => pflag;           fortdg(3)%required = 1;   fortdg(3)%iptr = 2
+      fortdg(4)%key = "gflag";          fortdg(4)%iptr => gflag;           fortdg(4)%required = 1;   fortdg(4)%iptr = 1
+      fortdg(5)%key = "dis_tol";        fortdg(5)%rptr => diorism;         fortdg(5)%required = 1;   fortdg(5)%rptr = 8
+      fortdg(6)%key = "pl";             fortdg(6)%iptr => pl;              fortdg(6)%required = 1;   fortdg(6)%iptr = 1
+      fortdg(7)%key = "ph";             fortdg(7)%iptr => ph;              fortdg(7)%required = 1;   fortdg(7)%iptr = 1
+      fortdg(8)%key = "px";             fortdg(8)%iptr => px;              fortdg(8)%required = 1;   fortdg(8)%iptr = 1
+      fortdg(9)%key = "slimit";         fortdg(9)%rptr => slimit;          fortdg(9)%required = 1;   fortdg(9)%rptr = 0.00005
+      fortdg(10)%key = "plimit";        fortdg(10)%rptr => plimit;         fortdg(10)%required = 1;  fortdg(10)%rptr = 10
+      fortdg(11)%key = "k";             fortdg(11)%rptr => pflag2con1;     fortdg(11)%required = 1;  fortdg(11)%rptr = 1
+      fortdg(12)%key = "ks";            fortdg(12)%rptr => pflag2con2;     fortdg(12)%required = 1;  fortdg(12)%rptr = 0.5
+      fortdg(13)%key = "L";             fortdg(13)%iptr => lebesgueP;      fortdg(13)%required = 1;  fortdg(13)%iptr = 2
+      fortdg(14)%key = "fluxtype";      fortdg(14)%iptr => fluxtype;       fortdg(14)%required = 1;  fortdg(14)%iptr = 1
+      fortdg(15)%key = "rk_stage";      fortdg(15)%iptr => rk_stage;       fortdg(15)%required = 1;  fortdg(15)%iptr = 2
+      fortdg(16)%key = "rk_order";      fortdg(16)%iptr => rk_order;       fortdg(16)%required = 1;  fortdg(16)%iptr = 2
+!       fortdg(17)%key = "dg_to_cg";      fortdg(17)%iptr => dg_to_cg;     fortdg(17)%required = 1;  fortdg(17)%iptr = 1
+      fortdg(18)%key = "modal_ic";      fortdg(18)%iptr => modal_ic;       fortdg(18)%required = 1;  fortdg(18)%iptr = 0
+      fortdg(19)%key = "dghot";         fortdg(19)%iptr => dghot;          fortdg(19)%required = 1;  fortdg(19)%iptr = 0
+      fortdg(20)%key = "dghotspool";    fortdg(20)%iptr => dghotspool;     fortdg(20)%required = 1;  fortdg(20)%iptr = 86400
+      fortdg(21)%key = "slopeflag";     fortdg(21)%iptr => slopeflag;      fortdg(21)%required = 1;  fortdg(21)%iptr = 5
+      fortdg(22)%key = "weight";        fortdg(22)%rptr => slope_weight;   fortdg(22)%required = 1;  fortdg(22)%rptr = 1
+      fortdg(23)%key = "sedflag";       fortdg(23)%iptr => sedflag;        fortdg(23)%required = 1;  fortdg(23)%iptr = 0
+      fortdg(24)%key = "porosity";      fortdg(24)%rptr => porosity;       fortdg(24)%required = 1;  fortdg(24)%rptr = 0.0001
+      fortdg(25)%key = "sevdm";         fortdg(25)%rptr => sevdm;          fortdg(25)%required = 1;  fortdg(25)%rptr = 0.00001
+      fortdg(26)%key = "layers";        fortdg(26)%iptr => layers;         fortdg(26)%required = 0;  fortdg(26)%iptr = 1
+      fortdg(27)%key = "rxn_rate";      fortdg(27)%rptr => reaction_rate;  fortdg(27)%required = 1;  fortdg(27)%rptr = 1.0
+      fortdg(28)%key = "nelem";         fortdg(28)%iptr => mnes;           fortdg(28)%required = 1;  fortdg(28)%iptr = 23556
+      fortdg(29)%key = "artdif";        fortdg(29)%iptr => artdif;         fortdg(29)%required = 1;  fortdg(29)%iptr = 0
+      fortdg(30)%key = "kappa";         fortdg(30)%rptr => kappa;          fortdg(30)%required = 1;  fortdg(30)%rptr = -1.0
+      fortdg(31)%key = "s0";            fortdg(31)%rptr => s0;             fortdg(31)%required = 1;  fortdg(31)%rptr = 0.0
+      fortdg(32)%key = "uniform_dif";   fortdg(32)%rptr => uniform_dif;    fortdg(32)%required = 1;  fortdg(32)%rptr = 2.5e-6
+      fortdg(33)%key = "tune_by_hand";  fortdg(33)%iptr => tune_by_hand;   fortdg(33)%required = 1;  fortdg(33)%iptr = 0
+      fortdg(34)%key = "sed_equationX"; fortdg(34)%cptr => sed_equationX;  fortdg(34)%required = 0;  fortdg(34)%cptr = sedXdef
+      fortdg(35)%key = "sed_equationY"; fortdg(35)%cptr => sed_equationY;  fortdg(35)%required = 0;  fortdg(35)%cptr = sedYdef
       
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       ! End configuration
@@ -499,8 +520,11 @@
       
       ! ensure user has associated each keyword pointer
       IF (nopt /= ncheck) THEN
-        PRINT("(A)"), "*** ERROR: fort.dg option pointer association error ***"
-        PRINT("(A)"), "           check keyword configuration in fort_dg_setup subroutine"
+        IF (myproc == 0) THEN 
+          PRINT("(A)"), "*** ERROR: fort.dg option pointer association error ***"
+          PRINT("(A)"), "           check keyword configuration in fort_dg_setup subroutine"
+        ENDIF 
+        
         STOP
       ENDIF
           

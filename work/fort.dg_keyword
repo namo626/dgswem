@@ -39,8 +39,8 @@ sedflag = 0
 porosity = 0.0001
 sevdm = 0.00001
 layers = 1
-sed_equationX = (ZE_ROE+bed_ROE)**-1 *QX_ROE
-sed_equationY = (ZE_ROE+bed_ROE)**-1 *QY_ROE
+!sed_equationX = (ZE_ROE+bed_ROE)**-1 *QX_ROE
+!sed_equationY = (ZE_ROE+bed_ROE)**-1 *QY_ROE
 
 ! chemistry options
 rxn_rate = 1          ! Reaction rate when chemistry is on (litres/(mol*days))
