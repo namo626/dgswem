@@ -184,7 +184,7 @@ c     write(200+myproc,*) 'back from prep_dg'
 #ifdef CMPI
       !CALL SYSTEM('mkdir'//'/'//'tecplot_output{00..'//'4'//'}')
       tecfile = DIRNAME//'/'//'..'//'/'//'tecplot_output'//
-     &     '/'//'tecplot.out_pe00000'
+     &     '/'//'tecplot.dat_pe00000'
       tecfile_max = DIRNAME//'/'//'..'//'/'//'tecplot_max'//
      &     '/'//'tecplot.max_pe00000'
 
@@ -194,7 +194,7 @@ c     write(200+myproc,*) 'back from prep_dg'
       write(tecfile_max(42:46), "(i4.4)") myproc
 
 #else
-      tecfile = "tecplot.out"
+      tecfile = "tecplot.dat"
       tecfile_max = "tecplot.max"
 #endif
 
