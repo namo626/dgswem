@@ -301,11 +301,11 @@ Casey 101118: Need to copy SWAN control file into local sub-directories.
 #endif
 C
 C-- Write a Local StartDry Input file ( fort.12 ) for each PE
-C
-C        if (NOLIFA.EQ.3) then
-C          print *, "Writing Local UNIT 12 (StartDry) File for each PE"
-C          CALL PREP12()
-C        endif
+
+        if (NOLIFA.EQ.3) then
+          print *, "Writing Local UNIT 12 (StartDry) File for each PE"
+          CALL PREP12()
+        endif
 
         CALL PREP13()
 C
