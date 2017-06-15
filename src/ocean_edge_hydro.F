@@ -39,6 +39,15 @@ C.....Declare local variables
       Real(SZ) chi_pref,MZ_X_IN(layers),MZ_Y_IN(layers)
       Real(SZ) HZ_X_IN,HZ_Y_IN,TZ_X_IN,TZ_Y_IN
 
+
+C
+C BEG: DW
+      INTEGER:: IPT
+      REAL(SZ):: ZEFREQ      
+      REAL(SZ), dimension(2):: EFA_GPT, EMO_GPT, ARG_GPT, ZE_GPT
+C END DW
+C
+
       test_el = 0
       DO 1000 L = 1, needs
          
@@ -146,19 +155,42 @@ C.....Compute the specified open ocean elevation
                ENDIF
                
 C...........Surface Elevation
-
+               
                ARGJ = AMIG(JJ)*(TIMEDG - NCYC*PER(JJ)) + FACE(JJ)
                RFF = FF(JJ)*RAMPDG
-               
-               EFA_GP = 0.5D0*(EFA_DG(JJ,L,1) + EFA_DG(JJ,L,2))
-     &                + 0.5D0*(EFA_DG(JJ,L,2) - EFA_DG(JJ,L,1))*XEGP(I,pa)
-               EMO_GP = 0.5D0*(EMO_DG(JJ,L,1) + EMO_DG(JJ,L,2))
-     &                + 0.5D0*(EMO_DG(JJ,L,2) - EMO_DG(JJ,L,1))*XEGP(I,pa)
+ 
+C================, commented out by DW
+C               EFA_GP = 0.5D0*(EFA_DG(JJ,L,1) + EFA_DG(JJ,L,2))
+C     &                + 0.5D0*(EFA_DG(JJ,L,2) - EFA_DG(JJ,L,1))*XEGP(I,pa)
+C               EMO_GP = 0.5D0*(EMO_DG(JJ,L,1) + EMO_DG(JJ,L,2))
+C     &                + 0.5D0*(EMO_DG(JJ,L,2) - EMO_DG(JJ,L,1))*XEGP(I,pa)
+C
+C               ARG = ARGJ - EFA_GP
+C               
+C               ZE_EX = ZE_EX + EMO_GP*RFF*COS(ARG) 
+C================ DW
 
-               ARG = ARGJ - EFA_GP
-               
-               ZE_EX = ZE_EX + EMO_GP*RFF*COS(ARG) 
-      
+
+C
+C BEG: DW
+C===============  linearly interpolate from
+C===============  the time-serie of the harmonic forcing 
+               DO IPT = 1, 2
+                  EFA_GPT(IPT) = EFA_DG(JJ,L,IPT) ;
+                  EMO_GPT(IPT) = EMO_DG(JJ,L,IPT) ; 
+
+                  ARG_GPT(IPT) = ARGJ - EFA_GPT(IPT) ;
+
+                  ZE_GPT(IPT) = EMO_GPT(IPT)*RFF*COS(ARG_GPT(IPT)) ;
+               END DO
+
+               ZEFREQ = 0.5D0*( ZE_GPT(1) + ZE_GPT(2) ) +
+     &              0.5D0*(ZE_GPT(2) - ZE_GPT(1))*XEGP(I,pa) ;
+
+               ZE_EX = ZE_EX + ZEFREQ ;
+C===============
+C END: DW
+C
             ENDDO
 
 
