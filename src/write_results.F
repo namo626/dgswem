@@ -516,10 +516,10 @@ C.....time step falls within the specified window
                                 !WRITE(895,21 20) TIME_A, IT
                   WRITE(631,2120) TIME_A, IT
  2120             FORMAT(2X,E20.10,5X,I10)
-                  DO I=1,NE
+                  DO I=1,NP
                      IF (ABS(ETA2(I)).LE.(10.0**(-30))) ETA2(I) = 0.D0
                      WRITE(63,2453) I,ETA2(I)
-                                !IF (NODECODE(I).EQ.0) WRITE(63,2453) I,-99999.
+                                IF (NODECODE(I).EQ.0) WRITE(63,2453) I,-99999.
                      IF (ABS(tracer(I)).LE.(10.0**(-30))) tracer(I) = 0.D0
                      WRITE(88,2453) I,tracer(I)
                                 !IF (NODECODE(I).EQ.0) WRITE(88,2453) I,.
@@ -682,7 +682,7 @@ C...
                IF(ABS(NOUTGV).EQ.1) THEN
                   WRITE(64,2120) TIME_A,IT
                   WRITE(641,2120) TIME_A,IT
-                  DO I = 1,NE
+                  DO I = 1,NP
 C.....Had trouble writing out numbers with less than E-99 (EJK)
                      IF (ABS(UU2(I)).LE.(10.0**(-30))) UU2(I) = 0.D0
                      IF (ABS(VV2(I)).LE.(10.0**(-30))) VV2(I) = 0.D0
