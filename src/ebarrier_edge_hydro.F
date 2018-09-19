@@ -24,7 +24,7 @@ C.......Obtain the global and local edge numbers
 C.......Obtain the element
 
          EL = NEDEL(1,GED)
-         PA = PDG_EL(EL_IN)
+         PA = PDG_EL(EL)
 
 #ifdef P0
          if (pa.eq.0) then
@@ -90,7 +90,7 @@ C.........Obtain the height of the barrier at the quadrature point
 
 #ifdef CHEM
                iota_IN = iota_IN + iota(K,EL,IRK)*PHI_EDGE(K,I,LED,pa)
-               iota2_IN = iota2_IN + iota2(K,EL,IRK)*PHI_EDGE(K,I,LED,pa)
+               iota2_IN = iota2_IN +iota2(K,EL,IRK)*PHI_EDGE(K,I,LED,pa)
 #endif
 
 #ifdef DYNP
@@ -101,7 +101,8 @@ C.........Obtain the height of the barrier at the quadrature point
 
             do ll = 1,layers
                
-               bed_IN(ll) = bed_IN(ll) + bed(K,EL,IRK,ll)*PHI_EDGE(K,I,LED,pa)
+               bed_IN(ll) = bed_IN(ll) + 
+     &            bed(K,EL,IRK,ll)*PHI_EDGE(K,I,LED,pa)
                HB_IN = HB_IN + bed(k,EL,irk,ll)*PHI_EDGE(K,I,LED,pa)
                
             enddo
@@ -161,7 +162,7 @@ C.........Compute the x and y components of the external state flow
             
 C.........Compute numerical flux
             
-            CALL NUMERICAL_FLUX(IT)
+            CALL NUMERICAL_FLUX(IT,test_el)
 
             DO K = 1,DOFS(EL)
 
@@ -189,7 +190,8 @@ C.........Compute numerical flux
 
                do ll=1,layers
 
-                  RHS_bed(K,EL,IRK,ll) = RHS_bed(K,EL,IRK,ll) - W_IN*Bed_HAT(ll)
+                  RHS_bed(K,EL,IRK,ll) = RHS_bed(K,EL,IRK,ll) 
+     &               - W_IN*Bed_HAT(ll)
 
                enddo
 

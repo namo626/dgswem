@@ -70,7 +70,8 @@ C.....Use appropriate modules
 #else
       USE SIZES, ONLY : SZ,layers
 #endif
-      USE GLOBAL, ONLY : NE,NM,DP,X,Y,SLAM,SFEA,DEG2RAD,tracer_flag,chem_flag,pdg_el
+      USE GLOBAL, ONLY : NE,NM,DP,X,Y,SLAM,SFEA,DEG2RAD,tracer_flag,
+     & chem_flag,pdg_el
       USE DG, ONLY : DOF,ZE,QX,QY,iota,iota2,dynP,bed,ncheck,dp_node
 
       IMPLICIT NONE
@@ -86,7 +87,8 @@ C.....Declare local variables
 C.....Detect negative mass
       ErrorElevExceeded=0
       DO J = 1,NE
-         DPAVG =  1.D0/ncheck(pdg_el(j)) * (sum(DP_NODE(:,J,pdg_el(j)))) !(DP(NM(J,1))+DP(NM(J,2))+DP(NM(J,3)))/3.D0
+         DPAVG =  1.D0/ncheck(pdg_el(j)) * (sum(DP_NODE(:,J,pdg_el(j))))
+         !(DP(NM(J,1))+DP(NM(J,2))+DP(NM(J,3)))/3.D0
          Detected = .FALSE.
          IF((ZE(1,J,1)+DPAVG).LE.0.D0) THEN
             PRINT *, ''
@@ -241,7 +243,7 @@ C.....Detect NaN
 #ifdef CMPI
                   PRINT *, 'IN SUBDOMAIN ',MYPROC
 #endif
-                  PRINT *, '  bed(',K,',',J,',1,',l,') IS ', bed(K,J,1,l)
+                 PRINT *, '  bed(',K,',',J,',1,',l,') IS ', bed(K,J,1,l)
                   PRINT *, ' x,  y ',X(NM(J,1)),Y(NM(J,1))
                   Detected = .TRUE.
                   ErrorElevExceeded = 1

@@ -24,8 +24,8 @@ C.....Use appropriate modules
       USE GLOBAL
       USE DG
       use SIZES, only: layers
-      use fparser
-      use fparser2
+C      use fparser
+C      use fparser2
 
       IMPLICIT NONE
 
@@ -67,7 +67,7 @@ C.....Retrieve the components of the normal vector to the edge
          
          NX = COSNX(GED)
          NY = SINNX(GED)
-         
+
 C.....Set the components for the tangential vector to the edge
 
          TX = -NY
@@ -135,31 +135,34 @@ C.....Compute ZE, QX, QY, and HB at each edge Gauss quadrature point
 C.....Compute the specified flow boundaries for the exterior state
 
             Q_N_EXT = 0.D0
-            DO JJ = 1,NFFR
-               
-               IF(FPER(JJ).EQ.0.D0) THEN
+            DO JJ = 1,MNFFR
+               IF (NFFR.EQ.0) THEN
+                  ARGJ = 0.D0
+                  RFF = RAMPDG
+               ELSEIF (FPER(JJ).EQ.0.D0) THEN
                   NCYC = 0.D0
+                  ARGJ = FAMIG(JJ)*(TIMEDG - NCYC*FPER(JJ)) + FFACE(JJ)
+                  RFF  = FFF(JJ)*RAMPDG
                ELSE
                   NCYC = INT(TIMEDG/FPER(JJ))
+                  ARGJ = FAMIG(JJ)*(TIMEDG - NCYC*FPER(JJ)) + FFACE(JJ)
+                  RFF  = FFF(JJ)*RAMPDG
                ENDIF
-
-               ARGJ = FAMIG(JJ)*(TIMEDG - NCYC*FPER(JJ)) + FFACE(JJ)
-               RFF  = FFF(JJ)*RAMPDG
                
                QNAM_GP = 0.5D0*(QNAM_DG(JJ,L,1) + QNAM_DG(JJ,L,2))
-     &              + 0.5D0*(QNAM_DG(JJ,L,2) - QNAM_DG(JJ,L,1))*XEGP(I,PA)
+     &            + 0.5D0*(QNAM_DG(JJ,L,2) - QNAM_DG(JJ,L,1))*XEGP(I,PA)
                QNPH_GP = 0.5D0*(QNPH_DG(JJ,L,1) + QNPH_DG(JJ,L,2))
-     &              + 0.5D0*(QNPH_DG(JJ,L,2) - QNPH_DG(JJ,L,1))*XEGP(I,PA)
+     &            + 0.5D0*(QNPH_DG(JJ,L,2) - QNPH_DG(JJ,L,1))*XEGP(I,PA)
                
                ARG = ARGJ - QNPH_GP
                
                Q_N_EXT = Q_N_EXT + QNAM_GP*RFF*COS(ARG)
-                                !Q_N_EXT = Q_N_EXT + QNAM_GP*RFF*COS(ARG)+rff*RAMPExtFlux*0.05D0 
+        !Q_N_EXT = Q_N_EXT + QNAM_GP*RFF*COS(ARG)+rff*RAMPExtFlux*0.05D0 
                Q_T_EXT =  0.D0
-
+               
                QX_EX = -( TY*Q_N_EXT - NY*Q_T_EXT)/(NX*TY - NY*TX)
                QY_EX = -(-TX*Q_N_EXT + NX*Q_T_EXT)/(NX*TY - NY*TX)
-
+                 
             ENDDO
             
 C.....Compute the solution at the interior state
@@ -173,25 +176,26 @@ C.....Compute the solution at the interior state
                QY_IN = QY_IN + QY(K,EL_IN,IRK)*PHI_EDGE(K,I,LED,pa)
                
 #ifdef TRACE    
-               iota_IN = iota_IN + iota(K,EL_IN,IRK)*PHI_EDGE(K,I,LED,pa)
+             iota_IN = iota_IN + iota(K,EL_IN,IRK)*PHI_EDGE(K,I,LED,pa)
 #endif
 
 #ifdef CHEM
-               iota_IN =  iota_IN  + iota(K,EL_IN,IRK)*PHI_EDGE(K,I,LED,pa)
-               iota2_IN = iota2_IN + iota2(K,EL_IN,IRK)*PHI_EDGE(K,I,LED,pa)
+            iota_IN =  iota_IN  + iota(K,EL_IN,IRK)*PHI_EDGE(K,I,LED,pa)
+           iota2_IN = iota2_IN + iota2(K,EL_IN,IRK)*PHI_EDGE(K,I,LED,pa)
 #endif
 
 #ifdef DYNP    
-               dynP_IN = dynP_IN + dynP(K,EL_IN,IRK)*PHI_EDGE(K,I,LED,pa)
+               dynP_IN = dynP_IN + dynP(K,EL_IN,IRK)
+     &                       *PHI_EDGE(K,I,LED,pa)
 #endif
 
 #ifdef SED_LAY
                do ll = 1,layers
-                  bed_IN(ll) = bed_IN(ll) + bed(K,EL_IN,IRK,ll)*PHI_EDGE(K,I,LED,pa)
-                  HB_IN = HB_IN + bed(k,EL_IN,irk,ll)*PHI_EDGE(K,I,LED,pa)
+      bed_IN(ll) = bed_IN(ll) + bed(K,EL_IN,IRK,ll)*PHI_EDGE(K,I,LED,pa)
+               HB_IN = HB_IN + bed(k,EL_IN,irk,ll)*PHI_EDGE(K,I,LED,pa)
                
-                  !MZ_X_IN(ll) = MZ_X_IN(ll) + MZ(K,1,ll,EL_IN)*PHI_EDGE(K,I,LED,pa)
-                  !MZ_Y_IN(ll) = MZ_Y_IN(ll) + MZ(K,2,ll,EL_IN)*PHI_EDGE(K,I,LED,pa)     
+      !MZ_X_IN(ll) = MZ_X_IN(ll) + MZ(K,1,ll,EL_IN)*PHI_EDGE(K,I,LED,pa)
+      !MZ_Y_IN(ll) = MZ_Y_IN(ll) + MZ(K,2,ll,EL_IN)*PHI_EDGE(K,I,LED,pa)     
                enddo
           
 
@@ -203,12 +207,12 @@ C.....Compute the solution at the interior state
 ! Diffusion on BCs?  Induce boundary layers?
                                 ! LDG terms
 
-               !HZ_X_IN = HZ_X_IN + HZ(K,1,1,EL_IN)*PHI_EDGE(K,I,LED,pa)
-               !HZ_Y_IN = HZ_Y_IN + HZ(K,2,2,EL_IN)*PHI_EDGE(K,I,LED,pa)
-               !LZ_XX_IN = LZ_XX_IN + LZ(K,1,1,EL_IN)*PHI_EDGE(K,I,LED,pa)
-               !LZ_XY_IN = LZ_XY_IN + LZ(K,1,2,EL_IN)*PHI_EDGE(K,I,LED,pa)
-               !LZ_YX_IN = LZ_YX_IN + LZ(K,2,1,EL_IN)*PHI_EDGE(K,I,LED,pa)
-               !LZ_YY_IN = LZ_YY_IN + LZ(K,2,2,EL_IN)*PHI_EDGE(K,I,LED,pa)
+             !HZ_X_IN = HZ_X_IN + HZ(K,1,1,EL_IN)*PHI_EDGE(K,I,LED,pa)
+             !HZ_Y_IN = HZ_Y_IN + HZ(K,2,2,EL_IN)*PHI_EDGE(K,I,LED,pa)
+             !LZ_XX_IN = LZ_XX_IN + LZ(K,1,1,EL_IN)*PHI_EDGE(K,I,LED,pa)
+             !LZ_XY_IN = LZ_XY_IN + LZ(K,1,2,EL_IN)*PHI_EDGE(K,I,LED,pa)
+             !LZ_YX_IN = LZ_YX_IN + LZ(K,2,1,EL_IN)*PHI_EDGE(K,I,LED,pa)
+             !LZ_YY_IN = LZ_YY_IN + LZ(K,2,2,EL_IN)*PHI_EDGE(K,I,LED,pa)
 
             ENDDO
 
@@ -265,7 +269,7 @@ C.....Add LDG terms
 
 #ifdef SED_LAY
             do ll=1,layers
-               bed_HAT(ll) = bed_HAT(ll) + MZ_X_IN(ll)*NX*SFAC_IN + MZ_Y_IN(ll)*NY
+      bed_HAT(ll)= bed_HAT(ll) + MZ_X_IN(ll)*NX*SFAC_IN + MZ_Y_IN(ll)*NY
             enddo
 #endif
             
@@ -273,7 +277,7 @@ C.....Compute the edge integral
 
             DO K = 1,DOFS(EL_IN)
 
-               W_IN = 2.0*M_INV(K,pa)/AREAS(EL_IN)*XLEN(GED)*
+               W_IN = 2.0d0*M_INV(K,pa)/AREAS(EL_IN)*XLEN(GED)*
      &              PHI_EDGE(K,I,LED,pa)*WEGP(I,pa)
 
                RHS_ZE(K,EL_IN,IRK) = RHS_ZE(K,EL_IN,IRK) - W_IN*F_HAT
@@ -281,28 +285,30 @@ C.....Compute the edge integral
                RHS_QY(K,EL_IN,IRK) = RHS_QY(K,EL_IN,IRK) - W_IN*H_HAT
 
 #ifdef TRACE
-               RHS_iota(K,EL_IN,IRK) = RHS_iota(K,EL_IN,IRK) - W_IN*I_HAT
+              RHS_iota(K,EL_IN,IRK) = RHS_iota(K,EL_IN,IRK) - W_IN*I_HAT
 #endif
 
 #ifdef CHEM
-               RHS_iota(K,EL_IN,IRK) = RHS_iota(K,EL_IN,IRK) - W_IN*I_HAT
-               RHS_iota2(K,EL_IN,IRK) = RHS_iota2(K,EL_IN,IRK) - W_IN*J_HAT
+             RHS_iota(K,EL_IN,IRK) = RHS_iota(K,EL_IN,IRK) - W_IN*I_HAT
+            RHS_iota2(K,EL_IN,IRK) = RHS_iota2(K,EL_IN,IRK) - W_IN*J_HAT
 #endif
 
 #ifdef DYNP
-               RHS_dynP(K,EL_IN,IRK) = RHS_dynP(K,EL_IN,IRK) - W_IN*K_HAT
+              RHS_dynP(K,EL_IN,IRK) = RHS_dynP(K,EL_IN,IRK) - W_IN*K_HAT
 #endif
 
 #ifdef SED_LAY
                do ll=1,layers
-                  RHS_bed(K,EL_IN,IRK,ll) =  RHS_bed(K,EL_IN,IRK,ll) - W_IN*bed_HAT(ll)
+                  RHS_bed(K,EL_IN,IRK,ll) =  RHS_bed(K,EL_IN,IRK,ll) -
+     & W_IN*bed_HAT(ll)
                enddo
 #endif
 
             ENDDO
 
 c$$$  DO K = 1,DOFS(EL_IN)
-c$$$  CALL EDGE_INT_HYDRO(EL_IN, LED, GED, I, F_HAT, G_HAT, H_HAT,i_hat,j_hat,k,pa)
+c$$$  CALL EDGE_INT_HYDRO(EL_IN, LED, GED, I, F_HAT, G_HAT, H_HAT,i_hat,
+c$$$     &                                                   j_hat,k,pa)
 c$$$  ENDDO
             
          ENDDO
