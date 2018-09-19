@@ -87,12 +87,6 @@ C...
 
 C....INITIALIZE THE NORMAL FLOW BOUNDARY CONDITION
 
-        DO I=1,NVEL
-          QN2(I)=0.D0
-          QN1(I)=0.D0
-          QN0(I)=0.D0
-        END DO
-
         IF((NFLUXF.EQ.1).AND.(NFFR.EQ.0)) THEN
           IF(NSCREEN.EQ.1.AND.MYPROC.EQ.0) WRITE(6,1112)
           WRITE(16,1112)
