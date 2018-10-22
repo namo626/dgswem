@@ -142,7 +142,7 @@ C.....Declare allocatable real arrays
       REAL(SZ), ALLOCATABLE :: EBCFSP(:), IBCFSP(:), IBCFSB(:)
       REAL(SZ), ALLOCATABLE :: JACOBI(:,:,:,:)
       REAL(SZ), ALLOCATABLE :: M_INV(:,:),phi_edge_fixed(:,:,:)
-      REAL(SZ), ALLOCATABLE :: PHI_AREA(:,:,:), PHI_EDGE(:,:,:,:,:)
+      REAL(SZ), ALLOCATABLE :: PHI_AREA(:,:,:), PHI_EDGE(:,:,:,:)
       REAL(SZ), ALLOCATABLE :: PHI_CENTER(:,:), PHI_CORNER(:,:,:)
       REAL(SZ), ALLOCATABLE :: PHI_CHECK(:,:,:)
       REAL(SZ), ALLOCATABLE :: PHI_CORNER1(:,:,:,:)
@@ -180,7 +180,7 @@ C.....Declare allocatable real arrays
       REAL(SZ), ALLOCATABLE :: XBC(:), YBC(:)
       REAL(SZ), ALLOCATABLE :: XFAC(:,:,:,:), YFAC(:,:,:,:),
      & SRFAC(:,:,:,:)
-      REAL(SZ), ALLOCATABLE :: EDGEQ(:,:,:,:,:)
+      REAL(SZ), ALLOCATABLE :: EDGEQ(:,:,:,:)
       REAL(SZ), ALLOCATABLE :: PHI(:), DPHIDZ1(:), DPHIDZ2(:)
       REAL(SZ), ALLOCATABLE :: PHI_STAE(:,:), PHI_STAV(:,:)
       Real(SZ), Allocatable :: bed_IN(:),bed_EX(:),bed_HAT(:)
@@ -213,9 +213,6 @@ C.....These (below) are defined in slopelimiter.F
       Real(SZ),Allocatable :: iotamin(:,:),iotamax(:,:)
       Real(SZ),Allocatable :: iota2min(:,:),iota2max(:,:)
 
-C     Projections for adaptive mesh refinement
-      REAL(SZ), ALLOCATABLE :: L_MATRIX1(:,:),L_MATRIX2(:,:)
-      REAL(SZ), ALLOCATABLE :: L_MATRIX3(:,:),L_MATRIX4(:,:)
 #ifdef SLOPEALL
       Real(SZ),Allocatable :: ZEtaylor(:,:,:),QXtaylor(:,:,:),
      & QYtaylor(:,:,:)

@@ -386,6 +386,14 @@ C.....Write DG.65 results, elemental statuses (wet/dry)
               ENDIF
               
               IGEP = IGEP + 1 + NP
+              
+              open(963,FILE=DIRNAME//'/'//'maxele.63',STATUS="REPLACE")
+              write(963,*) np
+              do i=1,np
+                write(963,9633) etamax(i)
+              enddo
+ 9633         format(f20.8)
+              close(963)
             ENDIF
             IF (ABS(NOUTGE).EQ.2) THEN
               WRITE(63,REC=IGEP+1) TIME_A
@@ -506,7 +514,7 @@ C...
       endif
 
       if (it.eq.nt) then
-         open(963,FILE=DIRNAME//'/'//'maxele.63')
+         open(963,FILE=DIRNAME//'/'//'maxele.63',STATUS="REPLACE")
          write(963,*) np
          write(778,*) 'TITLE = "PADCIRC-DG output"'
          write(778,*) 
@@ -521,7 +529,6 @@ C...
             write(963,9633) etamax(i)
          enddo
  7778    format(3f20.8)
- 9633    format(f20.8)
          do i=1,ne
             write(778,"(3i12)") nm(i,1), nm(i,2), nm(i,3)
          enddo

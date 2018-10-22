@@ -176,11 +176,14 @@ C.....(modified for wetting and drying)
 
 #ifdef SED_LAY
                do ll = 1,layers
-                  bed_IN(ll) = bed_IN(ll) + bed(K,EL_IN,IRK,ll)*PHI_EDGE(K,I,LED,pa)
-                  HB_IN = HB_IN + bed(k,EL_IN,irk,ll)*PHI_EDGE(K,I,LED,pa)
+                  bed_IN(ll) = bed_IN(ll) +
+     &                  bed(K,EL_IN,IRK,ll)*PHI_EDGE(K,I,LED,pa)
+                  HB_IN=HB_IN + bed(k,EL_IN,irk,ll)*PHI_EDGE(K,I,LED,pa)
 
-                  MZ_X_IN(ll) = MZ_X_IN(ll) + MZ(K,1,ll,EL_IN)*PHI_EDGE(K,I,LED,pa)
-                  MZ_Y_IN(ll) = MZ_Y_IN(ll) + MZ(K,2,ll,EL_IN)*PHI_EDGE(K,I,LED,pa)
+                  MZ_X_IN(ll) = MZ_X_IN(ll) +
+     &                  MZ(K,1,ll,EL_IN)*PHI_EDGE(K,I,LED,pa)
+                  MZ_Y_IN(ll) = MZ_Y_IN(ll) +
+     &                  MZ(K,2,ll,EL_IN)*PHI_EDGE(K,I,LED,pa)
 
                enddo
 #endif
@@ -247,7 +250,8 @@ C.....Add LDG terms for sediment
 
 #ifdef SED_LAY
             do ll=1,layers
-               bed_HAT(ll) = bed_HAT(ll) + MZ_X_IN(ll)*NX*SFAC_IN + MZ_Y_IN(ll)*NY
+               bed_HAT(ll) = bed_HAT(ll) +
+     &                       MZ_X_IN(ll)*NX*SFAC_IN + MZ_Y_IN(ll)*NY
             enddo
 #endif
             
@@ -279,7 +283,8 @@ C.....Compute the edge integral
 
 #ifdef SED_LAY
                do ll = 1,layers
-                  RHS_bed(K,EL_IN,IRK,ll) = RHS_bed(K,EL_IN,IRK,ll) - W_IN*bed_HAT(ll)
+                  RHS_bed(K,EL_IN,IRK,ll) = RHS_bed(K,EL_IN,IRK,ll) -
+     &                                      W_IN*bed_HAT(ll)
                enddo
 #endif
 

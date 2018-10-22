@@ -107,7 +107,8 @@ C.....Evaluate the eigenvalues at the Roe averaged variables
 C.....Evaluate right eigenvectors at Roe averaged variables
 
       RI(1,1) = 1.D0
-      RI(2,1) = U_ROE*IFNLCT + (IFNLCT*C_ROE + (1-IFNLCT)*G/C_ROE)*NX*SFAC_IN !srb - spherical coordinate correction
+      RI(2,1) = U_ROE*IFNLCT + (IFNLCT*C_ROE + 
+     &          (1-IFNLCT)*G/C_ROE)*NX*SFAC_IN !srb - spherical coordinate correction
       RI(3,1) = V_ROE*IFNLCT + (IFNLCT*C_ROE + (1-IFNLCT)*G/C_ROE)*NY
 
       RI(1,2) = 0.D0
@@ -115,7 +116,8 @@ C.....Evaluate right eigenvectors at Roe averaged variables
       RI(3,2) =  NX*SFAC_IN
 
       RI(1,3) = 1.D0
-      RI(2,3) = U_ROE*IFNLCT - (IFNLCT*C_ROE + (1-IFNLCT)*G/C_ROE)*NX*SFAC_IN !srb - spherical coordinate correction
+      RI(2,3) = U_ROE*IFNLCT - (IFNLCT*C_ROE + 
+     &          (1-IFNLCT)*G/C_ROE)*NX*SFAC_IN !srb - spherical coordinate correction
       RI(3,3) = V_ROE*IFNLCT - (IFNLCT*C_ROE + (1-IFNLCT)*G/C_ROE)*NY
 
 C.....Evaluate left eigenvectors at Roe averaged variables
@@ -348,8 +350,10 @@ C.....Compute the remaining Roe averaged variables
       dtildeQx = 0.0
       dtildeQy = 0.0
       do w=1,4
-         dtildeQx(w) = porosity * evalf (w, valx)  *( QMag_IN**(2) + QMag_EX**(2) ) / 2.D0 ! Interprete bytecode representation of w-th function
-         dtildeQy(w) = porosity*evalf2 (w, valy) *( QMag_IN**(2) + QMag_EX**(2) ) / 2.D0 ! Interprete bytecode representation of w-th function
+         dtildeQx(w) = porosity * evalf (w, valx)  *( QMag_IN**(2) 
+     &                 + QMag_EX**(2) ) / 2.D0 ! Interprete bytecode representation of w-th function
+         dtildeQy(w) = porosity*evalf2 (w, valy) *( QMag_IN**(2) 
+     &                 + QMag_EX**(2) ) / 2.D0 ! Interprete bytecode representation of w-th function
 c$$$         if (EvalErrType > 0.or.EvalErrType2 > 0) then
 c$$$            if(porosity*((3*QX_ROE**2 + QX_ROE*QY_ROE + QY_ROE**2/2)/(ZE_ROE + bed_ROE)**3).ne.dtildeQx(w)) then
 c$$$               write(*,*)'That was foolish on timestep', it
@@ -1066,10 +1070,14 @@ C.....Compute the Local Lax Friedrichs Fluxes
 !.....developed by Camenen and Larson, so $\tilde{q} = A_g*H^{-3}|q|^{2}q$
 !.....which clearly makes sense only for a single layer
 
-      discharge_modelX_IN =  porosity*HT_IN**(-1)*QMag_IN**(2)*QX_IN *SFAC_IN
-      discharge_modelX_EX =  porosity*HT_EX**(-1)*QMag_EX**(2)*QX_EX *SFAC_EX
-      discharge_modelY_IN =  porosity*HT_IN**(-1)*QMag_IN**(2)*QY_IN 
-      discharge_modelY_EX =  porosity*HT_EX**(-1)*QMag_EX**(2)*QY_EX
+      discharge_modelX_IN =
+     & porosity*HT_IN**(-1)*QMag_IN**(2)*QX_IN *SFAC_IN
+      discharge_modelX_EX =
+     & porosity*HT_EX**(-1)*QMag_EX**(2)*QX_EX *SFAC_EX
+      discharge_modelY_IN =
+     & porosity*HT_IN**(-1)*QMag_IN**(2)*QY_IN
+      discharge_modelY_EX =
+     & porosity*HT_EX**(-1)*QMag_EX**(2)*QY_EX
 
 
 
@@ -1449,10 +1457,14 @@ C.......Set the numerical fluxes equal to the exterior fluxes
 !.....developed by Camenen and Larson, so $\tilde{q} = A_g*H^{-3}|q|^{2}q$
 !.....which clearly makes sense only for a single layer
 
-      discharge_modelX_IN =  porosity*HT_IN**(-1)*QMag_IN**(2)*QX_IN*SFAC_IN
-      discharge_modelX_EX =  porosity*HT_EX**(-1)*QMag_EX**(2)*QX_EX*SFAC_EX
-      discharge_modelY_IN =  porosity*HT_IN**(-1)*QMag_IN**(2)*QY_IN 
-      discharge_modelY_EX =  porosity*HT_EX**(-1)*QMag_EX**(2)*QY_EX
+      discharge_modelX_IN =
+     & porosity*HT_IN**(-1)*QMag_IN**(2)*QX_IN*SFAC_IN
+      discharge_modelX_EX =
+     & porosity*HT_EX**(-1)*QMag_EX**(2)*QX_EX*SFAC_EX
+      discharge_modelY_IN =
+     & porosity*HT_IN**(-1)*QMag_IN**(2)*QY_IN
+      discharge_modelY_EX =
+     & porosity*HT_EX**(-1)*QMag_EX**(2)*QY_EX
 
 
       q_RoeX = ( QX_IN*(HT_IN)**0.5D0  
@@ -1581,8 +1593,10 @@ C.....Compute the interior and exterior discharge rates
       QMag_IN = (QX_IN*QX_IN/(HT_IN**2) + QY_IN*QY_IN/(HT_IN**2) )**(1/2)
       QMag_EX = (QX_EX*QX_EX/(HT_EX**2) + QY_EX*QY_EX/(HT_EX**2) )**(1/2)
 
-      discharge_modelX_IN =  porosity*HT_IN**(-1)*QMag_IN**(2)*(QX_IN) *SFAC_IN
-      discharge_modelX_EX =  porosity*HT_EX**(-1)*QMag_EX**(2)*(QX_EX) *SFAC_EX
+      discharge_modelX_IN =
+     & porosity*HT_IN**(-1)*QMag_IN**(2)*(QX_IN) *SFAC_IN
+      discharge_modelX_EX =
+     & porosity*HT_EX**(-1)*QMag_EX**(2)*(QX_EX) *SFAC_EX
       discharge_modelY_IN =  porosity*HT_IN**(-1)*QMag_IN**(2)*(QX_IN) 
       discharge_modelY_EX =  porosity*HT_EX**(-1)*QMag_EX**(2)*(QY_EX)
 
@@ -1611,11 +1625,12 @@ C.....Compute the eigenvalues and aux variables of interior states
 
       rTheta = acos(rR / sqrt(-rQ**3))
 
-      lambda2_IN = 2.D0*sqrt(-rQ)*cos(rTheta/3.D0)+ (2.D0/3.D0)*lambda1_IN
-
-      lambda3_IN = 2.D0*sqrt(-rQ)*cos(rTheta/3.D0+ 2.D0*PI/3.D0)+ (2.D0/3.D0)*lambda1_IN
-
-      lambda4_IN = 2.D0*sqrt(-rQ)*cos(rTheta/3.D0+ 4.D0*PI/3.D0)+ (2.D0/3.D0)*lambda1_IN
+      lambda2_IN = 2.D0*sqrt(-rQ)*cos(rTheta/3.D0)+
+     & (2.D0/3.D0)*lambda1_IN
+      lambda3_IN = 2.D0*sqrt(-rQ)*cos(rTheta/3.D0+ 2.D0*PI/3.D0)+
+     & (2.D0/3.D0)*lambda1_IN
+      lambda4_IN = 2.D0*sqrt(-rQ)*cos(rTheta/3.D0+ 4.D0*PI/3.D0)+
+     & (2.D0/3.D0)*lambda1_IN
 
 C.....Compute the eigenvalues and aux vairables of exterior states
 
@@ -1637,11 +1652,12 @@ C.....Compute the eigenvalues and aux vairables of exterior states
 
       rTheta = acos(rR / sqrt(-rQ**3))
 
-      lambda2_EX = 2.D0*sqrt(-rQ)*cos(rTheta/3.D0)+ (2.D0/3.D0)*lambda1_EX
-
-      lambda3_EX = 2.D0*sqrt(-rQ)*cos(rTheta/3.D0+ 2.D0*PI/3.D0)+ (2.D0/3.D0)*lambda1_EX
-
-      lambda4_EX = 2.D0*sqrt(-rQ)*cos(rTheta/3.D0+ 4.D0*PI/3.D0)+ (2.D0/3.D0)*lambda1_EX
+      lambda2_EX = 2.D0*sqrt(-rQ)*cos(rTheta/3.D0)+
+     & (2.D0/3.D0)*lambda1_EX
+      lambda3_EX = 2.D0*sqrt(-rQ)*cos(rTheta/3.D0+ 2.D0*PI/3.D0)+
+     & (2.D0/3.D0)*lambda1_EX
+      lambda4_EX = 2.D0*sqrt(-rQ)*cos(rTheta/3.D0+ 4.D0*PI/3.D0)+
+     & (2.D0/3.D0)*lambda1_EX
 
 C.....Select the correction displacement stuff for the momentum
 
@@ -1701,7 +1717,8 @@ C.......Compute y momentum fluxes at interior state
 
          do ll = 1,layers        !CAUTION, only really makes sense for single layer
 
-               bed_HAT(ll) = 0.5D0*(discharge_modelX_IN+discharge_modelX_EX)*NX 
+               bed_HAT(ll) = 0.5D0*(discharge_modelX_IN+
+     &          discharge_modelX_EX)*NX
      &           + 0.5D0*(discharge_modelY_IN+discharge_modelY_EX)*NY
 
          enddo
@@ -1766,23 +1783,27 @@ C.......Compute y momentum fluxes at exterior state
 
 !.......Assign NCP/HLL version of fluxes
          
-         F_HAT = ((Select_EX*(FX1_IN*NX + FY1_IN*NY) - Select_IN*(FX1_EX*NX + FY1_EX*NY))
-     &        - (Select_IN*Select_EX)*(HT_IN-HT_EX) ) / (Select_EX-Select_IN)
-     &        
-         G_HAT = ((Select_EX*(FX2_IN*NX + FY2_IN*NY) - Select_IN*(FX2_EX*NX + FY2_EX*NY))
-     &        - (Select_IN*Select_EX)*(QX_IN-QX_EX) - 0.5D0*(Select_IN+Select_EX)*rVncU)
+         F_HAT = ((Select_EX*(FX1_IN*NX + FY1_IN*NY)
+     &   - Select_IN*(FX1_EX*NX + FY1_EX*NY))
+     &   - (Select_IN*Select_EX)*(HT_IN-HT_EX) ) / (Select_EX-Select_IN)
+     
+         G_HAT = ((Select_EX*(FX2_IN*NX + FY2_IN*NY)
+     &    - Select_IN*(FX2_EX*NX + FY2_EX*NY))
+     &    - (Select_IN*Select_EX)*(QX_IN-QX_EX)
+     &    - 0.5D0*(Select_IN+Select_EX)*rVncU)
      &        / (Select_EX-Select_IN)
   
-         H_HAT =  ((Select_EX*(FX3_IN*NX + FY3_IN*NY) - Select_IN*(FX3_EX*NX + FY3_EX*NY))
-     &        - (Select_IN*Select_EX)*(QY_IN-QY_EX) - 0.5D0*(Select_IN+Select_EX)*rVncV )
+         H_HAT =  ((Select_EX*(FX3_IN*NX + FY3_IN*NY)
+     &   - Select_IN*(FX3_EX*NX + FY3_EX*NY))
+     &   - (Select_IN*Select_EX)*(QY_IN-QY_EX)
+     &   - 0.5D0*(Select_IN+Select_EX)*rVncV )
      &        / (Select_EX-Select_IN)
 
-
          do ll = 1,layers 
-
-            bed_HAT(ll) = ((Select_EX*(discharge_modelX_IN*NX + discharge_modelY_IN*NY)
-     &           - Select_IN*(discharge_modelX_EX*NX + discharge_modelY_EX*NY))) 
-     &           - ((Select_IN*Select_EX) * (bed_IN(ll) - bed_EX(ll)))
+            bed_HAT(ll) = ((Select_EX*(discharge_modelX_IN*NX +
+     &       discharge_modelY_IN*NY)
+     &   - Select_IN*(discharge_modelX_EX*NX + discharge_modelY_EX*NY)))
+     &   - ((Select_IN*Select_EX) * (bed_IN(ll) - bed_EX(ll)))
      &           / (Select_EX-Select_IN) 
          enddo
 
@@ -1832,7 +1853,8 @@ C.......Compute y momentum fluxes at exterior state
 
          do ll = 1,layers        !CAUTION, only really makes sense for single layer
 
-               bed_HAT(ll) = 0.5D0*(discharge_modelX_IN+discharge_modelX_EX)*NX 
+               bed_HAT(ll)
+     &   = 0.5D0*(discharge_modelX_IN+discharge_modelX_EX)*NX
      &           + 0.5D0*(discharge_modelY_IN+discharge_modelY_EX)*NY
 
          enddo

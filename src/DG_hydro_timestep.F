@@ -430,7 +430,7 @@ C.......Compute the dynamic pressure if flagged
                      
                      bed(K,J,IRK+1,l) = bed(K,J,irk+1,l) 
      &                   + ARK*bed(K,J,1,l) + CRK*bed(K,J,irk,l)
-     &                     DRK*bed(K,J,irk-1,l) + BRK*RHS_bed(K,J,irk,l)
+     &                   + DRK*bed(K,J,irk-1,l) + BRK*RHS_bed(K,J,irk,l)
      &                   + ERK*RHS_bed(K,J,1,l)
 
 

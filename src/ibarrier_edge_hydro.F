@@ -187,8 +187,8 @@ C.........Obtain the height of the barrier at the quadrature point
             SFACB = SFACED(I,LEDB,ELB,pa)
             SFACF = SFACED(I,LEDF,ELF,pa)
             
-            ABOVEB = 0
-            ABOVEF = 0 
+            ABOVEB = 0.D0
+            ABOVEF = 0.D0 
             IF (WDFLG(ELB).EQ.1) ABOVEB = ZEB - IBHT(L)
             IF (WDFLG(ELF).EQ.1) ABOVEF = ZEF - IBHT(L)
             
@@ -330,7 +330,7 @@ C...........Compute the x and y components of the external state flow
 
 C...........Compute the numerical flux
                
-               CALL NUMERICAL_FLUX(IT)
+               CALL NUMERICAL_FLUX(IT,test_el)
                FB_HAT = F_HAT
                GB_HAT = G_HAT
                HB_HAT = H_HAT
@@ -386,7 +386,7 @@ C...........Compute the numerical flux
                      G_TMP = G
                      G = 0.D0
                   ENDIF
-                  CALL NUMERICAL_FLUX(IT)
+                  CALL NUMERICAL_FLUX(IT,test_el)
                   FF_HAT = F_HAT
                   GF_HAT = G_HAT
                   HF_HAT = H_HAT
@@ -457,7 +457,7 @@ C...........Compute the x and y components of the external state flow
                QX_EX = ( TYF*Q_N_EXT - NYF*Q_T_EXT)/(NXF*TYF - NYF*TXF)
                QY_EX = (-TXF*Q_N_EXT + NXF*Q_T_EXT)/(NXF*TYF - NYF*TXF)
 
-               CALL NUMERICAL_FLUX(IT)
+               CALL NUMERICAL_FLUX(IT,test_el)
                FF_HAT = F_HAT
                GF_HAT = G_HAT
                HF_HAT = H_HAT
@@ -511,7 +511,7 @@ C...........Compute the x and y components of the external state flow
                      G_TMP = G
                      G = 0.D0
                   ENDIF
-                  CALL NUMERICAL_FLUX(IT)
+                  CALL NUMERICAL_FLUX(IT,test_el)
                   FB_HAT = F_HAT
                   GB_HAT = G_HAT
 

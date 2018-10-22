@@ -63,7 +63,8 @@ C.....area integral gauss points and the barycenter of the element
                   IF (J.EQ.0) THEN
                      JACOBI(J+1,A+1,B+1,Q) = 1.D0
                   ELSEIF (J.EQ.1) THEN
-                     JACOBI(J+1,A+1,B+1,Q) = 0.5D0*(2*(A+1)+(A+B+2)*(Z-1.D0))
+                     JACOBI(J+1,A+1,B+1,Q) = 0.5D0*(2*(A+1)+(A+B+2)*
+     & (Z-1.D0))
                   ELSEIF (J.GE.2) THEN
                      
                      NUM1 = 1.D0
@@ -82,7 +83,8 @@ C.....area integral gauss points and the barycenter of the element
                      POLY2  = JACOBI(J-1,A+1,B+1,Q)
                      DEN = 2*(J-1+1)*(J-1+A+B+1)*(2*(J-1)+A+B)
                      
-                     JACOBI(J+1,A+1,B+1,Q) = (COEFF1*POLY1+COEFF2*POLY2)/DEN
+                     JACOBI(J+1,A+1,B+1,Q) = (COEFF1*POLY1+COEFF2*POLY2)
+     & /DEN
                      
                   ENDIF
                ENDDO

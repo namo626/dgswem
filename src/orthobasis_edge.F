@@ -75,7 +75,8 @@ C.....edge integral gauss points and the edge mid point
                      IF (J.EQ.0) THEN
                         JACOBI(J+1,A+1,B+1,Q) = 1.D0
                      ELSEIF (J.EQ.1) THEN
-                        JACOBI(J+1,A+1,B+1,Q) =(2*(A+1)+(A+B+2)*(Z-1.D0))/2.D0
+                        JACOBI(J+1,A+1,B+1,Q) =(2*(A+1)+(A+B+2)
+     & *(Z-1.D0))/2.D0
                      ELSEIF (J.GE.2) THEN
                         NUM1 = 1.D0
                         DO I=1,2*(J-1)+A+B+2
@@ -87,14 +88,15 @@ C.....edge integral gauss points and the edge mid point
                            DEN1 = DEN1*I
                         ENDDO
 
-                        COEFF1 = (2*(J-1)+A+B+1)*(A**2-B**2) + Z*NUM1/DEN1
+                        COEFF1 = (2*(J-1)+A+B+1)*(A**2-B**2) +
+     &                        Z*NUM1/DEN1
                         COEFF2 = -2*(J-1+A)*(J-1+B)*(2*(J-1)+A+B+2)
                         POLY1  = JACOBI(J,A+1,B+1,Q)
                         POLY2  = JACOBI(J-1,A+1,B+1,Q)
                         DEN = 2*(J-1+1)*(J-1+A+B+1)*(2*(J-1)+A+B)
                         
-                        JACOBI(J+1,A+1,B+1,Q) = (COEFF1*POLY1+COEFF2*POLY2)
-     &                       /DEN
+                        JACOBI(J+1,A+1,B+1,Q) =
+     &                          (COEFF1*POLY1+COEFF2*POLY2)/DEN
                      ENDIF
                   ENDDO
                ENDDO
