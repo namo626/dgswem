@@ -17,7 +17,7 @@ C***********************************************************************
       IMPLICIT NONE
 
       INTEGER ELSTA, NSTA, ELEM, SZ2
-	  INTEGER, intent(in) :: DIM
+      INTEGER, intent(in) :: DIM
       REAL(SZ) PHI_STA(DOF)
       REAL(SZ) XSTA, YSTA, AREA
       REAL(SZ) Z1, Z2, TOL

@@ -137,8 +137,8 @@ C.....Declare allocatable real arrays
       REAL(SZ), ALLOCATABLE :: VFA_DG(:,:,:), VMO_DG(:,:,:)
       REAL(SZ), ALLOCATABLE :: XLEN(:)
       REAL(SZ), ALLOCATABLE :: HB(:,:,:)
-      REAL(SZ), ALLOCATABLE :: MANN(:,:), IBL(:), PICF(:,:)
-      REAL(SZ), ALLOCATABLE :: IBHT(:), EBHT(:), PIHT(:,:), PIDI(:,:)
+      REAL(SZ), ALLOCATABLE :: MANN(:,:)
+      REAL(SZ), ALLOCATABLE :: IBHT(:), EBHT(:)
       REAL(SZ), ALLOCATABLE :: EBCFSP(:), IBCFSP(:), IBCFSB(:)
       REAL(SZ), ALLOCATABLE :: JACOBI(:,:,:,:)
       REAL(SZ), ALLOCATABLE :: M_INV(:,:),phi_edge_fixed(:,:,:)
@@ -244,15 +244,15 @@ C**********************END OF DATA DECLARATIONS ***********************
 C.....Set edge array sizes
 
       SUBROUTINE ALLOC_EDGES0()
-      ALLOCATE ( IBHT(3*MNE), EBHT(3*MNE), IBL(3*MNE), PIDI(3*MNE,2) )
+      ALLOCATE ( IBHT(3*MNE), EBHT(3*MNE) )
       ALLOCATE ( EBCFSP(3*MNE), IBCFSP(3*MNE), IBCFSB(3*MNE) )
-      ALLOCATE ( PICF(3*MNE,2), PIHT(3*MNE,2), BACKNODES(2,3*MNE) )
+      ALLOCATE ( BACKNODES(2,3*MNE) )
       RETURN
       END SUBROUTINE
 
       SUBROUTINE ALLOC_EDGES1()
       ALLOCATE ( NEDNO(2,MNED), NEDEL(2,MNED), NEDSD(2,MNED) )
-      ALLOCATE ( NIBSEGN(3,MNED) )
+      ALLOCATE ( NIBSEGN(2,MNED) )
       ALLOCATE ( NEBSEGN(MNED) )
       ALLOCATE ( NIEDN(MNED), NLEDN(MNED), NEEDN(MNED) )
       ALLOCATE ( NFEDN(MNED),  NREDN(MNED), NIBEDN(MNED), NEBEDN(MNED) )

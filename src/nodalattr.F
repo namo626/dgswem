@@ -963,9 +963,9 @@ C
 C
 C     I N I T   E D D Y   V I S C O S I T Y  &  D I F F U S I V I T Y
       IF (.not.LoadEVM) THEN
-C	 IF (NWP .eq. 0) THEN
-C          	ALLOCATE(EVM(NP))
-C	 ENDIF
+C    IF (NWP .eq. 0) THEN
+C           ALLOCATE(EVM(NP))
+C    ENDIF
          DO I=1,NP
             EVM(I)=ESLM
          END DO

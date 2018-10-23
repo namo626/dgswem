@@ -33,7 +33,7 @@ Casey 101118: Enable hot-start file generation by SWAN.
       
 C.....Declare local variables
 
-      INTEGER NIBP, IBN1, IK, NDISC, NBBN, NVEL2, II, i,j,jj,k, IT
+      INTEGER NIBP, IBN1, IK, NDISC, NBBN, NVEL2, II, i,j,jj,k
       CHARACTER(256) LINE,LINE2
       
 C     sb-PDG1 added
@@ -195,8 +195,8 @@ C.....Read in the fort.dg file
       LINE2 = ADJUSTL(LINE)
       
       IF (LINE2(1:1) .EQ. "1") THEN
-        CALL read_fixed_fort_dg()   ! first line of old fort.dg is a 1 
-      ELSE                          ! for the dgswe option
+        CALL read_fixed_fort_dg()   ! first line of old fort.dg is a 1  for the dgswe option
+      ELSE                          
         CALL read_keyword_fort_dg() ! otherwise assume keyword format
       ENDIF     
       
@@ -550,8 +550,7 @@ C.....Read and process NOLICAT - GWCE advective term time derivative
 C.....Read and process NWP - spatially varying bottom friction
 
       READ(15,*) NWP
-      CALL ReadNodalAttr(NSCREEN, ScreenUnit, MYPROC, NABOUT) ! Ek added 
-                                                       !call to nodalatt
+      CALL ReadNodalAttr(NSCREEN, ScreenUnit, MYPROC, NABOUT) ! Ek added call to nodalatt
 
 C.....Read and process NCOR - spatially varying Coriolis parameter
 
@@ -1814,8 +1813,7 @@ C....
          ENDIF
       END DO
 
-C...  LINES TO USE EARTH LOAD/SELF-ATTRACTION PART OF TIDAL POTENTIAL 
-C...  FORCING
+C...  LINES TO USE EARTH LOAD/SELF-ATTRACTION PART OF TIDAL POTENTIAL FORCING
 
       CALL ALLOC_MAIN4b()
       IF(NTIP.EQ.2) THEN
@@ -1948,8 +1946,8 @@ C     - Allocate arrays dimensioned by MNBFR
          ENDIF
       ENDDO
 C...  
-C...  INPUT ELEVATION BOUNDARY FORCING NODE NUMBER INFORMATION FROM UNIT 
-C.... 14 AND OUTPUT TO UNIT 16
+C...  INPUT ELEVATION BOUNDARY FORCING NODE NUMBER INFORMATION FROM UNIT 14 AND
+C.... OUTPUT TO UNIT 16
 C...  
 C...  INPUT THE TOTAL NUMBER OF ELEVATION BOUNDARY SEGMENTS
 C...  
@@ -2034,8 +2032,7 @@ C...  CONDITIONS IF APPROPRIATE
 
 C...  
 C...  INPUT FORCING CONDITIONS ON PERIODIC ELEVATION SPECIFIED 
-C...  BOUNDARIES FOR EACH OF THE ELEVATION FORCING FREQUENCIES FROM UNIT 
-C...  15 AND OUTPUT TO UNIT 16
+C...  BOUNDARIES FOR EACH OF THE ELEVATION FORCING FREQUENCIES FROM UNIT 15 AND OUTPUT TO UNIT 16
 
       DO I=1,NBFR
          WRITE(16,29) I,BOUNTAG(I)
@@ -2052,14 +2049,6 @@ C...  15 AND OUTPUT TO UNIT 16
  1870       FORMAT(10X,I8,4X,F14.5,4X,F12.3)
             EFA(I,J) = EFA(I,J)*DEG2RAD
          ENDDO
-C     DO J=1,NETA
-C     READ(15,*) UMO(I,J),UFA(I,J)
-C     UFA(I,J) = UFA(I,J)*DEG2RAD
-C     ENDDO
-C     DO J=1,NETA
-C     READ(15,*) VMO(I,J),VFA(I,J)
-C     VFA(I,J) = VFA(I,J)*DEG2RAD
-C     ENDDO
       ENDDO
 
 C.....READ THE MINIMUM INNER ANGLE FOR WHICH VELOCITY AT FLOW BOUNDARY
@@ -2136,7 +2125,8 @@ C.......CHECK THAT IBTYPE PARAMETER HAS BEEN SET PROPERLY
      &        .AND.(IBTYPE.NE.3).AND.(IBTYPE.NE.13).AND.(IBTYPE.NE.23)
 cjj   wm001 - following 2 lines modified 
      &        .AND.(IBTYPE.NE.4).AND.(IBTYPE.NE.24)
-     &   .AND.(IBTYPE.NE.5).AND.(IBTYPE.NE.25).AND.(IBTYPE.NE.30)) THEN
+     &        .AND.(IBTYPE.NE.5).AND.(IBTYPE.NE.25)
+     &        .AND.(IBTYPE.NE.30)) THEN
          IF(NSCREEN.EQ.1.AND.MYPROC.EQ.0) WRITE(6,9985) K
          WRITE(16,9985) K
  9985    FORMAT(////,1X,'!!!!!!!!!!  WARNING - FATAL ERROR !!!!!!!!!',
@@ -2584,8 +2574,7 @@ C...........THE BOUNDARY CODE TO ZERO TANGENTIAL VELOCITIES
                ENDIF
             ENDIF
 
-C...........COMPUTE COS AND SIN OF OUTWARD NORMAL REGARDLESS OF BOUNDARY
-C...........TYPE
+C...........COMPUTE COS AND SIN OF OUTWARD NORMAL REGARDLESS OF BOUNDARY TYPE
             X1=X(NBVV(K,I-1))
             X2=X(NBVV(K,I+1))
             Y1=Y(NBVV(K,I-1))
@@ -2603,8 +2592,8 @@ C...........OF A KEY TO THE GWCE BOUNDARY CONDITION ARRAY
                   ME2GW(JME)=JGW
                ENDIF
                IF(JGW.NE.1) THEN
-                  IF(NBV(JGW).NE.NBV(JGW-1)) THEN !L.B. SEGS DON'T 
-                     JME=JME+1  !M.E. USES IT                OVERLAP
+                  IF(NBV(JGW).NE.NBV(JGW-1)) THEN !L.B. SEGS DON'T OVERLAP
+                     JME=JME+1  !M.E. USES IT              
                      ME2GW(JME)=JGW
                   ENDIF
                   IF(NBV(JGW).EQ.NBV(JGW-1)) THEN !L.B. SEGS OVERLAP
@@ -2630,8 +2619,8 @@ C...........OF A KEY TO THE GWCE BOUNDARY CONDITION ARRAY
                ENDIF
                IF(NBVV(K,I).EQ.NBV(1)) THEN !IF OVERLAPS WITH VERY FIRST
                   IF((LBCODEI(JGW).EQ.2) .OR. ! L.B. NODE
-     &                 (LBCODEI(JGW).EQ.12).OR. ! M.E. USES IT ONLY IF
-     &                 (LBCODEI(JGW).EQ.22).OR. ! IT IS SPECIFIED FLOW,
+     &                 (LBCODEI(JGW).EQ.12).OR. ! M.E. USES IT ONLY IF IT IS
+     &                 (LBCODEI(JGW).EQ.22).OR. ! SPECIFIED FLOW,
      &                 (LBCODEI(JGW).EQ.3) .OR. ! AN OVERFLOW BARRIER OR
      &                 (LBCODEI(JGW).EQ.13).OR. ! A RADIATION
      &                 (LBCODEI(JGW).EQ.23).OR. ! BOUNDARY
@@ -2639,15 +2628,13 @@ C...........OF A KEY TO THE GWCE BOUNDARY CONDITION ARRAY
                ENDIF
             ENDIF
 
-C...........LOAD EXTERNAL BARRIER BOUNDARY INFORMATION INTO THE CORRECT 
-C...........VECTORS
+C...........LOAD EXTERNAL BARRIER BOUNDARY INFORMATION INTO THE CORRECT VECTORS
             IF((IBTYPE.EQ.3).OR.(IBTYPE.EQ.13).OR.(IBTYPE.EQ.23)) THEN
                BARLANHT(JGW)=BARLANHTR(I)
                BARLANCFSP(JGW)=BARLANCFSPR(I)
             ENDIF
 
-C...........LOAD INTERNAL BARRIER BOUNDARY INFORMATION INTO THE CORRECT 
-C...........VECTORS
+C...........LOAD INTERNAL BARRIER BOUNDARY INFORMATION INTO THE CORRECT VECTORS
             IF((IBTYPE.EQ.4).OR.(IBTYPE.EQ.24)) THEN
                IBCONN(JGW)=IBCONNR(I)
                BARINHT(JGW)=BARINHTR(I)
@@ -2846,26 +2833,12 @@ C.......Put barrier data into arrays more amiable to DG data structure
          ENDDO
       ENDIF
       
-      IF ((IBTYPE.EQ.4).OR.(IBTYPE.EQ.24).OR.
-     &    (IBTYPE.EQ.5).OR.(IBTYPE.EQ.25)) THEN
+      IF ((IBTYPE.EQ.4).OR.(IBTYPE.EQ.24)) THEN
          DO I = 1,NVELL(K)-1
             NIBSEG = NIBSEG + 1
-            X1=X(NBVV(K,I))
-            X2=X(NBVV(K,I+1))
-            Y1=Y(NBVV(K,I))
-            Y2=Y(NBVV(K,I+1))
-            IBL(NIBSEG)=SQRT((X1-X2)**2+(Y1-Y2)**2)
             IBHT(NIBSEG)   = 0.5D0*( BARINHTR(I)   + BARINHTR(I+1)   )
             IBCFSB(NIBSEG) = 0.5D0*( BARINCFSBR(I) + BARINCFSBR(I+1) )
             IBCFSP(NIBSEG) = 0.5D0*( BARINCFSPR(I) + BARINCFSPR(I+1) )
-            IF ((IBTYPE.EQ.5).OR.(IBTYPE.EQ.25)) THEN
-               PIHT(NIBSEG,1) = PIPEHTR(I)   
-               PIHT(NIBSEG,2) = PIPEHTR(I+1)
-               PICF(NIBSEG,1) = PIPECOEFR(I)  
-               PICF(NIBSEG,2) = PIPECOEFR(I+1)
-               PIDI(NIBSEG,1) = PIPEDIAMR(I)  
-               PIDI(NIBSEG,2) = PIPEDIAMR(I+1) 
-            ENDIF 
             BACKNODES(1,NIBSEG) = IBCONNR(I)
             BACKNODES(2,NIBSEG) = IBCONNR(I+1)
          ENDDO
@@ -2929,8 +2902,7 @@ C.....READ FORCING INFORMATION FROM UNIT 15 FILE
       IF(NFLUXF.EQ.1) THEN
 
 C.....INPUT FROM THE NUMBER OF FREQUENCIES PRESENT IN NORMAL FLOW FORCING
-C......DATA. IF THIS = 0, NORMAL FLOW DATA IS READ IN FROM THE FORT.20 
-C......FILE.
+C......DATA. IF THIS = 0, NORMAL FLOW DATA IS READ IN FROM THE FORT.20 FILE.
 
          READ(15,*) NFFR
          MNFFR = NFFR
@@ -2950,71 +2922,12 @@ C.....READ IN AND WRITE OUT INFO ON SPECIFIED NORMAL FLOW BOUNDARIES
          WRITE(16,1112)
          WRITE(16,2200)
  2200    FORMAT(//,1X,'NORMAL FLOW BOUNDARY FORCING INFORMATION ',//)
-C         IF(NFFR.EQ.0) THEN
-C            WRITE(16,2201)
-C 2201       FORMAT(/,5X,'NORMAL FLOW VALUES WILL BE READ FROM UNIT 20 ',
-C     &      /,9X,'INTERPOLATION IN TIME IS DONE TO SYNC THE FLOW DATA ',
-C     &      /,9X,'WITH THE MODEL TIME STEP.')
-C         
-C.......INPUT APERIODIC NORMAL FLOW FORCING CONDITIONS ON DESIGNATED 
-C.......FLOW BOUNDARIES FOR EACH OF THE FORCING FREQUENCIES FROM UNIT 20
-C            
-C            IF(NSCREEN.EQ.1.AND.MYPROC.EQ.0) WRITE(6,1112)
-C            WRITE(16,1112)
-C            IF(NSCREEN.EQ.1.AND.MYPROC.EQ.0) WRITE(6,1978)
-C            WRITE(16,1978)
-C 1978       FORMAT(/,1X,'LOCATING NORMAL FLOW INFORMATION IN UNIT 20',/)
-C            OPEN(20,FILE=DIRNAME//'/'//'fort.20')
-C            READ(20,*) FTIMINC
-C            QTIME1=STATIM*86400.D0
-C            QTIME2=QTIME1+FTIMINC
-C            DO J=1,NVEL
-C              QNIN1(J)=0.D0
-C              IF((LBCODEI(J).EQ.2).OR.(LBCODEI(J).EQ.12)
-C     &                            .OR.(LBCODEI(J).EQ.22))
-C     &                                              READ(20,*) QNIN1(J)
-C            END DO
-C            DO J=1,NVEL
-C              QNIN2(J)=0.D0
-C              IF((LBCODEI(J).EQ.2).OR.(LBCODEI(J).EQ.12)
-C     &                            .OR.(LBCODEI(J).EQ.22))
-C     &                                              READ(20,*) QNIN2(J)
-C            END DO
-C           
-C            IT = 1
-C           RAMP1=1.0D0
-C            IF(NRAMP.EQ.1) THEN
-C              RAMP1=TANH((2.D0*(IT-1)*DTDP/86400.D0)/DRAMP)
-C           ENDIF
-C            TIMEIT=(IT-1)*DTDP + STATIM*86400.D0
-C            QTRATIO=(TIMEIT-QTIME1)/FTIMINC
-C            DO J=1,NVEL
-C              QN1(J,IT)=RAMP1*(QNIN1(J)+QTRATIO*(QNIN2(J)-QNIN1(J)))
-C            END DO
-C            
-C            DO IT = 1,NT
-C              TIMEIT=(IT-1)*DTDP + STATIM*86400.D0
-C              IF(TIMEIT.GT.QTIME2) THEN
-C                QTIME1=QTIME2
-C                QTIME2=QTIME2+FTIMINC
-C                DO J=1,NVEL
-C                  IF((LBCODEI(J).EQ.2).OR.(LBCODEI(J).EQ.12)
-C     &                                .OR.(LBCODEI(J).EQ.22)) THEN
-C                    QNIN1(J)=QNIN2(J)        
-C                    READ(20,*) QNIN2(J)
-C                  ENDIF
-C                END DO
-C              ENDIF
-C              QTRATIO=(TIMEIT-QTIME1)/FTIMINC
-C             IF(NRAMP.EQ.1) THEN
-C                RAMP1=TANH((2.D0*(IT-1)*DTDP/86400.D0)/DRAMP)
-C             ENDIF
-C              DO J=1,NVEL
-C                 QN1(J,IT)=RAMP1*(QNIN1(J)+QTRATIO*(QNIN2(J)-QNIN1(J)))
-C              END DO
-C            ENDDO
-C         ENDIF
-         
+         IF(NFFR.EQ.0) THEN
+            WRITE(16,2201)
+ 2201       FORMAT(/,5X,'NORMAL FLOW VALUES WILL BE READ FROM UNIT 20 ',
+     &      /,9X,'INTERPOLATION IN TIME IS DONE TO SYNC THE FLOW DATA ',
+     &      /,9X,'WITH THE MODEL TIME STEP.')
+         ENDIF  
          IF(NFFR.NE.0) THEN
             WRITE(16,2202) NFFR
  2202       FORMAT(/,5X,'NUMBER OF PERIODIC NORMAL FLOW CONSTITUENTS =',
@@ -3036,7 +2949,7 @@ C         ENDIF
             END DO
 
 C.......INPUT PERIODIC NORMAL FLOW FORCING CONDITIONS ON DESIGNATED FLOW
-C........BOUNDARIESFOR EACH OF THE FORCING FREQUENCIES FROM UNIT 15 AND 
+C........BOUNDARIES FOR EACH OF THE FORCING FREQUENCIES FROM UNIT 15 AND 
 C........OUTPUT TO UNIT 16
 
             K = 1
@@ -3350,8 +3263,7 @@ C.... THE ELEMENT NO. THE STATION LIES IN
  1883       FORMAT(6X,I3,4X,I7,2(2X,F13.8),2X,2(1X,F13.2))
          ENDIF
 
-C.... PRE-COMPUTE INFORMATION REQUIRED TO INTERPOLATE AT ELEV. RECORDING 
-C.... STATIONS
+C.... PRE-COMPUTE INFORMATION REQUIRED TO INTERPOLATE AT ELEV. RECORDING STATIONS
 
          N1=NM(NNE(I),1)
          N2=NM(NNE(I),2)
@@ -3525,8 +3437,7 @@ C.... THEN COMPUTE ELEMENT NO. WITHIN WHICH STATION LIES
      &           XEV(I),YEV(I)
          ENDIF
 
-C.... PRE-COMPUTE INFORMATION REQUIRED TO INTERPOLATE AT VEL. RECORDING 
-C.... STATIONS
+C.... PRE-COMPUTE INFORMATION REQUIRED TO INTERPOLATE AT VEL. RECORDING STATIONS
 
          N1=NM(NNV(I),1)
          N2=NM(NNV(I),2)
@@ -4250,8 +4161,7 @@ C.... COMPUTE THAS AND THAF IN TERMS OF THE NUMBER OF TIME STEPS
 
       IF((FMV.GT.0.).AND.(NFREQ.GT.0).AND.(C2DDI)) CHARMV = .TRUE.
 
-C.... READ IN AND WRITE OUT INFORMATION ON WHERE HARMONIC ANALYSIS WILL 
-C.... BE DONE
+C.... READ IN AND WRITE OUT INFORMATION ON WHERE HARMONIC ANALYSIS WILL BE DONE
 
       READ(15,*) NHASE,NHASV,NHAGE,NHAGV
       IF((NHASE.LT.0).OR.(NHASE.GT.1)) THEN

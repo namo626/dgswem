@@ -61,7 +61,7 @@ c.....declare local variables
 
 
 c......Set the initial arrays, note we work over the total bed load
-c......not the individual layers	
+c......not the individual layers    
 
       if (pflag.eq.1) then
          
@@ -1084,7 +1084,7 @@ c................................................................
                   else
                      
                      ze_sensor(l) = 1.d0
-                     slimit1 = 2.d0	
+                     slimit1 = 2.d0 
                      
                   endif
 
@@ -1098,7 +1098,7 @@ c................................................................
                   else
                      
                      qx_sensor(l) = 1.d0
-                     slimit2 = 2.d0	
+                     slimit2 = 2.d0 
                      
                   endif
                   
@@ -1112,7 +1112,7 @@ c................................................................
                   else
                      
                      qy_sensor(l) = 1.d0
-                     slimit3 = 2.d0	
+                     slimit3 = 2.d0 
                      
                   endif
                   

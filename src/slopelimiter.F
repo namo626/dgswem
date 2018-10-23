@@ -2903,7 +2903,7 @@ C.....Find the prescribed higher limiters by finding smallest local value
 
          if (dofs(k).gt.1) then
 
-            do ll=1,dofs(k)		
+            do ll=1,dofs(k)     
 
                alphaZE(k,ll) = minval( alphaZE0(k,ll,:) )
                alphaQX(k,ll) = minval( alphaQX0(k,ll,:) )
@@ -5343,7 +5343,7 @@ C.....Find the prescribed higher limiters by finding smallest local value
 
          if (dofs(k).gt.1) then
 
-            do ll=1,dofs(k)		
+            do ll=1,dofs(k)     
 
                alphaZE(k,ll) = minval( alphaZE0(k,ll,:) )
                alphaQX(k,ll) = minval( alphaQX0(k,ll,:) )
@@ -6364,7 +6364,7 @@ C.....Find the prescribed higher limiters by finding smallest local value
 
          if (dofs(k).gt.1) then
 
-            do ll=1,dofs(k)		
+            do ll=1,dofs(k)     
 
                alphaZE(k,ll) = minval( alphaZE0(k,ll,:) )
                alphaQX(k,ll) = minval( alphaQX0(k,ll,:) )
@@ -7199,7 +7199,7 @@ C.....Find the prescribed higher limiters by finding smallest local value
 
          if (dofs(k).gt.1) then
 
-            do ll=1,dofs(k)		
+            do ll=1,dofs(k)     
 
                alphaZE(k,ll) = minval( alphaZE0(k,ll,:) )
                alphaQX(k,ll) = minval( alphaQX0(k,ll,:) )
@@ -10345,7 +10345,7 @@ C.....cem
 
          endif
 
-         do j = k+1, n			
+         do j = k+1, n          
 
             m = augmatrix(j,k)/augmatrix(k,k)
 
@@ -10379,7 +10379,7 @@ C.....cem
 
          m = augmatrix(i,i)
 
-         do j = i, (2 * n)				
+         do j = i, (2 * n)              
 
             augmatrix(i,j) = (augmatrix(i,j) / m)
 
@@ -10403,7 +10403,7 @@ C.....cem
 
          enddo
 
-      enddo				
+      enddo             
       
                                 !Compute answer
 
