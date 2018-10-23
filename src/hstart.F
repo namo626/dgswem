@@ -1,3 +1,4 @@
+
 C***********************************************************************
 C PADCIRC RELEASE VERSION 41.11 09/14/2001  
 C    last changes in this file VERSION 41.11
@@ -115,14 +116,6 @@ C
      &    /,' WIND/PRESSURE FILE (UNIT 22) AND FLOW BOUNDARY CONDITION',
      &      ' FILE (UNIT 20)',//)
 
-C......INITIALLY, ZERO OUT THE NORMAL FLOW ON ALL BOUNDARIES
-
-        ! DO I=1,NVEL
-          ! QN2(I)=0.D0
-          ! QN1(I)=0.D0
-          ! QN0(I)=0.D0
-          ! END DO
-
 C....FIND THE PROPER PLACE IN THE APERIODIC ELEVATION SPECIFIED BOUNDARY 
 C....CONDITION FILE IF IT IS REQURIED.
 
@@ -204,10 +197,6 @@ C......FILE IF IT IS REQUIRED
               END DO
             ENDIF
           END DO
-C          QTRATIO=(TIMEIT-QTIME1)/FTIMINC
-C          DO I=1,NVEL
-C            QN1(I)=RAMP1*(QNIN1(I)+QTRATIO*(QNIN2(I)-QNIN1(I)))
-C          END DO
           IF(TIME_A.GT.QTIME2) THEN
             QTIME1=QTIME2
             QTIME2=QTIME1+FTIMINC
@@ -220,10 +209,11 @@ C          END DO
             END DO
           ENDIF
           QTRATIO=(TIME_A-QTIME1)/FTIMINC
-C          DO I=1,NVEL
-C            QN2(I)=RAMP2*(QNIN1(I)+QTRATIO*(QNIN2(I)-QNIN1(I)))
-C          END DO
         ENDIF
+
+
+
+
 
 C......RESTART WIND AND PRESSURE INFORMATION
 
@@ -656,6 +646,7 @@ cjjw/vjpm002 - modified/added the following 5 lines
       endif     !   CTIP
 
 
+
 C...
 C....SET UP TO RESTART TIMESERIES OUTPUT FILES
 C....
@@ -1077,6 +1068,7 @@ crevisit          WRITE(72,REC=ITMEPSTP+1) NTRSPM
      &         ACCESS='DIRECT',RECL=NBYTE)
           ENDIF
 
+
 C...
 C....GO TO THE PROPER PLACE IN THE GLOBAL ELEVATION OUTPUT FILE
 C...
@@ -1180,8 +1172,11 @@ C...
           IF (SEDFLAG.GE.1) WRITE(84,3220) RUNDES,RUNID,AGRID
           IF (SEDFLAG.GE.1) WRITE(85,3220) RUNDES,RUNID,AGRID
 Casey 130211: Debug.
-         !WRITE(63,3645) NDSETSE,NP,DTDP*NSPOOLGE,NSPOOLGE,1
-          WRITE(63,3645) NDSETSE,NP,DTDP*NSPOOLGE,NSPOOLGE,1
+          if (ModetoNode eq. 1) then
+            WRITE(63,3645) NDSETSE,NP,DTDP*NSPOOLGE,NSPOOLGE,1
+          else
+            WRITE(63,3645) NDSETSE,NE,DTDP*NSPOOLGE,NSPOOLGE,1
+          endif
           IF (SEDFLAG.GE.1) WRITE(84,3645) NDSETSE,NP,DTDP*NSPOOLGE,
      &                                     NSPOOLGE,1
           IF (SEDFLAG.GE.1) WRITE(85,3645) NDSETSE,NP,DTDP*NSPOOLGE,
@@ -1323,8 +1318,11 @@ C...
           IF (SEDFLAG.GE.1) WRITE(94,3220) RUNDES,RUNID,AGRID
           IF (SEDFLAG.GE.1) WRITE(96,3220) RUNDES,RUNID,AGRID
 Casey 130211: Debug.
-         !WRITE(64,3645) NDSETSV,NP,DTDP*NSPOOLGV,NSPOOLGV,2
-          WRITE(64,3645) NDSETSV,NP,DTDP*NSPOOLGV,NSPOOLGV,2
+          if (ModetoNode eq. 1) then
+            WRITE(64,3645) NDSETSV,NP,DTDP*NSPOOLGV,NSPOOLGV,2
+          else
+            WRITE(64,3645) NDSETSV,NE,DTDP*NSPOOLGV,NSPOOLGV,2
+          endif
           IF (SEDFLAG.GE.1) WRITE(94,3645) NDSETSV,NP,DTDP*NSPOOLGV,
      &                                     NSPOOLGV,2
           IF (SEDFLAG.GE.1) WRITE(96,3645) NDSETSV,NP,DTDP*NSPOOLGV,
@@ -1718,6 +1716,8 @@ C..Read in Means and Squares
           ENDIF
 
 
+
+
        if(C3DVS) then
 C3DVS..UNCOMMENT THE FOLLOWING LINES TO RUN THE CODE IN 3D VS MODE.
 C3DVS..COMMENT OUT THE FOLLOWING LINES TO RUN THE CODE IN 2DDI OR 3D DSS
@@ -1749,6 +1749,7 @@ C
  3220 FORMAT(1X,A32,2X,A24,2X,A24)
  3645 FORMAT(1X,I10,1X,I10,1X,E15.7,1X,I5,1X,I5)
 C
+
 
 C.....Adjust Morphology timestep counter (defunct)
       

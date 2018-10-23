@@ -24,8 +24,8 @@ C.....Use appropriate modules
       USE GLOBAL
       USE DG
       use SIZES, only: layers
-C      use fparser
-C      use fparser2
+      use fparser
+      use fparser2
 
       IMPLICIT NONE
 

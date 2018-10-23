@@ -473,7 +473,7 @@ C Edited by Dylan Wood starting here (03-14-2017) until next line of *'s
 C-----------------------------------------------------------------------
 C.....Master element type for quadrature
 C.....(1 = triangle, 2 = quad)
-      ELEM = 1
+      ELEM = 1 ! For future release using quads. For now only tris work
 
 C.....Retrieve the area integral gauss quadrature points
       
@@ -1244,7 +1244,7 @@ C.......the quadrature points and compute volume of water
                            SFACED(I,L,J,chi)=COS(SFEA0)/COS(YED(chi)/R)
                         ENDIF
 
-                        EDGEQ(K,I,L,chi) = 2.0*M_INV(K,chi)*
+                        EDGEQ(K,I,L,chi) = 2.0d0*M_INV(K,chi)*
      &                     PHI_EDGE(K,I,L,chi)*WEGP(I,chi)
 
                      ENDDO
@@ -1273,7 +1273,7 @@ C.......the quadrature points and compute volume of water
                            SFACED(I,L,J,chi)=COS(SFEA0)/COS(YED(chi)/R)
                         ENDIF
 
-                        EDGEQ(K,I,L,chi) = 2.0*M_INV(K,chi)*
+                        EDGEQ(K,I,L,chi) = 2.0d0*M_INV(K,chi)*
      &                     PHI_EDGE(K,I,L,chi)*WEGP(I,chi)
 
                      ENDDO

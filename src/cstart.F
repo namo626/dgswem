@@ -689,7 +689,11 @@ C...
         IF(ABS(NOUTGE).EQ.1) THEN
           OPEN(63,FILE=DIRNAME//'/'//'fort.63')
           WRITE(63,3220) RUNDES,RUNID,AGRID
-          WRITE(63,3645) NDSETSE,NP,DTDP*NSPOOLGE,NSPOOLGE,1
+          if (ModetoNode eq. 1) then
+            WRITE(63,3645) NDSETSE,NP,DTDP*NSPOOLGE,NSPOOLGE,1
+          else
+            WRITE(63,3645) NDSETSE,NE,DTDP*NSPOOLGE,NSPOOLGE,1
+          endif
           IGEP=2
           ENDIF
 
@@ -710,7 +714,11 @@ C...
         IF(ABS(NOUTGE).EQ.1) THEN
           OPEN(4441,FILE=DIRNAME//'/'//'fort.4l')
           WRITE(4441,3220) RUNDES,RUNID,AGRID
-          WRITE(4441,3645) NDSETSE,NP,DTDP*NSPOOLGE,NSPOOLGE,1
+          if (ModetoNode eq. 1) then
+            WRITE(4441,3645) NDSETSE,NP,DTDP*NSPOOLGE,NSPOOLGE,1
+          else
+            WRITE(4441,3645) NDSETSE,NE,DTDP*NSPOOLGE,NSPOOLGE,1
+          endif
           IGEP=2
           ENDIF
 
@@ -746,7 +754,11 @@ C...
             IGEP=IGEP+3
             ENDIF
           WRITE(63,REC=IGEP+1) NDSETSE
-          WRITE(63,REC=IGEP+2) NP
+          if (ModetoNode eq. 1) then
+            WRITE(63,REC=IGEP+2) NP
+          else
+            WRITE(63,REC=IGEP+2) NE
+          endif
           WRITE(63,REC=IGEP+3) DT*NSPOOLGE
           WRITE(63,REC=IGEP+4) NSPOOLGE
           WRITE(63,REC=IGEP+5) 1
@@ -769,7 +781,11 @@ C...
         IF(ABS(NOUTGV).EQ.1) THEN
           OPEN(64,FILE=DIRNAME//'/'//'fort.64')
           WRITE(64,3220) RUNDES,RUNID,AGRID
-          WRITE(64,3645) NDSETSV,NP,DTDP*NSPOOLGV,NSPOOLGV,2
+          if (ModetoNode eq. 1) then
+            WRITE(64,3645) NDSETSV,NP,DTDP*NSPOOLGV,NSPOOLGV,2
+          else
+            WRITE(64,3645) NDSETSV,NE,DTDP*NSPOOLGV,NSPOOLGV,2
+          endif
           IGVP=2
           ENDIF
 
@@ -805,7 +821,11 @@ C...
             IGVP=IGVP+3
             ENDIF
           WRITE(64,REC=IGVP+1) NDSETSV
-          WRITE(64,REC=IGVP+2) NP
+          if (ModetoNode eq. 1) then
+            WRITE(64,REC=IGVP+2) NP
+          else
+            WRITE(64,REC=IGVP+2) NE
+          endif
           WRITE(64,REC=IGVP+3) DT*NSPOOLGV
           WRITE(64,REC=IGVP+4) NSPOOLGV
           WRITE(64,REC=IGVP+5) 2

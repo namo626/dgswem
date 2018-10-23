@@ -74,7 +74,7 @@ C
 C.....Declare variables used in sediment transport section
 C
       INTEGER, TARGET :: SEDFLAG
-      INTEGER MAXEL, ELEM_ED, NBOR_ED, NBOR_EL,ITDG
+      INTEGER MAXEL, ELEM_ED, NBOR_ED, NBOR_EL,ITDG,ModetoNode
       Integer tracer_flag, chem_flag
       INTEGER N1,N2,NO_NBORS,NBOR,SEDFLAG_W, OPEN_INDEX
       INTEGER, TARGET :: DG_TO_CG
@@ -153,7 +153,6 @@ C...
       REAL(SZ),ALLOCATABLE ::   FACET(:),ETRF(:)
       REAL(SZ),ALLOCATABLE ::   ESBIN1(:),ESBIN2(:)
       REAL(SZ),ALLOCATABLE ::   QTEMA(:,:),QTEMB(:,:)
-      REAL(SZ),ALLOCATABLE ::   QN0(:),QN1(:,:),QN2(:)
       REAL(SZ),ALLOCATABLE ::   BNDLEN2O3(:)
       REAL(SZ),ALLOCATABLE ::   CSII(:),SIII(:)
       REAL(SZ),ALLOCATABLE ::   QNAM(:,:),QNPH(:,:)
@@ -505,7 +504,6 @@ C     Allocate space for nonperiodic zero and nonzero normal flow boundary array
 C     including barriers
 C
       SUBROUTINE ALLOC_MAIN3()
-      ALLOCATE ( QN0(MNVEL),QN1(MNVEL,NT),QN2(MNVEL))
       ALLOCATE ( NBV(MNVEL),LBCODEI(MNVEL))
       ALLOCATE ( BNDLEN2O3(MNVEL))
       ALLOCATE ( ME2GW(MNVEL))

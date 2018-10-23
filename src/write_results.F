@@ -18,7 +18,7 @@ C.....Use appropriate modules
       USE GLOBAL
       USE DG
       USE HARM
-      use sizes, only:  myproc
+      use sizes, only:  myproc,layers
 #ifdef CMPI
       USE MESSENGER_ELEM
       USE MESSENGER
@@ -35,63 +35,252 @@ C.....Declare local variables
 C.....Transform from modal coordinates to nodal coordinates and average
 C.....to single nodal values
 
-      DO I = 1,MNP
+      if (ModetoNode.eq.1) then
+        DO I = 1,MNP
+        
+          NO_NBORS = EL_COUNT(I)
+        
+          AREA_SUM = 0
+          ANGLE_SUM = 0
+          CEN_SUM = 0
+          DO 333 J = 1,NO_NBORS
+            NBOR_EL = ELETAB(I,1+J)
+        
+            IF(WDFLG(NBOR_EL).EQ.0) CYCLE  ! DON'T COUNT DRY ELEMENTS  sb 02/26/07
+        
+            DO K = 1,3
+              N1 = NM(NBOR_EL,K)
+              IF (N1.EQ.I) THEN
+                ZE_DG(J) = ZE(1,NBOR_EL,1)
+                QX_DG(J) = QX(1,NBOR_EL,1)
+                QY_DG(J) = QY(1,NBOR_EL,1)
+                HB_DG(J) = HB(1,NBOR_EL,1)
+#ifdef TRACE
+                iota_DG(J) = iota(1,NBOR_EL,1)
+                iotaa_DG(J) = iotaa(1,NBOR_EL,1)
+#endif
 
-        NO_NBORS = EL_COUNT(I)
+#ifdef CHEM
+                iota_DG(J) = iota(1,NBOR_EL,1)
+                iota2_DG(J) = iota2(1,NBOR_EL,1)
+#endif
 
-        AREA_SUM = 0
-        ANGLE_SUM = 0
-        CEN_SUM = 0
-        DO 333 J = 1,NO_NBORS
-          NBOR_EL = ELETAB(I,1+J)
+#ifdef DYNP
+                dynP_DG(J) = dynP(1,NBOR_EL,1)
+#endif
 
-          IF(WDFLG(NBOR_EL).EQ.0) CYCLE  ! DON'T COUNT DRY ELEMENTS  sb 02/26/07
+#ifdef SED_LAY
+                HB_DG(J) = 0.d0
+                bed_DG(J,:) = bed(1,NBOR_EL,1,:)
+                HB_DG(J) = sum(bed_DG(J,:))
+#endif
+            
+                DO KK = 2,DOFH
+                  ZE_DG(J) = ZE_DG(J)+PHI_CORNER(KK,K,ph)*ZE(KK,NBOR_EL,1)
+                  QX_DG(J) = QX_DG(J)+PHI_CORNER(KK,K,ph)*QX(KK,NBOR_EL,1)
+                  QY_DG(J) = QY_DG(J)+PHI_CORNER(KK,K,ph)*QY(KK,NBOR_EL,1)
+              
+#ifdef TRACE
+                  iota_DG(J) = iota_DG(J) 
+     &                         + PHI_CORNER(KK,K,ph)*iota(KK,NBOR_EL,1)
+                  iotaa_DG(J) = iotaa_DG(J) 
+     &                         + PHI_CORNER(KK,K,ph)*iotaa(KK,NBOR_EL,1)
+#endif
 
-          DO K = 1,3
-            N1 = NM(NBOR_EL,K)
-            IF (N1.EQ.I) THEN
-              ZE_DG(J) = ZE(1,NBOR_EL,1)
-              QX_DG(J) = QX(1,NBOR_EL,1)
-              QY_DG(J) = QY(1,NBOR_EL,1)
-C              SH_DG(J) = SH(1,NBOR_EL,1)
-              HB_DG(J) = HB(1,NBOR_EL,1)
-              DO KK = 2,DOF
-              ZE_DG(J) = ZE_DG(J) + PHI_CORNER(KK,K,ph)*ZE(KK,NBOR_EL,1)
-              QX_DG(J) = QX_DG(J) + PHI_CORNER(KK,K,ph)*QX(KK,NBOR_EL,1)
-              QY_DG(J) = QY_DG(J) + PHI_CORNER(KK,K,ph)*QY(KK,NBOR_EL,1)
-C                SH_DG(J) = SH_DG(J) + PHI_CORNER(KK,K)*SH(KK,NBOR_EL,1)
-              HB_DG(J) = HB_DG(J) + PHI_CORNER(KK,K,ph)*HB(KK,NBOR_EL,1)
-              ENDDO
-              AREA = 0.5*AREAS(NBOR_EL)
-              AREA_SUM = AREA_SUM + AREA
-              GOTO 333
-            ENDIF
+#ifdef CHEM
+                  iota_DG(J) = iota_DG(J) 
+     &                         + PHI_CORNER(KK,K,ph)*iota(KK,NBOR_EL,1)
+                  iota2_DG(J) = iota2_DG(J) 
+     &                         + PHI_CORNER(KK,K,ph)*iota2(KK,NBOR_EL,1)
+#endif
+
+#ifdef DYNP
+                  dynP_DG(J) = dynP_DG(J) 
+     &                         + PHI_CORNER(KK,K,ph)*dynP(KK,NBOR_EL,1)
+#endif
+
+#ifdef SED_LAY
+                  do l=1,layers
+                     bed_DG(J,l) = bed_DG(J,l) 
+     &                           + PHI_CORNER(KK,K,ph)*bed(KK,NBOR_EL,1,l)
+                     HB_DG(J) = HB_DG(J) 
+     &                        + PHI_CORNER(KK,K,ph)*bed(KK,NBOR_EL,1,l)
+                     iotaa_DG(J) = iotaa(1,NBOR_EL,1)
+                  enddo
+#else
+
+                  HB_DG(J) = HB_DG(J) 
+     &                     + PHI_CORNER(KK,K,ph)*HB(KK,NBOR_EL,1)
+#endif
+                ENDDO
+                AREA = 0.5*AREAS(NBOR_EL)
+                AREA_SUM = AREA_SUM + AREA
+                GOTO 333
+              ENDIF
+            ENDDO
+333       CONTINUE
+
+          ETA2(I) = 0.D0
+          tracer(I) = 0.D0
+          tracer2(I) = 0.D0
+         
+          UU2(I)  = 0.D0
+          VV2(I)  = 0.D0
+         
+          IF(SEDFLAG.GE.2) DP(I) = 0.D0
+
+          DO J = 1,NO_NBORS
+            NBOR_EL = ELETAB(I,1+J)
+         
+            IF(WDFLG(NBOR_EL).EQ.0) CYCLE  ! DON'T COUNT DRY ELEMENTS  sb 02/26/07
+         
+            AREA = 0.5d0*AREAS(NBOR_EL)/AREA_SUM
+            DEPTH = ZE_DG(J) + HB_DG(J)
+            FH_NL = 1.D0/(NLEQ*DEPTH + LEQ)
+            ETA2(I) = ETA2(I) + AREA*ZE_DG(J)
+#ifdef TRACE
+            tracer(I)  = tracer(I)  + AREA*iota_DG(J)*FH_NL
+            tracer2(I) = tracer2(I) + AREA*iotaa_DG(J)*FH_NL
+#endif
+
+#ifdef CHEM
+            tracer(I) = tracer(I) + AREA*iota_DG(J)*FH_NL
+            tracer2(I) = tracer2(I) + AREA*iota2_DG(J)*FH_NL
+#endif 
+
+#ifdef DYNP
+            dyn_P(I) = dyn_P(I) + AREA*dynP_DG(J)*FH_NL
+#endif    
+            if (etamax(i).lt.eta2(i)) etamax(i)=eta2(i)
+            UU2(I)  = UU2(I)  + AREA*QX_DG(J)*FH_NL
+            VV2(I)  = VV2(I)  + AREA*QY_DG(J)*FH_NL
+            IF(SEDFLAG.GE.2) DP(I) = DP(I) + (AREA/AREA_SUM)*HB_DG(J)
           ENDDO
-333     CONTINUE
-
-        ETA2(I) = 0.D0
-        UU2(I)  = 0.D0
-        VV2(I)  = 0.D0
-C        CC2(I)  = 0.D0
-        IF(SEDFLAG.GE.1) DP(I) = 0.D0
-
-        DO J = 1,NO_NBORS
-          NBOR_EL = ELETAB(I,1+J)
-
-          IF(WDFLG(NBOR_EL).EQ.0) CYCLE  ! DON'T COUNT DRY ELEMENTS  sb 02/26/07
-
-          AREA = 0.5*AREAS(NBOR_EL)/AREA_SUM
-          DEPTH = ZE_DG(J) + HB_DG(J)
-          FH_NL = 1.D0/(NLEQ*DEPTH + LEQ)
-          ETA2(I) = ETA2(I) + AREA*ZE_DG(J)
-          if (etamax(i).lt.eta2(i)) etamax(i)=eta2(i)
-          UU2(I)  = UU2(I)  + AREA*QX_DG(J)*FH_NL
-          VV2(I)  = VV2(I)  + AREA*QY_DG(J)*FH_NL
-C          CC2(I)  = CC2(I)  + AREA*SH_DG(J)*FH_NL
-          IF(SEDFLAG.GE.1) DP(I) = DP(I) + (AREA/AREA_SUM)*HB_DG(J)
         ENDDO
-      ENDDO
+      else
 
+         ETA2 = 0.D0
+         tracer = 0.D0
+         tracer2 = 0.D0
+         UU2  = 0.D0
+         VV2  = 0.D0
+         DPe = 0.D0
+
+         do j=1,ne
+
+            pa = pdg_el(j)
+            
+            if (pa.eq.0) then
+
+               pa = 1
+
+            endif
+
+            do I = 1,NAGP(pa)
+
+               do k = 1,dofs(j)
+
+                  eta2(j) = eta2(j)+ WAGP(I,pa) * PHI_AREA(K,I,pa) 
+     &                             * ZE(K,j,1) * 0.5D0 *AREAS(j)
+                  UU2(j)  = UU2(j) + WAGP(I,pa) * PHI_AREA(K,I,pa) 
+     &                             * QX(K,j,1) * 0.5D0 *AREAS(j)
+                  VV2(j)  = VV2(j) + WAGP(I,pa) * PHI_AREA(K,I,pa) 
+     &                             * QY(K,j,1) * 0.5D0 *AREAS(j)
+
+
+#ifdef TRACE
+                  tracer(J)  = tracer(J)  +  WAGP(I,pa) 
+     &                * PHI_AREA(K,I,pa) * iota(K,j,1)  * 0.5D0*AREAS(j)
+                  tracer2(J) = tracer2(J) +  WAGP(I,pa) 
+     &                * PHI_AREA(K,I,pa) * iotaa(K,j,1) * 0.5D0*AREAS(j) 
+#endif
+
+#ifdef CHEM
+                  tracer(J)  = tracer(J)  +  WAGP(I,pa) 
+     &                 * PHI_AREA(K,I,pa) * iota(K,j,1) * 0.5D0*AREAS(j)
+                  tracer2(J) = tracer2(J) +  WAGP(I,pa) 
+     &                * PHI_AREA(K,I,pa) * iota2(K,j,1) * 0.5D0*AREAS(j)
+#endif
+
+#ifdef DYNP
+                  dyn_P(J)  = dyn_P(J)  +  WAGP(I,pa) * PHI_AREA(K,I,pa) 
+     &                                  * dynP(K,j,1) * 0.5D0*AREAS(j)
+#endif
+
+#ifdef SED_LAY
+                  do l=1,layers
+
+                     bed_int(J,l) = bed_int(J,l) + WAGP(I,pa) 
+     &                    *PHI_AREA(K,I,pa)*bed(K,J,1,l)*0.5D0*AREAS(j)
+
+                     DPe(j)  = DPe(j) + WAGP(I,pa)*PHI_AREA(K,I,pa)
+     &                                *bed(K,J,1,l) * 0.5D0 *AREAS(j)
+                     
+                  enddo
+
+                  tracer2(J) = tracer2(J) +  WAGP(I,pa) 
+     &               * PHI_AREA(K,I,pa) * iotaa2(K,j,1) * 0.5D0*AREAS(j)
+#else
+
+                  DPe(j)  = DPe(j) + WAGP(I,pa) * PHI_AREA(K,I,pa) 
+     &                             * HB(K,j,1) * 0.5D0 *AREAS(j)
+                  tracer2(J) = tracer2(J) +  WAGP(I,pa) 
+     &               * PHI_AREA(K,I,pa) * iotaa2(K,j,1) * 0.5D0*AREAS(j)
+
+#endif
+               enddo
+            enddo
+
+            DEPTH =  (eta2(j) + dpe(j)) 
+            FH_NL = 1.D0/(NLEQ*DEPTH + LEQ)
+            eta2(j) = eta2(j)/(AREAS(J))
+            UU2(j)  = UU2(j) *FH_NL
+            VV2(j)  = VV2(j) *FH_NL
+            dpe(j)  = dpe(j)/(AREAS(J))
+
+#ifdef SED_LAY
+            do l=1,layers
+               bed_int(j,l) = bed_int(j,l)/(AREAS(J))
+            enddo
+#endif
+
+#ifdef TRACE            
+            tracer(J)  = tracer(J)  * FH_NL
+            tracer2(J) = tracer2(J) * FH_NL  
+#endif
+
+#ifdef CHEM
+            tracer(J)  = tracer(J)  * FH_NL
+            tracer2(J) = tracer2(J) * FH_NL
+#endif
+
+#ifdef DYNP            
+            dyn_P(J)  = dyn_P(J)  * FH_NL
+#endif
+            
+         enddo
+
+      endif
+
+      iota_int = 0.D0
+      
+      do j = 1,ne
+         
+         DO I = 1,NAGP(pa)
+            
+            iota_error = 0.D0
+            
+            do k = 1,dofs(j)
+               
+               iota_error = iota_error + (iota(k,j,1)- iotaa(k,j,1)) * PHI_AREA(k,I,pa) 
+               
+            ENDDO
+            
+            iota_int = iota_int + iota_error**2.D0 * WAGP(I,pa)*AREAS(J)
+            
+         ENDDO
+         
+      enddo
 C...
 C...OUTPUT ELEVATION RECORDING STATION INFORMATION IF NOUTE<>0 AND THE
 C....TIME STEP FALLS WITHIN THE SPECIFIED WINDOW
@@ -101,25 +290,39 @@ C...
           IF((IT.GT.NTCYSE).AND.(IT.LE.NTCYFE).OR.FORCE_WRITE) THEN
             NSCOUE=NSCOUE+1
             IF(NSCOUE.EQ.NSPOOLE.OR.FORCE_WRITE) THEN
-              DO I=1,NSTAE           
-                EE1=ETA2(NM(NNE(I),1))
-                EE2=ETA2(NM(NNE(I),2))
-                EE3=ETA2(NM(NNE(I),3))
+              DO I=1,NSTAE  
+                if (ModetoNode.eq.1) then              
+                  EE1=ETA2(NM(NNE(I),1))
+                  EE2=ETA2(NM(NNE(I),2))
+                  EE3=ETA2(NM(NNE(I),3))
+                else
+                  EE1=ETA2(NNE(I))
+                endif
                 NC1=NODECODE(NM(NNE(I),1))
                 NC2=NODECODE(NM(NNE(I),2))
                 NC3=NODECODE(NM(NNE(I),3))
-                NCELE=NC1*NC2*NC3
-c                IF(NCELE.EQ.1) ET00(I)=EE1*STAIE1(I)+EE2*STAIE2(I)
-c     &                                              +EE3*STAIE3(I)
+                NCELE=NC1*NC2*NC3                                           
                 if (ncele.eq.1) then
-                   ET00(I)=ze(1,nne(i),1)
+                  if (ModetoNode.eq.1) then
+                    ET00(I)=ze(1,nne(i),1)
+                  else
+                    ET00(I)=EE1
+                  endif
                 endif
                 IF(NCELE.EQ.0) ET00(I)=-99999.
-                EE1=DP(NM(NNE(I),1))
-                EE2=DP(NM(NNE(I),2))
-                EE3=DP(NM(NNE(I),3))
-                IF(NCELE.EQ.1) BT00(I)=EE1*STAIE1(I)+EE2*STAIE2(I)
-     &                                              +EE3*STAIE3(I)
+                if (ModetoNode.eq.1) then
+                  EE1=DP(NM(NNE(I),1))
+                  EE2=DP(NM(NNE(I),2))
+                  EE3=DP(NM(NNE(I),3))
+                else
+                  EE1=DPE(NNE(I))
+                endif
+                if (ModetoNode.eq.1) then
+                  IF(NCELE.EQ.1) BT00(I)=EE1*STAIE1(I)+EE2*STAIE2(I)
+     &                                                +EE3*STAIE3(I)
+                else
+                  IF(NCELE.EQ.1) BT00(I)=EE1
+                endif
                 IF(NCELE.EQ.0) BT00(I)=-99999.
               END DO
               IF(ABS(NOUTE).EQ.1) THEN
@@ -160,15 +363,22 @@ C...
             NSCOUV=NSCOUV+1
             IF(NSCOUV.EQ.NSPOOLV.OR.FORCE_WRITE) THEN
               DO I=1,NSTAV
-                U11=UU2(NM(NNV(I),1))
-                U22=UU2(NM(NNV(I),2))
-                U33=UU2(NM(NNV(I),3))
-                V11=VV2(NM(NNV(I),1))
-                V22=VV2(NM(NNV(I),2))
-                V33=VV2(NM(NNV(I),3))
-                UU00(I)=U11*STAIV1(I)+U22*STAIV2(I)+U33*STAIV3(I)
-                VV00(I)=V11*STAIV1(I)+V22*STAIV2(I)+V33*STAIV3(I)
-                END DO
+                if (ModetoNode.eq.1) then
+                  U11=UU2(NM(NNV(I),1))
+                  U22=UU2(NM(NNV(I),2))
+                  U33=UU2(NM(NNV(I),3))
+                  V11=VV2(NM(NNV(I),1))
+                  V22=VV2(NM(NNV(I),2))
+                  V33=VV2(NM(NNV(I),3))
+                  UU00(I)=U11*STAIV1(I)+U22*STAIV2(I)+U33*STAIV3(I)
+                  VV00(I)=V11*STAIV1(I)+V22*STAIV2(I)+V33*STAIV3(I)
+                else
+                  U11=UU2(NNV(I))
+                  V11=VV2(NNV(I))
+                  UU00(I)= U11
+                  VV00(I)= V11
+                endif                  
+              END DO
               IF(ABS(NOUTV).EQ.1) THEN
                 WRITE(62,2120) time_A,IT
                 DO I=1,NSTAV
@@ -206,12 +416,19 @@ C...
                 NM1=NM(NNC(I),1)
                 NM2=NM(NNC(I),2)
                 NM3=NM(NNC(I),3)
-                HH2N1=DP(NM1)+IFNLFA*ETA2(NM1)
-                HH2N2=DP(NM2)+IFNLFA*ETA2(NM2)
-                HH2N3=DP(NM3)+IFNLFA*ETA2(NM3)
-C                C1=CC2(NM1)!/HH2N1
-C                C2=CC2(NM2)!/HH2N2
-C                C3=CC2(NM3)!/HH2N3
+                if (ModetoNode.eq.1) then
+                  HH2N1=DP(NM1)+IFNLFA*ETA2(NM1)
+                  HH2N2=DP(NM2)+IFNLFA*ETA2(NM2)
+                  HH2N3=DP(NM3)+IFNLFA*ETA2(NM3)
+                  C1=CC2(NM1)/HH2N1
+                  C2=CC2(NM2)/HH2N2
+                  C3=CC2(NM3)/HH2N3
+                else
+                  HH2N1=dpe(nnc(i))+IFNLFA*ETA2(nnv(i))
+                  C1=CH1(NM1)/HH2N1
+                  C2=0.0d0
+                  C3=0.0d0
+                endif
                 NC1=NODECODE(NM1)
                 NC2=NODECODE(NM2)
                 NC3=NODECODE(NM3)
@@ -219,28 +436,28 @@ C                C3=CC2(NM3)!/HH2N3
                 IF(NCELE.EQ.1) CC00(I)=C1*STAIC1(I)+C2*STAIC2(I)
      &                                             +C3*STAIC3(I)
                 IF(NCELE.EQ.0) CC00(I)=-99999.
-                END DO
+              END DO
               IF(ABS(NOUTC).EQ.1) THEN
                 WRITE(81,2120) time_A,IT
                 DO I=1,NSTAC
                   WRITE(81,2453) I,CC00(I)
-                  END DO
+                END DO
                 ICSTP = ICSTP+1+NSTAC
-                ENDIF
+              ENDIF
               IF(ABS(NOUTC).EQ.2) THEN
                 WRITE(81,REC=ICSTP+1) time_A
                 WRITE(81,REC=ICSTP+2) IT
                 ICSTP = ICSTP + 2
                 DO I=1,NSTAC
                   WRITE(81,REC=ICSTP+I) CC00(I)
-                  END DO
+                END DO
                 ICSTP = ICSTP + NSTAC
-                ENDIF
-              NSCOUC=0
               ENDIF
+              NSCOUC=0
             ENDIF
-          IF(IT.EQ.NTCYFC) CLOSE(81)
           ENDIF
+          IF(IT.EQ.NTCYFC) CLOSE(81)
+        ENDIF
 
 C...
 C...OUTPUT METEOROLOGICAL RECORDING STATION INFORMATION IF NWS>0 AND THE
@@ -312,68 +529,142 @@ C.....time step falls within the specified window
           IF (NSCOUGE.EQ.NSPOOLGE.OR.FORCE_WRITE) THEN
             IF (ABS(NOUTGE).EQ.1) THEN
               WRITE(63,2120) TIME_A, IT
+              WRITE(88,2120) TIME_A, IT
+              WRITE(89,2120) TIME_A, IT
+              WRITE(4441,2120) TIME_A, IT
               WRITE(631,2120) TIME_A, IT
 2120          FORMAT(2X,E20.10,5X,I10)
-              DO I=1,NP
-                IF (ABS(ETA2(I)).LE.(10.0**(-30))) ETA2(I) = 0.D0
-                IF (NOLIFA .EQ. 2) THEN
-                  IF (NODECODE(I).EQ.1) WRITE(63,2453) I,ETA2(I)
-                  IF (NODECODE(I).EQ.0) WRITE(63,2453) I,-99999.
-                ELSE
-                  WRITE(63,2453) I,ETA2(I)
-                ENDIF
-2453            FORMAT(2X,I8,2X,E16.8E3)
-              ENDDO
-              IF(SEDFLAG.GE.1) THEN
-                WRITE(84,2120) TIME_A, IT
+              if (ModetoNode.eq.1) then
                 DO I=1,NP
-                  WRITE(84,2453) I,DP(I)
+                
+                  IF (ABS(ETA2(I)).LE.(10.0**(-30))) ETA2(I) = 0.D0
+                  IF (NOLIFA .EQ. 2) THEN
+                    IF (NODECODE(I).EQ.1) WRITE(63,2453) I,ETA2(I)
+                    IF (NODECODE(I).EQ.0) WRITE(63,2453) I,-99999.
+                  ELSE
+                    WRITE(63,2453) I,ETA2(I)
+                  ENDIF
+2453              FORMAT(2X,I8,2X,E16.8E3)
                 ENDDO
-              ENDIF 
+                IF(SEDFLAG.GE.1) THEN
+                  WRITE(84,2120) TIME_A, IT
+                  DO I=1,NP
+                    WRITE(84,2453) I,DP(I)
+                  ENDDO
+                ENDIF
+              else
+                DO I=1,NE
+                  IF (ABS(ETA2(I)).LE.(10.0**(-30))) ETA2(I) = 0.D0
+                  WRITE(63,2453) I,ETA2(I)
+#ifdef TRACE                   
+                  IF (ABS(tracer(I)).LE.(10.0**(-30))) tracer(I) = 0.D0
+                  WRITE(88,2453) I,tracer(I)
+                  IF (ABS(tracer2(I)).LE.(10.0**(-30))) tracer2(I) = 0.D0
+                  WRITE(89,2453) I,tracer2(I)
+#endif
+#ifdef CHEM                   
+                  IF (ABS(tracer(I)).LE.(10.0**(-30))) tracer(I) = 0.D0
+                  WRITE(88,2453) I,tracer(I)
+                  IF (ABS(tracer2(I)).LE.(10.0**(-30))) tracer2(I) = 0.D0
+                  WRITE(89,2453) I,tracer2(I)
+#endif
+                  IF (ABS(dpe(I)).LE.(10.0**(-30))) dpe(I) = 0.D0
+                  write(4441,2453) I,dpe(I)
+ 2453             FORMAT(2X,I8,2X,E16.8E3)
+                ENDDO
+              ENDIF
 !cnd...for tecplot results
 !cmm modified 4/6/09
-c              if (it == NSPOOLGE) then
-                 write(777,*) 'ZONE ZONETYPE=FETRIANGLE ',
+              if (mod(it,NSPOOLGE).eq.0) then
+!Casey 120813: Begin the OUT_TEC conditional.
+
+#ifdef OUT_TEC
+                     
+                if (ModetoNode.eq.0) then
+
+                  write(777,*) 'ZONE ZONETYPE=FETRIANGLE ',
+     $            'NODES=', np, 
+     $            ' ELEMENTS=', ne, 
+     $            ' DATAPACKING=BLOCK ',
+     $            'SOLUTIONTIME=',time_a,
+     $            'VARLOCATION=([3,4,5,6,7,8,10,11,12,13,14]=CELLCENTERED)'
+                  do i=1,np
+                     write(777,7777)  x(i)
+                  enddo
+                  do i=1,np
+                     write(777,7777)  y(i)
+                  enddo
+                  do i=1,ne 
+                     write(777,7777)  dpe(i)
+                  enddo
+                  do i=1,ne 
+                     write(777,7777)  eta2(i)
+                  enddo
+                  do i=1,ne 
+                     write(777,7777)  eta2(i)+dpe(i)
+                  enddo
+                  do i=1,ne 
+                     write(777,7777)  uu2(i)
+                  enddo
+                  do i=1,ne 
+                     write(777,7777)  vv2(i)
+                  enddo
+                  do i=1,ne 
+                     write(777,7777)  sqrt(uu2(i)**2+vv2(i)**2)
+                  enddo
+                  do i=1,np 
+                     write(777,7777)  sqrt(wsx2(i)**2+wsy2(i)**2)
+                  enddo
+                  do i=1,ne 
+                     write(777,7777)  entrop(4,i) !DBLE(pdg_el(i))
+                  enddo
+                  do i=1,ne 
+                     write(777,7777)  tracer(i)
+                  enddo
+                  do i=1,ne 
+                     write(777,7777)  tracer2(i)
+                  enddo
+                  do i=1,ne 
+                     write(777,7777)  abs(tracer(i)+tracer2(i))
+                  enddo
+                  do i=1,ne 
+                     write(777,7777)  abs(tracer(i)-tracer2(i))    
+                  enddo
+
+                else
+                  write(777,*) 'ZONE ZONETYPE=FETRIANGLE ',
      $                'NODES=', np, 
      $                ' ELEMENTS=', ne, 
      $                ' DATAPACKING=POINT ','SOLUTIONTIME=',time_a
-                 do i=1,np
+                  do i=1,np
                     if (ics.eq.2) then
-                       write(777,7777) slam(i)/deg2rad, sfea(i)/deg2rad,
-c                 write(777,7777) x(i), y(i), 
-     $                   dp(i), eta2(i), eta2(i)+dp(i),uu2(i),vv2(i),
-     $           sqrt(uu2(i)**2+vv2(i)**2),sqrt(wsx2(i)**2+wsy2(i)**2),
-     $                   myproc
+                      write(777,7777) slam(i)/deg2rad, sfea(i)/deg2rad,
+     $                dp(i), eta2(i), eta2(i)+dp(i),uu2(i),vv2(i),
+     $                sqrt(uu2(i)**2+vv2(i)**2),
+     $                sqrt(wsx2(i)**2+wsy2(i)**2),myproc
                     else
-                       write(777,7777) x(i), y(i), 
-     $                   dp(i), eta2(i), eta2(i)+dp(i),uu2(i),vv2(i),
-     $           sqrt(uu2(i)**2+vv2(i)**2),sqrt(wsx2(i)**2+wsy2(i)**2),
-     $                   myproc
+                      write(777,7777) x(i), y(i), 
+     $                dp(i), eta2(i), eta2(i)+dp(i),uu2(i),vv2(i),
+     $                sqrt(uu2(i)**2+vv2(i)**2),
+     $                sqrt(wsx2(i)**2+wsy2(i)**2),myproc
                     endif
 
-                 enddo
- 7777            format(9f20.8,i10)
-                 do i=1,ne
-                    write(777,"(3i12)") nm(i,1), nm(i,2), nm(i,3)
-                 enddo
-c              else
-c                 write(777,*) 'ZONE ZONETYPE=FETRIANGLE ', 
-c     $                'NODES=', np, 
-c     $                ' ELEMENTS=', ne, 
-c     $                ' DATAPACKING=POINT ', 
-c     $                'SOLUTIONTIME=',time_a, 
-c     $                ' VARSHARELIST=([1,2]=1) CONNECTIVITYSHAREZONE=1'
-c                 do i=1,np
-c                    write(777,"(4f20.8)") dp(i), eta2(i), uu2(i), vv2(i)
-c                 enddo
-c              end if
+                  enddo
+                endif
+ 7777           format(9f20.8,i10)
+                do i=1,ne
+                   write(777,"(3i12)") nm(i,1), nm(i,2), nm(i,3)
+                enddo
+             
+#endif
+              endif
 C.....Write DG.63 results
               
-              DO J = 1,NE
-                DO K = 1,DOF
-                  WRITE(631,*) J, ZE(K,J,1)
-                ENDDO
-              ENDDO
+               DO J = 1,NE
+                 DO K = 1,DOF
+                   WRITE(631,*) J, ZE(K,J,1)
+                 ENDDO
+               ENDDO
               
 C.....Write DG.65 results, elemental statuses (wet/dry)
               
@@ -407,7 +698,7 @@ C.....Write DG.65 results, elemental statuses (wet/dry)
                   WRITE(63,REC=IGEP+I) ETA2(I)
                 ENDIF
               ENDDO
-              IF(SEDFLAG.GE.1) THEN
+              IF(SEDFLAG.GE.2) THEN
                 WRITE(84,REC=IGEP+1) TIME_A
                 WRITE(84,REC=IGEP+2) IT
                 DO I = 1,NP
@@ -436,18 +727,26 @@ C...
             IF(ABS(NOUTGV).EQ.1) THEN
               WRITE(64,2120) TIME_A,IT
               WRITE(641,2120) TIME_A,IT
-              DO I = 1,NP
+              if (ModetoNode.eq.1) then
+                DO I = 1,NP
 C.....Had trouble writing out numbers with less than E-99 (EJK)
-                IF (ABS(UU2(I)).LE.(10.0**(-30))) UU2(I) = 0.D0
-                IF (ABS(VV2(I)).LE.(10.0**(-30))) VV2(I) = 0.D0
-                WRITE(64,2454) I,UU2(I),VV2(I)
-2454            FORMAT(2X,I8,2(2X,E16.8E3))
-              ENDDO
-              
+                  IF (ABS(UU2(I)).LE.(10.0**(-30))) UU2(I) = 0.D0
+                  IF (ABS(VV2(I)).LE.(10.0**(-30))) VV2(I) = 0.D0
+                  WRITE(64,2454) I,UU2(I),VV2(I)
+2454              FORMAT(2X,I8,2(2X,E16.8E3))
+                ENDDO
+              else
+                DO I = 1,NE
+                  IF (ABS(UU2(I)).LE.(10.0**(-30))) UU2(I) = 0.D0
+                  IF (ABS(VV2(I)).LE.(10.0**(-30))) VV2(I) = 0.D0
+                  WRITE(64,2454) I,UU2(I),VV2(I)
+                ENDDO
+              endif
+                  
 C.....Write DG.64 results
 
               DO J = 1,NE
-                DO K = 1,DOF
+                DO K = 1,DOFS(J)
                   WRITE(641,*) J, QX(K,J,1), QY(K,J,1)
                 ENDDO
               ENDDO
@@ -516,24 +815,33 @@ C...
       if (it.eq.nt) then
          open(963,FILE=DIRNAME//'/'//'maxele.63',STATUS="REPLACE")
          write(963,*) np
-         write(778,*) 'TITLE = "PADCIRC-DG output"'
-         write(778,*) 
-     $        'VARIABLES = "x", "y", "maxeta"'
-         write(778,*) 'ZONE ZONETYPE=FETRIANGLE ',
-     $        'NODES=', np, 
-     $        ' ELEMENTS=', ne, 
-     $        ' DATAPACKING=POINT ','SOLUTIONTIME=',time_a
          do i=1,np
-            write(778,7778) slam(i)/deg2rad, sfea(i)/deg2rad, 
-     $           etamax(i)
             write(963,9633) etamax(i)
          enddo
- 7778    format(3f20.8)
-         do i=1,ne
-            write(778,"(3i12)") nm(i,1), nm(i,2), nm(i,3)
-         enddo
-         close(778)
+ 9633    format(f20.8)
          close(963)
+#ifdef OUT_TEC
+         if (ModetoNode.eq.1) then
+            write(778,*) 'TITLE = "dgswem output"'
+            write(778,*) 
+     $           'VARIABLES = "x", "y", "maxeta"'
+            write(778,*) 'ZONE ZONETYPE=FETRIANGLE ',
+     $           'NODES=', np, 
+     $           ' ELEMENTS=', ne, 
+     $           ' DATAPACKING=POINT ','SOLUTIONTIME=',time_a
+            do i=1,np
+               write(778,7778) slam(i)/deg2rad, sfea(i)/deg2rad, 
+     $              etamax(i)
+
+            enddo
+ 7778       format(3f20.8)
+            do i=1,ne
+               write(778,"(3i12)") nm(i,1), nm(i,2), nm(i,3)
+            enddo
+            close(778)
+
+         endif
+#endif
       endif
 
 C...
@@ -548,7 +856,7 @@ C...
                 WRITE(83,2120) time_A,IT
                 DO I=1,NP
                   HH2=DP(I)+IFNLFA*ETA2(I)
-C                  C1=CC2(I)
+                  C1=CH1(I)/HH2
                   IF (NOLIFA .EQ. 2) THEN
                     IF(NODECODE(I).EQ.1) WRITE(83,2453) I,C1
                     IF(NODECODE(I).EQ.0) WRITE(83,2453) I,-99999.
@@ -557,14 +865,14 @@ C                  C1=CC2(I)
                   ENDIF
                   ENDDO
                 IGCP=IGCP+1+NP
-                ENDIF
+              ENDIF
               IF(ABS(NOUTGC).EQ.2) THEN
                 WRITE(83,REC=IGEP+1) time_A
                 WRITE(83,REC=IGEP+2) IT
                 IGCP = IGCP + 2
                 DO I=1,NP
                   HH2=DP(I)+IFNLFA*ETA2(I)
-C                  C1=CC2(I)!/HH2
+                  C1=CH1(I)/HH2
                   IF (NOLIFA .EQ. 2) THEN
                     IF(NODECODE(I).EQ.1) WRITE(83,REC=IGCP+I) C1
                     IF(NODECODE(I).EQ.0) WRITE(83,REC=IGCP+I) -99999.
@@ -573,12 +881,12 @@ C                  C1=CC2(I)!/HH2
                   ENDIF
                   ENDDO
                 IGCP=IGCP+NP
-                ENDIF
-              NSCOUGC=0
               ENDIF
+              NSCOUGC=0
             ENDIF
-          IF(IT.EQ.NTCYFGC) CLOSE(83)
           ENDIF
+          IF(IT.EQ.NTCYFGC) CLOSE(83)
+        ENDIF
 
 C...
 C...IF IHARIND=1 AND THE TIME STEP FALLS WITHIN THE SPECIFIED WINDOW AND
@@ -607,7 +915,7 @@ C                  EE2=ETA2(NM(NNE(I),2))
 C                  EE3=ETA2(NM(NNE(I),3))
 C                  ET00(I)=EE1*STAIE1(I)+EE2*STAIE2(I)+EE3*STAIE3(I)
                   ET00(I) = ZE(1,NNE(I),1)
-                  DO K = 2,DOF
+                  DO K = 2,DOFH
                     ET00(I) = ET00(I) + ZE(K,NNE(I),1)*PHI_STAE(K,I)
                   ENDDO
                 ENDDO
@@ -618,27 +926,25 @@ C.....IF DESIRED COMPUTE VELOCITY STATION INFORMATION AND UPDATE LOAD VECTOR
 C...
               IF(NHASV.EQ.1) THEN
                 DO I=1,NSTAV
-C                  U11=UU2(NM(NNV(I),1))
-C                  U22=UU2(NM(NNV(I),2))
-C                  U33=UU2(NM(NNV(I),3))
-C                  V11=VV2(NM(NNV(I),1))
-C                  V22=VV2(NM(NNV(I),2))
-C                  V33=VV2(NM(NNV(I),3))
-C                  UU00(I)=U11*STAIV1(I)+U22*STAIV2(I)+U33*STAIV3(I)
-C                  VV00(I)=V11*STAIV1(I)+V22*STAIV2(I)+V33*STAIV3(I)
-                  DP1     = DP(NM(NNV(I),1))
-                  DP2     = DP(NM(NNV(I),2))
-                  DP3     = DP(NM(NNV(I),3))
-                  DP00    = DP1*STAIV1(I) + DP2*STAIV2(I) +DP3*STAIV3(I)
                   ZE00    = ZE(1,NNV(I),1)
                   UU00(I) = QX(1,NNV(I),1)
                   VV00(I) = QY(1,NNV(I),1)
-                  DO K = 2,DOF
+                  if (ModetoNode.eq.1) then
+                    DP1     = DP(NM(NNV(I),1))
+                    DP2     = DP(NM(NNV(I),2))
+                    DP3     = DP(NM(NNV(I),3))
+                    DP00    = DP1*STAIV1(I) + DP2*STAIV2(I) +DP3*STAIV3(I)
+                    DEPTH   = ZE00 + DP00
+                  else
+                    DP1     = DPE(nnv(i))
+                    DEPTH   = ZE00 + DP1 
+                  endif
+
+                  DO K = 2,DOFH
                     ZE00    = ZE00    + ZE(K,NNV(I),1)*PHI_STAV(K,I)
                     UU00(I) = UU00(I) + QX(K,NNV(I),1)*PHI_STAV(K,I)
                     VV00(I) = VV00(I) + QY(K,NNV(I),1)*PHI_STAV(K,I)
                   ENDDO
-                  DEPTH   = ZE00 + DP00
                   FH_NL   = 1.D0/(NLEQ*DEPTH + LEQ)
                   UU00(I) = UU00(I)*FH_NL
                   VV00(I) = VV00(I)*FH_NL
@@ -804,13 +1110,15 @@ C....IF ELMAX EXCEEDS THRESHOLD, PRINT INFORMATION ON ALL PROCESSORS WHERE
 C....THIS OCCURS 
 C...
         IF(NSCREEN.EQ.1) THEN
-          ELMAX=0.0
-          VELMAX=0.0
+          ELMAX=0.0d0
+          VELMAX=0.0d0
           KEMAX = 0
           KVMAX = 0
 c
-          elmaxe=0.0
-          qmaxe=0.0
+          imaxze=0.0d0
+          elmaxe=0.0d0
+          qmaxe=0.0d0
+          imaxq = 0.0d0
           DO I=1,NP
              IF((NODECODE(I).EQ.1).AND.(ABS(ETA2(I)).GT.ELMAX))THEN
                 ELMAX=ABS(ETA2(I))
@@ -854,8 +1162,55 @@ C
 c             write(6,*) 'elmaxe, imaxze, qmaxe, imaxq ',elmaxe,imaxze,
 c     &            qmaxe,imaxq,qx(2,imaxq,1),qx(3,imaxq,1),
 c     &            qy(2,imaxq,1),qy(3,imaxq,1)
+
+
+
+
+             if (padapt.eq.1) then
+
+               do k=pl,ph
+                  Minp(k) = 0
+                  do i = 1,ne
+                     if (pdg_el(i).eq.k) then
+                        Minp(k) = Minp(k) + 1
+                     endif
+                  enddo
+               enddo
+
+             print*,'_________________________________________________'
+             print*,'|                      |                        |'
+             print*,'|  Polynomial order    |     # of Elements      |'
+             print*,'|______________________|________________________|'
+               do k=pl,ph
+             print*,'|',k,'         |',Minp(k),'           |'
+             print*,'|______________________|________________________|'
+               enddo
+               print*,''
+               print*,'With',ne,'total elements'               
+             endif
           ENDIF
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+          
+          
+          
+          
+          
           IF(ELMAX.GT.200.0) THEN
             WRITE(6,1993) IT,TIME_A/86400,
      &            ETA2(KEMAX),KEMAX,VELMAX,KVMAX,MYPROC
@@ -875,12 +1230,32 @@ c     &            qy(2,imaxq,1),qy(3,imaxq,1)
 #else
          IF(ELMAX.LT.200.0.and.(MOD(IT,NSCREEN_INC).EQ.0) ) THEN
            WRITE(6,1992) IT,TIME_A/86400.,ETA2(KEMAX),KEMAX,VELMAX,KVMAX
- 1992       FORMAT(1X,'TIME STEP =',I8,5X,'TIME =',F12.6,
+ 1992      FORMAT(1X,'TIME STEP =',I8,5X,'TIME =',F12.6,
      &           /,2X,'ELMAX = ', E11.4,' AT NODE',I7,
      &           2X,'SPEEDMAX = ',E11.4,' AT NODE',I7)
-C            write(6,*) 'elmaxe, imaxze, qmaxe, imaxq ',elmaxe,imaxze,
-C     $           qmaxe,imaxq,qx(2,imaxq,1),qx(3,imaxq,1),
-C     $            qy(2,imaxq,1),qy(3,imaxq,1)
+           if (padapt.eq.1) then
+               
+               do k=pl,ph
+                  Minp(k) = 0
+                  do i = 1,ne
+                     if (pdg_el(i).eq.k) then
+                        Minp(k) = Minp(k) + 1
+                     endif
+                  enddo
+               enddo
+
+             print*,'_________________________________________________'
+             print*,'|                      |                        |'
+             print*,'|  Polynomial order    |     # of Elements      |'
+             print*,'|______________________|________________________|'
+               do k=pl,ph
+             print*,'|',k,'         |',Minp(k),'           |'
+             print*,'|______________________|________________________|'
+               enddo
+               print*,''
+               print*,'With',ne,'total elements'               
+            endif
+
          ENDIF
 C
          IF(ELMAX.GT.200.0) THEN
@@ -904,6 +1279,18 @@ C.....If applicable write out a DG hot start
             OPEN(263,FILE=DIRNAME//'/'//'Hot_start.263')
             OPEN(264,FILE=DIRNAME//'/'//'Hot_start.264')
             OPEN(214,FILE=DIRNAME//'/'//'Hot_start.214')
+#ifdef TRACE
+         OPEN(288,FILE=DIRNAME//'/'//'Hot_start.288')
+#endif
+#ifdef CHEM
+         OPEN(289,FILE=DIRNAME//'/'//'Hot_start.289')
+#endif
+#ifdef DYNP
+         OPEN(291,FILE=DIRNAME//'/'//'Hot_start.291')
+#endif
+#ifdef SED_LAY
+         OPEN(290,FILE=DIRNAME//'/'//'Hot_start.290')
+#endif
 
             WRITE(263,*) PH
             WRITE(264,*) PH, PH
@@ -914,6 +1301,20 @@ C.....If applicable write out a DG hot start
                   WRITE(263,*) ZE(K,J,1)
                   WRITE(264,*) QX(K,J,1), QY(K,J,1)
                   WRITE(214,*) HB(K,J,1), WDFLG(J)
+#ifdef TRACE
+               WRITE(288,*) iota(K,J,1)
+#endif
+#ifdef CHEM
+               WRITE(289,*) iota(K,J,1),iota2(K,J,1)
+#endif
+#ifdef DYNP
+               WRITE(291,*) dynP(K,J,1)
+#endif
+#ifdef SED_LAY
+               do ll=1,layers
+                  WRITE(290,*) bed(K,J,1,ll)
+               enddo
+#endif
                ENDDO
             ENDDO
 
@@ -921,6 +1322,18 @@ C.....If applicable write out a DG hot start
             CLOSE(264)
             CLOSE(214)
          ENDIF
+#ifdef TRACE
+         CLOSE(288)
+#endif
+#ifdef CHEM
+         CLOSE(289)
+#endif
+#ifdef DYNP
+         CLOSE(291)
+#endif
+#ifdef SED_LAY
+         CLOSE(290)
+#endif
       ENDIF
 
 C.....If end of run write out DG data
