@@ -31,7 +31,7 @@ Casey 101118: We need the following information to couple to unstructured SWAN.
 C--   
       IMPLICIT NONE
       
-      INTEGER TESTFLAG,OUTITER,istop
+      INTEGER TESTFLAG,OUTITER,istop,i
 C     sb-PDG1
       REAL(4) CPU_TIME,CPU_SEC(2)
       REAL(4) TARRAY(2)
