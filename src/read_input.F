@@ -1461,114 +1461,115 @@ C     ENDDO
 
 C.....Output to unit 16 grid information including AGRID, NE, NP, H0,
 C.....and nodal coordinates and bathymetry
-
-      WRITE(16,2039) AGRID
- 2039 FORMAT(/,5X,'GRID IDENTIFICATION : ',A24,/)
-      IF(NSTARTDRY.EQ.1) WRITE(16,2038) AGRID2
- 2038 FORMAT(5X,'STARTDRY FILE IDENTIFICATION : ',A24,/)
-      WRITE(16,3) NP
-    3 FORMAT(5X,'TOTAL NUMBER OF NODES =',I6,/)
-      WRITE(16,4) NE
-    4 FORMAT(5X,'TOTAL NUMBER OF ELEMENTS =',I6,/)
-      IF(ICS.EQ.2) WRITE(16,13) SLAM0*RAD2DEG,SFEA0*RAD2DEG
- 13   FORMAT(5X,'LONGITUDE ABOUT WHICH CPP PROJECTION IS CENTERED',
-     &     '  SLAM0 = ',F9.4,' DEGREES',
-     &     /,5X,'LATITUDE  ABOUT WHICH CPP PROJECTION IS CENTERED',
-     &     '  SFEA0 = ',F9.4,' DEGREES',/)
-      IF (NSTARTDRY.EQ.0) THEN
-         IF (NABOUT.NE.1) THEN
-            WRITE(16,24)
- 24         FORMAT(/,1X,'NODAL COORDINATES AND BATHYMETRY :')
-            IF (ICS.EQ.1) THEN
-               IF ((NTIP.EQ.0).AND.(NCOR.EQ.0)) THEN
-                  WRITE(16,25)
- 25               FORMAT(/,10X,'NODE NO.',10X,'X',20X,'Y',15X,'DP',/)
-                  DO I = 1,NP
-                     WRITE (16,2008) I,X(I),Y(I),DP(I)
- 2008                FORMAT(5X,I6,2(2X,F20.2),2X,F12.2)
-                  ENDDO
-               ELSE
-                  WRITE(16,9195)
- 9195             FORMAT(/,1X,'   NODE ',7X,'X',14X,'Y',9X,
-     &                 'LAMBDA(DEG)',6X,'FEA(DEG)',9X,'DP',/)
-                  DO I = 1,NP
-                     WRITE (16,9197) I,X(I),Y(I),SLAM(I)*RAD2DEG,
-     &                    SFEA(I)*RAD2DEG,DP(I)
- 9197                FORMAT(1X,I6,2(1X,F14.1),1X,2(1X,E15.7),1X,F8.2)
-                  ENDDO
-               ENDIF
-            ELSE
-               WRITE(16,9225)
- 9225         FORMAT(/,1X,'   NODE ',2X,'LAMBDA(DEG)',5X,'FEA(DEG)',11X,
-     &              'XCP',14X,'YCP',11X,'DP',/)
-               DO I = 1,NP
-                  WRITE (16,9228) I,SLAM(I)*RAD2DEG,SFEA(I)*RAD2DEG,
-     &                 X(I),Y(I),DP(I)
- 9228             FORMAT(1X,I6,2(1X,F14.8),2(1X,F15.1),1X,F10.2)
-               ENDDO
-            ENDIF
-         ELSE
-            WRITE(16,3511)
- 3511       FORMAT(/,5X,'NODAL COORDINATES AND BATHYMETRY',
-     &           ' INFORMATION IS AVAILABLE IN THE',
-     &           /,6X,'UNIT 14 INPUT FILE')
-         ENDIF
-      ELSE
-         IF (NABOUT.NE.1) THEN
-            WRITE(16,24)
-            IF (ICS.EQ.1) THEN
-               IF ((NTIP.EQ.0).AND.(NCOR.EQ.0)) THEN
-                  WRITE(16,3527)
- 3527             FORMAT(/,10X,'NODE NO.',10X,'X',20X,'Y',15X,'DP',
-     &                 5X,'STARTDRY',/)
-                  DO I = 1,NP
-                     IF (STARTDRY(I).EQ.-88888.D0) THEN
-                        WRITE (16,3529) I,X(I),Y(I),DP(I),STARTDRY(I)
- 3529                   FORMAT(5X,I6,2(2X,F20.2),2X,F12.2,2X,F12.0)
-                     ELSE
-                        WRITE (16,2008) I,X(I),Y(I),DP(I)
-                     ENDIF
-                  ENDDO
-               ELSE
-                  WRITE(16,3530)
- 3530             FORMAT(/,1X,'   NODE ',7X,'X',14X,'Y',9X,
-     &                 'LAMBDA(DEG)',6X,'FEA(DEG)',9X,'DP',
-     &                 5X,'STARTDRY',/)
-                  DO I = 1,NP
-                     IF (STARTDRY(I).EQ.-88888.D0) THEN
-                        WRITE (16,3531) I,X(I),Y(I),SLAM(I)*RAD2DEG,
-     &                       SFEA(I)*RAD2DEG,DP(I),STARTDRY(I)
- 3531                   FORMAT(1X,I6,2(1X,F14.1),1X,2(1X,E15.7),1X,F8.2,
-     &                       1X,F10.0)
-                     ELSE
-                        WRITE (16,9197) I,X(I),Y(I),SLAM(I)*RAD2DEG,
-     &                       SFEA(I)*RAD2DEG,DP(I)
-                     ENDIF
-                  ENDDO
-               ENDIF
-            ELSE
-               WRITE(16,3535)
- 3535         FORMAT(/,1X,'   NODE ',2X,'LAMBDA(DEG)',5X,'FEA(DEG)',11X,
-     &              'XCP',14X,'YCP',11X,'DP',
-     &              5X,'STARTDRY',/)
-               DO I = 1,NP
-                  IF (STARTDRY(I).EQ.-88888.D0) THEN
-                     WRITE (16,3537) I,SLAM(I)*RAD2DEG,SFEA(I)*RAD2DEG,
-     &                    X(I),Y(I),DP(I),STARTDRY(I)
- 3537            FORMAT(1X,I6,2(1X,F14.8),2(1X,F15.1),1X,F10.2,2X,F10.0)
-                  ELSE
-                     WRITE (16,9228) I,SLAM(I)*RAD2DEG,SFEA(I)*RAD2DEG,
-     &                    X(I),Y(I),DP(I)
-                  ENDIF
-               ENDDO
-            ENDIF
-         ELSE
-            WRITE(16,3540)
- 3540       FORMAT(/,5X,'NODAL COORDINATES AND BATHYMETRY',
-     &           ' INFORMATION IS AVAILABLE IN THE',
-     &           /,6X,'UNIT 14 AND 12 INPUT FILES')
-         ENDIF
-      ENDIF
+      IF (NABOUT.EQ.0) THEN
+        WRITE(16,2039) AGRID
+ 2039   FORMAT(/,5X,'GRID IDENTIFICATION : ',A24,/)
+        IF(NSTARTDRY.EQ.1) WRITE(16,2038) AGRID2
+ 2038   FORMAT(5X,'STARTDRY FILE IDENTIFICATION : ',A24,/)
+        WRITE(16,3) NP
+    3   FORMAT(5X,'TOTAL NUMBER OF NODES =',I6,/)
+        WRITE(16,4) NE
+    4   FORMAT(5X,'TOTAL NUMBER OF ELEMENTS =',I6,/)
+        IF(ICS.EQ.2) WRITE(16,13) SLAM0*RAD2DEG,SFEA0*RAD2DEG
+ 13     FORMAT(5X,'LONGITUDE ABOUT WHICH CPP PROJECTION IS CENTERED',
+     &       '  SLAM0 = ',F9.4,' DEGREES',
+     &       /,5X,'LATITUDE  ABOUT WHICH CPP PROJECTION IS CENTERED',
+     &       '  SFEA0 = ',F9.4,' DEGREES',/)
+        IF (NSTARTDRY.EQ.0) THEN
+           IF (NABOUT.NE.1) THEN
+              WRITE(16,24)
+ 24           FORMAT(/,1X,'NODAL COORDINATES AND BATHYMETRY :')
+              IF (ICS.EQ.1) THEN
+                 IF ((NTIP.EQ.0).AND.(NCOR.EQ.0)) THEN
+                    WRITE(16,25)
+ 25                 FORMAT(/,10X,'NODE NO.',10X,'X',20X,'Y',15X,'DP',/)
+                    DO I = 1,NP
+                       WRITE (16,2008) I,X(I),Y(I),DP(I)
+ 2008                  FORMAT(5X,I6,2(2X,F20.2),2X,F12.2)
+                    ENDDO
+                 ELSE
+                    WRITE(16,9195)
+ 9195               FORMAT(/,1X,'   NODE ',7X,'X',14X,'Y',9X,
+     &                   'LAMBDA(DEG)',6X,'FEA(DEG)',9X,'DP',/)
+                    DO I = 1,NP
+                       WRITE (16,9197) I,X(I),Y(I),SLAM(I)*RAD2DEG,
+     &                      SFEA(I)*RAD2DEG,DP(I)
+ 9197                  FORMAT(1X,I6,2(1X,F14.1),1X,2(1X,E15.7),1X,F8.2)
+                    ENDDO
+                 ENDIF
+              ELSE
+                 WRITE(16,9225)
+ 9225           FORMAT(/,1X,'   NODE ',2X,'LAMBDA(DEG)',5X,'FEA(DEG)',11X,
+     &                'XCP',14X,'YCP',11X,'DP',/)
+                 DO I = 1,NP
+                    WRITE (16,9228) I,SLAM(I)*RAD2DEG,SFEA(I)*RAD2DEG,
+     &                   X(I),Y(I),DP(I)
+ 9228               FORMAT(1X,I6,2(1X,F14.8),2(1X,F15.1),1X,F10.2)
+                 ENDDO
+              ENDIF
+           ELSE
+              WRITE(16,3511)
+ 3511         FORMAT(/,5X,'NODAL COORDINATES AND BATHYMETRY',
+     &             ' INFORMATION IS AVAILABLE IN THE',
+     &             /,6X,'UNIT 14 INPUT FILE')
+           ENDIF
+        ELSE
+           IF (NABOUT.NE.1) THEN
+              WRITE(16,24)
+              IF (ICS.EQ.1) THEN
+                 IF ((NTIP.EQ.0).AND.(NCOR.EQ.0)) THEN
+                    WRITE(16,3527)
+ 3527               FORMAT(/,10X,'NODE NO.',10X,'X',20X,'Y',15X,'DP',
+     &                   5X,'STARTDRY',/)
+                    DO I = 1,NP
+                       IF (STARTDRY(I).EQ.-88888.D0) THEN
+                          WRITE (16,3529) I,X(I),Y(I),DP(I),STARTDRY(I)
+ 3529                     FORMAT(5X,I6,2(2X,F20.2),2X,F12.2,2X,F12.0)
+                       ELSE
+                          WRITE (16,2008) I,X(I),Y(I),DP(I)
+                       ENDIF
+                    ENDDO
+                 ELSE
+                    WRITE(16,3530)
+ 3530               FORMAT(/,1X,'   NODE ',7X,'X',14X,'Y',9X,
+     &                   'LAMBDA(DEG)',6X,'FEA(DEG)',9X,'DP',
+     &                   5X,'STARTDRY',/)
+                    DO I = 1,NP
+                       IF (STARTDRY(I).EQ.-88888.D0) THEN
+                          WRITE (16,3531) I,X(I),Y(I),SLAM(I)*RAD2DEG,
+     &                         SFEA(I)*RAD2DEG,DP(I),STARTDRY(I)
+ 3531                     FORMAT(1X,I6,2(1X,F14.1),1X,2(1X,E15.7),1X,F8.2,
+     &                         1X,F10.0)
+                       ELSE
+                          WRITE (16,9197) I,X(I),Y(I),SLAM(I)*RAD2DEG,
+     &                         SFEA(I)*RAD2DEG,DP(I)
+                       ENDIF
+                    ENDDO
+                 ENDIF
+              ELSE
+                 WRITE(16,3535)
+ 3535           FORMAT(/,1X,'   NODE ',2X,'LAMBDA(DEG)',5X,'FEA(DEG)',11X,
+     &                'XCP',14X,'YCP',11X,'DP',
+     &                5X,'STARTDRY',/)
+                 DO I = 1,NP
+                    IF (STARTDRY(I).EQ.-88888.D0) THEN
+                       WRITE (16,3537) I,SLAM(I)*RAD2DEG,SFEA(I)*RAD2DEG,
+     &                      X(I),Y(I),DP(I),STARTDRY(I)
+ 3537              FORMAT(1X,I6,2(1X,F14.8),2(1X,F15.1),1X,F10.2,2X,F10.0)
+                    ELSE
+                       WRITE (16,9228) I,SLAM(I)*RAD2DEG,SFEA(I)*RAD2DEG,
+     &                      X(I),Y(I),DP(I)
+                    ENDIF
+                 ENDDO
+              ENDIF
+           ELSE
+              WRITE(16,3540)
+ 3540         FORMAT(/,5X,'NODAL COORDINATES AND BATHYMETRY',
+     &             ' INFORMATION IS AVAILABLE IN THE',
+     &             /,6X,'UNIT 14 AND 12 INPUT FILES')
+           ENDIF
+        ENDIF
+	  ENDIF
 
 C.....Output to unit 16 the global connectivity table (node numbers for
 C.....elements
@@ -2138,190 +2139,192 @@ cjj   wm001 - following 2 lines modified
          STOP
       ENDIF
 C.......WRITE OUT INFORMATION TO UNIT 16
-      IF((IBTYPE.EQ.4).OR.(IBTYPE.EQ.24)) THEN
-         WRITE(16,28) K,NVELL(K),K,2*NVELL(K)
- 28      FORMAT(///,5X,'TOTAL NUMBER OF PAIRS FOR FLOW BOUNDARY',
-     &        ' SEGMENT',2X,I2,2X,'=',2X,I5,/,
-     &        5X,'TOTAL NUMBER OF NODES FOR FLOW BOUNDARY',
-     &        ' SEGMENT',2X,I2,2X,'=',2X,I5)
-      ELSE
-         WRITE(16,128) K,NVELL(K)
- 128     FORMAT(///,5X,'TOTAL NUMBER OF NODES FOR FLOW BOUNDARY',
-     &        ' SEGMENT',2X,I2,2X,'=',2X,I5)
-      ENDIF
-C.......CONTINUE PROCESSING FLOW BOUNDARY INFORMATION
-      IF(IBTYPE.EQ.0) THEN
-         WRITE(16,2340)
- 2340    FORMAT(5X,'THIS SEGMENT IS AN EXTERNAL BOUNDARY WITH:',/,
-     &        7X,'NO NORMAL FLOW AS AN ESSENTIAL B.C.',/,
-     &        7X,'AND FREE TANGENTIAL SLIP',/)
-      ENDIF
-      IF(IBTYPE.EQ.1) THEN
-         WRITE(16,2341)
- 2341    FORMAT(5X,'THIS SEGMENT IS AN INTERNAL BOUNDARY WITH:',/,
-     &        7X,'NO NORMAL FLOW AS AN ESSENTIAL B.C.',/,
-     &        7X,'AND FREE TANGENTIAL SLIP',/)
-      ENDIF
-      IF(IBTYPE.EQ.2) THEN
-         NFLUXF=1
-         WRITE(16,2342)
- 2342    FORMAT(5X,'THIS SEGMENT IS AN EXTERNAL BOUNDARY WITH:',/,
-     &        7X,'SPECIFIED NORMAL FLOW AS AN ESSENTIAL B.C.',/,
-     &        7X,'AND FREE TANGENTIAL SLIP',/)
-      ENDIF
-      IF(IBTYPE.EQ.3) THEN
-         NFLUXB=1
-         WRITE(16,2344)
- 2344    FORMAT(5X,'THIS SEGMENT IS AN EXTERNAL BOUNDARY WITH:',/,
-     &        7X,'A BARRIER WHICH ALLOWS FREE SURFACE',
-     &        ' SUPERCRITICAL OUTFLOW',/,
-     &        7X,'FROM THE DOMAIN ONCE THE BARRIER HAS BEEN',
-     &        ' OVERTOPPED',/,
-     &        7X,'AND FREE TANGENTIAL SLIP',/)
-      ENDIF
-      IF(IBTYPE.EQ.4) THEN
-         NFLUXIB=1
-         WRITE(16,2345)
- 2345    FORMAT(5X,'THIS SEGMENT IS AN INTERNAL BARRIER BOUNDARY:',/,
-     &        7X,'WITH CROSS BARRIER FLOW TREATED AS AN ESSENTIAL ',
-     &        ' NORMAL FLOW BOUNDARY CONDITION',/,
-     &        7X,'WHICH LEAVES/ENTERS THE DOMAIN ON ONE SIDE OF ',
-     &        ' THE BARRIER AND ENTERS/LEAVES THE DOMAIN ON THE ',/,
-     &        7X,'CORRESPONDING OPPOSITE SIDE OF THE BARRIER ',/,
-     &        7X,'FLOW RATE AND DIRECTION ARE BASED ON BARRIER ',
-     &        ' HEIGHT, SURFACE WATER ELEVATION',/,
-     &        7X,'ON BOTH SIDES OF THE BARRIER, BARRIER COEFFICIENT',
-     &        ' AND THE APPROPRIATE BARRIER FLOW FORMULA',/,
-     &        7X,'FREE TANGENTIAL SLIP IS ALLOWED',/)
-      ENDIF
-      IF(IBTYPE.EQ.5) THEN
-         NFLUXIB=1
-         NFLUXIBP=1
-         WRITE(16,2347)
- 2347    FORMAT(5X,'THIS SEGMENT IS AN INTERNAL BARRIER BOUNDARY:',/,
-     &        7X,'WITH ADDITIONAL CROSS BARRIER PIPES ',
-     &        'LOCATED UNDER THE CROWN ',/,
-     &        7X,'CROSS BARRIER FLOW IS TREATED AS AN ESSENTIAL',
-     &        ' NORMAL FLOW BOUNDARY CONDITION',/,
-     &        7X,'WHICH LEAVES/ENTERS THE DOMAIN ON ONE SIDE OF ',
-     &        ' THE BARRIER AND ENTERS/LEAVES THE DOMAIN ON THE ',/,
-     &        7X,'CORRESPONDING OPPOSITE SIDE OF THE BARRIER ',/,
-     &        7X,'FLOW RATE AND DIRECTION ARE BASED ON BARRIER ',
-     &        ' HEIGHT, SURFACE WATER ELEVATION',/,
-     &        7X,'ON BOTH SIDES OF THE BARRIER, BARRIER COEFFICIENT',
-     &        ' AND THE APPROPRIATE BARRIER FLOW FORMULA',/,
-     &        7X,'IN ADDITION CROSS BARRIER PIPE FLOW RATE AND ',
-     &        ' DIRECTION ARE BASED ON PIPE CROWN HEIGHT, ',/,
-     &        7X,'SURFACE WATER ELEVATION ON BOTH SIDES OF THE ',
-     &        'BARRIER, PIPE FRICTION COEFFICIENT, PIPE DIAMETER',/,
-     &        7X,' AND THE APPROPRIATE PIPE FLOW FORMULA',/,
-     &        7X,'FREE TANGENTIAL SLIP IS ALLOWED',/)
-      ENDIF
-      IF(IBTYPE.EQ.10) THEN
-         WRITE(16,2350)
- 2350    FORMAT(5X,'THIS SEGMENT IS AN EXTERNAL BOUNDARY WITH:',/,
-     &        7X,'NO NORMAL FLOW AS AN ESSENTIAL B.C.',/,
-     &        7X,'AND NO TANGENTIAL SLIP',/)
-      ENDIF
-      IF(IBTYPE.EQ.11) THEN
-         WRITE(16,2351)
- 2351    FORMAT(5X,'THIS SEGMENT IS AN INTERNAL BOUNDARY WITH:',/,
-     &        7X,'NO NORMAL FLOW AS AN ESSENTIAL B.C.',/,
-     &        7X,'AND NO TANGENTIAL SLIP',/)
-      ENDIF
-      IF(IBTYPE.EQ.12) THEN
-         NFLUXF=1
-         WRITE(16,2352)
- 2352    FORMAT(5X,'THIS SEGMENT IS AN EXTERNAL BOUNDARY WITH:',/,
-     &        7X,'SPECIFIED NORMAL FLOW AS AN ESSENTIAL B.C.',/,
-     &        7X,'AND NO TANGENTIAL SLIP',/)
-      ENDIF
-      IF(IBTYPE.EQ.13) THEN
-         NFLUXB=1
-         WRITE(16,2354)
- 2354    FORMAT(5X,'THIS SEGMENT IS AN EXTERNAL BOUNDARY WITH:',/,
-     &        7X,'A BARRIER WHICH ALLOWS FREE SURFACE',
-     &        ' SUPERCRITICAL OUTFLOW',/,
-     &        7X,'FROM THE DOMAIN ONCE THE BARRIER HAS BEEN',
-     &        ' OVERTOPPED',/,
-     &        7X,'AND NO TANGENTIAL SLIP',/)
-      ENDIF
-      IF(IBTYPE.EQ.20) THEN
-         WRITE(16,2360)
- 2360    FORMAT(5X,'THIS SEGMENT IS AN EXTERNAL BOUNDARY WITH:',/,
-     &        7X,'NO NORMAL FLOW AS A NATURAL B.C.',/,
-     &        7X,'AND FREE TANGENTIAL SLIP',/)
-      ENDIF
-      IF(IBTYPE.EQ.21) THEN
-         WRITE(16,2361)
- 2361    FORMAT(5X,'THIS SEGMENT IS AN INTERNAL BOUNDARY WITH:',/,
-     &        7X,'NO NORMAL FLOW AS A NATURAL B.C.',/,
-     &        7X,'AND FREE TANGENTIAL SLIP',/)
-      ENDIF
-      IF(IBTYPE.EQ.22) THEN
-         NFLUXF=1
-         WRITE(16,2362)
- 2362    FORMAT(5X,'THIS SEGMENT IS A EXTERNAL BOUNDARY WITH:',/,
-     &        7X,'SPECIFIED NORMAL FLOW AS A NATURAL B.C.',/,
-     &        7X,'AND FREE TANGENTIAL SLIP',/)
-      ENDIF
-      IF(IBTYPE.EQ.23) THEN
-         NFLUXB=1
-         WRITE(16,2356)
- 2356    FORMAT(5X,'THIS SEGMENT IS AN EXTERNAL BOUNDARY WITH:',/,
-     &        7X,'A BARRIER WHICH ALLOWS FREE SURFACE',
-     &        ' SUPERCRITICAL OUTFLOW',/,
-     &        7X,'FROM THE DOMAIN ONCE THE BARRIER HAS BEEN',
-     &        ' OVERTOPPED',/,
-     &        7X,' IMPLEMENTED AS A NATURAL BOUNDARY CONDITION'
-     &        ,7X,'FREE TANGENTIAL SLIP IS ALSO ALLOWED',/)
-      ENDIF
-      IF(IBTYPE.EQ.24) THEN
-         NFLUXIB=1
-         WRITE(16,2357)
- 2357    FORMAT(5X,'THIS SEGMENT IS AN INTERNAL BARRIER BOUNDARY:',/,
-     &        7X,'WITH CROSS BARRIER FLOW TREATED AS A NATURAL ',
-     &        ' NORMAL FLOW BOUNDARY CONDITION',/,
-     &        7X,'WHICH LEAVES/ENTERS THE DOMAIN ON ONE SIDE OF ',
-     &        ' THE BARRIER AND ENTERS/LEAVES THE DOMAIN ON THE ',/,
-     &        7X,'CORRESPONDING OPPOSITE SIDE OF THE BARRIER ',/,
-     &        7X,'FLOW RATE AND DIRECTION ARE BASED ON BARRIER ',
-     &        ' HEIGHT, SURFACE WATER ELEVATION',/,
-     &        7X,'ON BOTH SIDES OF THE BARRIER, BARRIER COEFFICIENT',
-     &        ' AND THE APPROPRIATE BARRIER FLOW FORMULA',/,
-     &        7X,'FREE TANGENTIAL SLIP IS ALLOWED',/)
-      ENDIF
-      IF(IBTYPE.EQ.25) THEN
-         NFLUXIB=1
-         NFLUXIBP=1
-         WRITE(16,2359)
- 2359    FORMAT(5X,'THIS SEGMENT IS AN INTERNAL BARRIER BOUNDARY:',/,
-     &        7X,'WITH ADDITIONAL CROSS BARRIER PIPES ',
-     &        'LOCATED UNDER THE CROWN ',/,
-     &        7X,'CROSS BARRIER FLOW IS TREATED AS A NATURAL',
-     &        ' NORMAL FLOW BOUNDARY CONDITION',/,
-     &        7X,'WHICH LEAVES/ENTERS THE DOMAIN ON ONE SIDE OF ',
-     &        ' THE BARRIER AND ENTERS/LEAVES THE DOMAIN ON THE ',/,
-     &        7X,'CORRESPONDING OPPOSITE SIDE OF THE BARRIER ',/,
-     &        7X,'FLOW RATE AND DIRECTION ARE BASED ON BARRIER ',
-     &        ' HEIGHT, SURFACE WATER ELEVATION',/,
-     &        7X,'ON BOTH SIDES OF THE BARRIER, BARRIER COEFFICIENT',
-     &        ' AND THE APPROPRIATE BARRIER FLOW FORMULA',/,
-     &        7X,'IN ADDITION CROSS BARRIER PIPE FLOW RATE AND ',
-     &        ' DIRECTION ARE BASED ON PIPE CROWN HEIGHT, ',/,
-     &        7X,'SURFACE WATER ELEVATION ON BOTH SIDES OF THE ',
-     &        'BARRIER, PIPE FRICTION COEFFICIENT, PIPE DIAMETER',/,
-     &        7X,' AND THE APPROPRIATE PIPE FLOW FORMULA',/,
-     &        7X,'FREE TANGENTIAL SLIP IS ALLOWED',/)
-      ENDIF
-      IF(IBTYPE.EQ.30) THEN
-         NFLUXRBC=1
-         WRITE(16,2355)
- 2355    FORMAT(5X,'THIS SEGMENT IS AN OUTWARD RADIATING BOUNDARY:',/,
-     &        7X,'NORMAL FLUX IS A NATURAL B.C. IN GWCE',/,
-     &        7X,'NORMAL AND TANGENTIAL VELOCITY ARE COMPUTED FROM ',
-     &        'THE MOMENTUM EQNS.',/)
-      ENDIF
+      IF (NABOUT.EQ.0) THEN
+        IF((IBTYPE.EQ.4).OR.(IBTYPE.EQ.24)) THEN
+           WRITE(16,28) K,NVELL(K),K,2*NVELL(K)
+ 28        FORMAT(///,5X,'TOTAL NUMBER OF PAIRS FOR FLOW BOUNDARY',
+     &          ' SEGMENT',2X,I2,2X,'=',2X,I5,/,
+     &          5X,'TOTAL NUMBER OF NODES FOR FLOW BOUNDARY',
+     &          ' SEGMENT',2X,I2,2X,'=',2X,I5)
+        ELSE
+           WRITE(16,128) K,NVELL(K)
+ 128       FORMAT(///,5X,'TOTAL NUMBER OF NODES FOR FLOW BOUNDARY',
+     &          ' SEGMENT',2X,I2,2X,'=',2X,I5)
+        ENDIF
+C.....  ..CONTINUE PROCESSING FLOW BOUNDARY INFORMATION
+        IF(IBTYPE.EQ.0) THEN
+           WRITE(16,2340)
+ 2340      FORMAT(5X,'THIS SEGMENT IS AN EXTERNAL BOUNDARY WITH:',/,
+     &          7X,'NO NORMAL FLOW AS AN ESSENTIAL B.C.',/,
+     &          7X,'AND FREE TANGENTIAL SLIP',/)
+        ENDIF
+        IF(IBTYPE.EQ.1) THEN
+           WRITE(16,2341)
+ 2341      FORMAT(5X,'THIS SEGMENT IS AN INTERNAL BOUNDARY WITH:',/,
+     &          7X,'NO NORMAL FLOW AS AN ESSENTIAL B.C.',/,
+     &          7X,'AND FREE TANGENTIAL SLIP',/)
+        ENDIF
+        IF(IBTYPE.EQ.2) THEN
+           NFLUXF=1
+           WRITE(16,2342)
+ 2342      FORMAT(5X,'THIS SEGMENT IS AN EXTERNAL BOUNDARY WITH:',/,
+     &          7X,'SPECIFIED NORMAL FLOW AS AN ESSENTIAL B.C.',/,
+     &          7X,'AND FREE TANGENTIAL SLIP',/)
+        ENDIF
+        IF(IBTYPE.EQ.3) THEN
+           NFLUXB=1
+           WRITE(16,2344)
+ 2344      FORMAT(5X,'THIS SEGMENT IS AN EXTERNAL BOUNDARY WITH:',/,
+     &          7X,'A BARRIER WHICH ALLOWS FREE SURFACE',
+     &          ' SUPERCRITICAL OUTFLOW',/,
+     &          7X,'FROM THE DOMAIN ONCE THE BARRIER HAS BEEN',
+     &          ' OVERTOPPED',/,
+     &          7X,'AND FREE TANGENTIAL SLIP',/)
+        ENDIF
+        IF(IBTYPE.EQ.4) THEN
+           NFLUXIB=1
+           WRITE(16,2345)
+ 2345      FORMAT(5X,'THIS SEGMENT IS AN INTERNAL BARRIER BOUNDARY:',/,
+     &          7X,'WITH CROSS BARRIER FLOW TREATED AS AN ESSENTIAL ',
+     &          ' NORMAL FLOW BOUNDARY CONDITION',/,
+     &          7X,'WHICH LEAVES/ENTERS THE DOMAIN ON ONE SIDE OF ',
+     &          ' THE BARRIER AND ENTERS/LEAVES THE DOMAIN ON THE ',/,
+     &          7X,'CORRESPONDING OPPOSITE SIDE OF THE BARRIER ',/,
+     &          7X,'FLOW RATE AND DIRECTION ARE BASED ON BARRIER ',
+     &          ' HEIGHT, SURFACE WATER ELEVATION',/,
+     &          7X,'ON BOTH SIDES OF THE BARRIER, BARRIER COEFFICIENT',
+     &          ' AND THE APPROPRIATE BARRIER FLOW FORMULA',/,
+     &          7X,'FREE TANGENTIAL SLIP IS ALLOWED',/)
+        ENDIF
+        IF(IBTYPE.EQ.5) THEN
+           NFLUXIB=1
+           NFLUXIBP=1
+           WRITE(16,2347)
+ 2347      FORMAT(5X,'THIS SEGMENT IS AN INTERNAL BARRIER BOUNDARY:',/,
+     &          7X,'WITH ADDITIONAL CROSS BARRIER PIPES ',
+     &          'LOCATED UNDER THE CROWN ',/,
+     &          7X,'CROSS BARRIER FLOW IS TREATED AS AN ESSENTIAL',
+     &          ' NORMAL FLOW BOUNDARY CONDITION',/,
+     &          7X,'WHICH LEAVES/ENTERS THE DOMAIN ON ONE SIDE OF ',
+     &          ' THE BARRIER AND ENTERS/LEAVES THE DOMAIN ON THE ',/,
+     &          7X,'CORRESPONDING OPPOSITE SIDE OF THE BARRIER ',/,
+     &          7X,'FLOW RATE AND DIRECTION ARE BASED ON BARRIER ',
+     &          ' HEIGHT, SURFACE WATER ELEVATION',/,
+     &          7X,'ON BOTH SIDES OF THE BARRIER, BARRIER COEFFICIENT',
+     &          ' AND THE APPROPRIATE BARRIER FLOW FORMULA',/,
+     &          7X,'IN ADDITION CROSS BARRIER PIPE FLOW RATE AND ',
+     &          ' DIRECTION ARE BASED ON PIPE CROWN HEIGHT, ',/,
+     &          7X,'SURFACE WATER ELEVATION ON BOTH SIDES OF THE ',
+     &          'BARRIER, PIPE FRICTION COEFFICIENT, PIPE DIAMETER',/,
+     &          7X,' AND THE APPROPRIATE PIPE FLOW FORMULA',/,
+     &          7X,'FREE TANGENTIAL SLIP IS ALLOWED',/)
+        ENDIF
+        IF(IBTYPE.EQ.10) THEN
+           WRITE(16,2350)
+ 2350      FORMAT(5X,'THIS SEGMENT IS AN EXTERNAL BOUNDARY WITH:',/,
+     &          7X,'NO NORMAL FLOW AS AN ESSENTIAL B.C.',/,
+     &          7X,'AND NO TANGENTIAL SLIP',/)
+        ENDIF
+        IF(IBTYPE.EQ.11) THEN
+           WRITE(16,2351)
+ 2351      FORMAT(5X,'THIS SEGMENT IS AN INTERNAL BOUNDARY WITH:',/,
+     &          7X,'NO NORMAL FLOW AS AN ESSENTIAL B.C.',/,
+     &          7X,'AND NO TANGENTIAL SLIP',/)
+        ENDIF
+        IF(IBTYPE.EQ.12) THEN
+           NFLUXF=1
+           WRITE(16,2352)
+ 2352      FORMAT(5X,'THIS SEGMENT IS AN EXTERNAL BOUNDARY WITH:',/,
+     &          7X,'SPECIFIED NORMAL FLOW AS AN ESSENTIAL B.C.',/,
+     &          7X,'AND NO TANGENTIAL SLIP',/)
+        ENDIF
+        IF(IBTYPE.EQ.13) THEN
+           NFLUXB=1
+           WRITE(16,2354)
+ 2354      FORMAT(5X,'THIS SEGMENT IS AN EXTERNAL BOUNDARY WITH:',/,
+     &          7X,'A BARRIER WHICH ALLOWS FREE SURFACE',
+     &          ' SUPERCRITICAL OUTFLOW',/,
+     &          7X,'FROM THE DOMAIN ONCE THE BARRIER HAS BEEN',
+     &          ' OVERTOPPED',/,
+     &          7X,'AND NO TANGENTIAL SLIP',/)
+        ENDIF
+        IF(IBTYPE.EQ.20) THEN
+           WRITE(16,2360)
+ 2360      FORMAT(5X,'THIS SEGMENT IS AN EXTERNAL BOUNDARY WITH:',/,
+     &          7X,'NO NORMAL FLOW AS A NATURAL B.C.',/,
+     &          7X,'AND FREE TANGENTIAL SLIP',/)
+        ENDIF
+        IF(IBTYPE.EQ.21) THEN
+           WRITE(16,2361)
+ 2361      FORMAT(5X,'THIS SEGMENT IS AN INTERNAL BOUNDARY WITH:',/,
+     &          7X,'NO NORMAL FLOW AS A NATURAL B.C.',/,
+     &          7X,'AND FREE TANGENTIAL SLIP',/)
+        ENDIF
+        IF(IBTYPE.EQ.22) THEN
+           NFLUXF=1
+           WRITE(16,2362)
+ 2362      FORMAT(5X,'THIS SEGMENT IS A EXTERNAL BOUNDARY WITH:',/,
+     &          7X,'SPECIFIED NORMAL FLOW AS A NATURAL B.C.',/,
+     &          7X,'AND FREE TANGENTIAL SLIP',/)
+        ENDIF
+        IF(IBTYPE.EQ.23) THEN
+           NFLUXB=1
+           WRITE(16,2356)
+ 2356      FORMAT(5X,'THIS SEGMENT IS AN EXTERNAL BOUNDARY WITH:',/,
+     &          7X,'A BARRIER WHICH ALLOWS FREE SURFACE',
+     &          ' SUPERCRITICAL OUTFLOW',/,
+     &          7X,'FROM THE DOMAIN ONCE THE BARRIER HAS BEEN',
+     &          ' OVERTOPPED',/,
+     &          7X,' IMPLEMENTED AS A NATURAL BOUNDARY CONDITION'
+     &          ,7X,'FREE TANGENTIAL SLIP IS ALSO ALLOWED',/)
+        ENDIF
+        IF(IBTYPE.EQ.24) THEN
+           NFLUXIB=1
+           WRITE(16,2357)
+ 2357      FORMAT(5X,'THIS SEGMENT IS AN INTERNAL BARRIER BOUNDARY:',/,
+     &          7X,'WITH CROSS BARRIER FLOW TREATED AS A NATURAL ',
+     &          ' NORMAL FLOW BOUNDARY CONDITION',/,
+     &          7X,'WHICH LEAVES/ENTERS THE DOMAIN ON ONE SIDE OF ',
+     &          ' THE BARRIER AND ENTERS/LEAVES THE DOMAIN ON THE ',/,
+     &          7X,'CORRESPONDING OPPOSITE SIDE OF THE BARRIER ',/,
+     &          7X,'FLOW RATE AND DIRECTION ARE BASED ON BARRIER ',
+     &          ' HEIGHT, SURFACE WATER ELEVATION',/,
+     &          7X,'ON BOTH SIDES OF THE BARRIER, BARRIER COEFFICIENT',
+     &          ' AND THE APPROPRIATE BARRIER FLOW FORMULA',/,
+     &          7X,'FREE TANGENTIAL SLIP IS ALLOWED',/)
+        ENDIF
+        IF(IBTYPE.EQ.25) THEN
+           NFLUXIB=1
+           NFLUXIBP=1
+           WRITE(16,2359)
+ 2359      FORMAT(5X,'THIS SEGMENT IS AN INTERNAL BARRIER BOUNDARY:',/,
+     &          7X,'WITH ADDITIONAL CROSS BARRIER PIPES ',
+     &          'LOCATED UNDER THE CROWN ',/,
+     &          7X,'CROSS BARRIER FLOW IS TREATED AS A NATURAL',
+     &          ' NORMAL FLOW BOUNDARY CONDITION',/,
+     &          7X,'WHICH LEAVES/ENTERS THE DOMAIN ON ONE SIDE OF ',
+     &          ' THE BARRIER AND ENTERS/LEAVES THE DOMAIN ON THE ',/,
+     &          7X,'CORRESPONDING OPPOSITE SIDE OF THE BARRIER ',/,
+     &          7X,'FLOW RATE AND DIRECTION ARE BASED ON BARRIER ',
+     &          ' HEIGHT, SURFACE WATER ELEVATION',/,
+     &          7X,'ON BOTH SIDES OF THE BARRIER, BARRIER COEFFICIENT',
+     &          ' AND THE APPROPRIATE BARRIER FLOW FORMULA',/,
+     &          7X,'IN ADDITION CROSS BARRIER PIPE FLOW RATE AND ',
+     &          ' DIRECTION ARE BASED ON PIPE CROWN HEIGHT, ',/,
+     &          7X,'SURFACE WATER ELEVATION ON BOTH SIDES OF THE ',
+     &          'BARRIER, PIPE FRICTION COEFFICIENT, PIPE DIAMETER',/,
+     &          7X,' AND THE APPROPRIATE PIPE FLOW FORMULA',/,
+     &          7X,'FREE TANGENTIAL SLIP IS ALLOWED',/)
+        ENDIF
+        IF(IBTYPE.EQ.30) THEN
+           NFLUXRBC=1
+           WRITE(16,2355)
+ 2355      FORMAT(5X,'THIS SEGMENT IS AN OUTWARD RADIATING BOUNDARY:',/,
+     &          7X,'NORMAL FLUX IS A NATURAL B.C. IN GWCE',/,
+     &          7X,'NORMAL AND TANGENTIAL VELOCITY ARE COMPUTED FROM ',
+     &          'THE MOMENTUM EQNS.',/)
+        ENDIF
+	  ENDIF
 
 
 C.....INPUT INFORMATION FOR VARIOUS TYPES OF FLOW BOUNDARY SEGMENTS
@@ -2656,8 +2659,9 @@ C...........THE CORRECT VECTORS
             
 C...........WRITE OUT BOUNDARY CONDITION ARRAY INFORMATION
 
-            WRITE(16,1857) JGW,JME,ME2GW(JME),NBV(JGW),LBCODEI(JGW),
-     &           THETA,CSII(JGW),SIII(JGW),BNDLEN2O3(JGW)
+            IF (NABOUT.EQ.0) 
+     &         WRITE(16,1857) JGW,JME,ME2GW(JME),NBV(JGW),LBCODEI(JGW),
+     &         THETA,CSII(JGW),SIII(JGW),BNDLEN2O3(JGW)
  1857       FORMAT(1X,I6,1X,I6,1X,I6,3X,I6,3X,I4,9X,F8.2,2X,E16.8,1X,
      &           E16.8,2X,E16.8)
 

@@ -26,7 +26,7 @@ C.....Use appropriate modules
       
 C.....Declare local variables
 
-      INTEGER IT
+      INTEGER IT,Minp(0:8)
       REAL(SZ) AREA, DEPTH, ANGLE_SUM, FH_NL, DP1, DP2, DP3, DP00, ZE00
       LOGICAL FORCE_WRITE
       real(sz) qmaxe,elmaxe
@@ -420,9 +420,9 @@ C...
                   HH2N1=DP(NM1)+IFNLFA*ETA2(NM1)
                   HH2N2=DP(NM2)+IFNLFA*ETA2(NM2)
                   HH2N3=DP(NM3)+IFNLFA*ETA2(NM3)
-                  C1=CC2(NM1)/HH2N1
-                  C2=CC2(NM2)/HH2N2
-                  C3=CC2(NM3)/HH2N3
+                  C1=CH1(NM1)/HH2N1
+                  C2=CH1(NM2)/HH2N2
+                  C3=CH1(NM3)/HH2N3
                 else
                   HH2N1=dpe(nnc(i))+IFNLFA*ETA2(nnv(i))
                   C1=CH1(NM1)/HH2N1
@@ -570,7 +570,6 @@ C.....time step falls within the specified window
 #endif
                   IF (ABS(dpe(I)).LE.(10.0**(-30))) dpe(I) = 0.D0
                   write(4441,2453) I,dpe(I)
- 2453             FORMAT(2X,I8,2X,E16.8E3)
                 ENDDO
               ENDIF
 !cnd...for tecplot results
@@ -818,7 +817,7 @@ C...
          do i=1,np
             write(963,9633) etamax(i)
          enddo
- 9633    format(f20.8)
+
          close(963)
 #ifdef OUT_TEC
          if (ModetoNode.eq.1) then

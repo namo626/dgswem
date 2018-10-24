@@ -313,6 +313,7 @@ CWET...Dry any landlocked nodes by checking that they are connected to
 CWET...at least 1 functioning element.
 CWET...
         IF(NOLIFA.EQ.2) THEN
+9883      FORMAT(' !!! NODE ',I8,' DRIED (LANDLOCKING)')
           DO I=1,NP
             MJU(I)=0
           ENDDO
@@ -331,8 +332,9 @@ CWET...
           DO I=1,NP
             IF((NNODECODE(I).EQ.1).AND.(MJU(I).EQ.0)) THEN
               NNODECODE(I)=0
+
               IF (NSCREEN.EQ.1 .AND.MYPROC.EQ.0) WRITE(*,9883) I
-              WRITE(16,9883) I
+              IF (NABOUT .EQ. 0) WRITE(16,9883) I
             ENDIF
           ENDDO
         ENDIF
@@ -689,7 +691,7 @@ C...
         IF(ABS(NOUTGE).EQ.1) THEN
           OPEN(63,FILE=DIRNAME//'/'//'fort.63')
           WRITE(63,3220) RUNDES,RUNID,AGRID
-          if (ModetoNode eq. 1) then
+          if (ModetoNode .eq. 1) then
             WRITE(63,3645) NDSETSE,NP,DTDP*NSPOOLGE,NSPOOLGE,1
           else
             WRITE(63,3645) NDSETSE,NE,DTDP*NSPOOLGE,NSPOOLGE,1
@@ -714,7 +716,7 @@ C...
         IF(ABS(NOUTGE).EQ.1) THEN
           OPEN(4441,FILE=DIRNAME//'/'//'fort.4l')
           WRITE(4441,3220) RUNDES,RUNID,AGRID
-          if (ModetoNode eq. 1) then
+          if (ModetoNode .eq. 1) then
             WRITE(4441,3645) NDSETSE,NP,DTDP*NSPOOLGE,NSPOOLGE,1
           else
             WRITE(4441,3645) NDSETSE,NE,DTDP*NSPOOLGE,NSPOOLGE,1
@@ -754,7 +756,7 @@ C...
             IGEP=IGEP+3
             ENDIF
           WRITE(63,REC=IGEP+1) NDSETSE
-          if (ModetoNode eq. 1) then
+          if (ModetoNode .eq. 1) then
             WRITE(63,REC=IGEP+2) NP
           else
             WRITE(63,REC=IGEP+2) NE
@@ -781,7 +783,7 @@ C...
         IF(ABS(NOUTGV).EQ.1) THEN
           OPEN(64,FILE=DIRNAME//'/'//'fort.64')
           WRITE(64,3220) RUNDES,RUNID,AGRID
-          if (ModetoNode eq. 1) then
+          if (ModetoNode .eq. 1) then
             WRITE(64,3645) NDSETSV,NP,DTDP*NSPOOLGV,NSPOOLGV,2
           else
             WRITE(64,3645) NDSETSV,NE,DTDP*NSPOOLGV,NSPOOLGV,2
@@ -821,7 +823,7 @@ C...
             IGVP=IGVP+3
             ENDIF
           WRITE(64,REC=IGVP+1) NDSETSV
-          if (ModetoNode eq. 1) then
+          if (ModetoNode .eq. 1) then
             WRITE(64,REC=IGVP+2) NP
           else
             WRITE(64,REC=IGVP+2) NE
@@ -1053,7 +1055,6 @@ C...
         ENDIF
 C
  1112 FORMAT(/,1X,79('_'))
- 9883 FORMAT(' !!! NODE ',I6,' DRIED (LANDLOCKING)')
 
 C.....Added sediment transport output files (Ethan Kubatko, 8-1-2003)
 

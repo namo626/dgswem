@@ -152,7 +152,7 @@ C...
       REAL(SZ),ALLOCATABLE ::   TPK(:),FFT(:)
       REAL(SZ),ALLOCATABLE ::   FACET(:),ETRF(:)
       REAL(SZ),ALLOCATABLE ::   ESBIN1(:),ESBIN2(:)
-      REAL(SZ),ALLOCATABLE ::   QTEMA(:,:),QTEMB(:,:)
+      REAL(SZ),ALLOCATABLE ::   QTEMA(:,:),QTEMB(:,:),QN2(:)
       REAL(SZ),ALLOCATABLE ::   BNDLEN2O3(:)
       REAL(SZ),ALLOCATABLE ::   CSII(:),SIII(:)
       REAL(SZ),ALLOCATABLE ::   QNAM(:,:),QNPH(:,:)

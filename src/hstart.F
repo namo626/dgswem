@@ -88,7 +88,7 @@ Casey 130211: Debug.
           RAMP2=TANH((2.D0*ITHS*DTDP/86400.D0)/DRAMP)
         ENDIF
         
-        IF (NRamp.eq.0) THEN
+        IF (NRamp .eq.0) THEN
           RampExtFlux1 = 1.0d0
           RampExtFlux2 = 1.0d0
           RampIntFlux1 = 1.0d0
@@ -1172,7 +1172,7 @@ C...
           IF (SEDFLAG.GE.1) WRITE(84,3220) RUNDES,RUNID,AGRID
           IF (SEDFLAG.GE.1) WRITE(85,3220) RUNDES,RUNID,AGRID
 Casey 130211: Debug.
-          if (ModetoNode eq. 1) then
+          if (ModetoNode .eq. 1) then
             WRITE(63,3645) NDSETSE,NP,DTDP*NSPOOLGE,NSPOOLGE,1
           else
             WRITE(63,3645) NDSETSE,NE,DTDP*NSPOOLGE,NSPOOLGE,1
@@ -1318,7 +1318,7 @@ C...
           IF (SEDFLAG.GE.1) WRITE(94,3220) RUNDES,RUNID,AGRID
           IF (SEDFLAG.GE.1) WRITE(96,3220) RUNDES,RUNID,AGRID
 Casey 130211: Debug.
-          if (ModetoNode eq. 1) then
+          if (ModetoNode .eq. 1) then
             WRITE(64,3645) NDSETSV,NP,DTDP*NSPOOLGV,NSPOOLGV,2
           else
             WRITE(64,3645) NDSETSV,NE,DTDP*NSPOOLGV,NSPOOLGV,2
