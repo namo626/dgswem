@@ -305,6 +305,9 @@ C...
                 if (ncele.eq.1) then
                   if (ModetoNode.eq.1) then
                     ET00(I)=ze(1,nne(i),1)
+                    DO K = 2,DOF
+                       ET00(I) = ET00(I) + ZE(K,NNE(I),1)*PHI_STAE(K,I)
+                    ENDDO
                   else
                     ET00(I)=EE1
                   endif
@@ -364,14 +367,22 @@ C...
             IF(NSCOUV.EQ.NSPOOLV.OR.FORCE_WRITE) THEN
               DO I=1,NSTAV
                 if (ModetoNode.eq.1) then
-                  U11=UU2(NM(NNV(I),1))
-                  U22=UU2(NM(NNV(I),2))
-                  U33=UU2(NM(NNV(I),3))
-                  V11=VV2(NM(NNV(I),1))
-                  V22=VV2(NM(NNV(I),2))
-                  V33=VV2(NM(NNV(I),3))
-                  UU00(I)=U11*STAIV1(I)+U22*STAIV2(I)+U33*STAIV3(I)
-                  VV00(I)=V11*STAIV1(I)+V22*STAIV2(I)+V33*STAIV3(I)
+                  DP1 = DP(NM(NNV(I),1))
+                  DP2 = DP(NM(NNV(I),2))
+                  DP3 = DP(NM(NNV(I),3))
+                  DP00    = DP1*STAIV1(I) + DP2*STAIV2(I)+DP3*STAIV3(I)
+                  ZE00    = ZE(1,NNV(I),1)
+                  UU00(I) = QX(1,NNV(I),1)
+                  VV00(I) = QY(1,NNV(I),1)
+                  DO K = 2,DOF
+                     ZE00    = ZE00    + ZE(K,NNV(I),1)*PHI_STAV(K,I)
+                     UU00(I) = UU00(I) + QX(K,NNV(I),1)*PHI_STAV(K,I)
+                     VV00(I) = VV00(I) + QY(K,NNV(I),1)*PHI_STAV(K,I)
+                  ENDDO
+                  DEPTH   = ZE00 + DP00
+                  FH_NL   = 1.D0/(NLEQ*DEPTH + LEQ)
+                  UU00(I) = UU00(I)*FH_NL
+                  VV00(I) = VV00(I)*FH_NL
                 else
                   U11=UU2(NNV(I))
                   V11=VV2(NNV(I))
