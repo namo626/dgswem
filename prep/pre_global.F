@@ -174,6 +174,13 @@ C--Degress-to-Radians and Radians-to-Degrees
 C
 C  CONVERT section
       REAL(8) DEG2RAD,RAD2DEG,R
+		
+C   INPUTDG section
+      INTEGER MIC              !! Choice of modal initial conditions in fort.dg
+	   INTEGER DOFH             !! Degrees of freedom
+		REAL(SZ),ALLOCATABLE ::ICZE(:,:)   !! Initial surface elevation
+		REAL(SZ),ALLOCATABLE :: ICQX(:,:), ICQY(:,:)  !! Initial X and Y velocities
+		REAL(SZ),ALLOCATABLE :: ICHB(:,:)   !! Initial Bathymetry
 C
 C
 C--------------------------------------------------------------------------C
@@ -326,6 +333,7 @@ C--Allocate 3DVS stuff
      &  ALLOCATE ( N3DSTP(MNPROC), IMAP_3DST_LG(NHN3DST,MNPROC) )
 C
 C
+       MIC = MODAL_IC !! Store choice of whether initial conditions (from hot start or otherwise) are to be used
       RETURN
       END SUBROUTINE
 
@@ -350,7 +358,7 @@ Csb-DG1
       ALLOCATE ( NUM_COMM_PE_RECV(MNPROC) )
       ALLOCATE ( IMAP_NEIGHEDG(2,3,NELG) )
 Csb-02/26/06
-      ALLOCATE ( NNDEL(NELG) )
+      ALLOCATE ( NNDEL(NNODG) )
 C--
       RETURN
       END SUBROUTINE
@@ -390,7 +398,12 @@ Csb-DG1
       RETURN
       END SUBROUTINE
 C--
-
+		SUBROUTINE ALLOC_IC
+		ALLOCATE ( ICZE(DOFH,NELG),ICHB(DOFH,NELG) )
+		ALLOCATE ( ICQX(DOFH,NELG),ICQY(DOFH,NELG) )
+		
+		RETURN
+		END SUBROUTINE
 C
 C
 C--------------------------------------------------------------------------C

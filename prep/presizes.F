@@ -33,7 +33,7 @@ C   THAN 5 DIGITS OF PRECISION, THE MODEL RESULTS MAY NOT BE TRUSTWORTHY.
 C
       INTEGER ::  MNPROC,MNE,MNP,MNEI,MNOPE,MNETA,MNBOU,MNVEL,
      &  MNTIF,MNBFR,MNFFR,MNSTAE,MNSTAV,MNSTAC,MNSTAM,MNWP,MNWLAT,
-     &  MNWLON,MNHARF
+     &  MNWLON,MNHARF,CODE,MODAL_IC
       INTEGER NSTA3DD! number of 3D density recording stations
       INTEGER NSTA3DV! number of 3D velocity recording stations
       INTEGER NSTA3DT! number of 3D turbulence recording stations
@@ -662,7 +662,7 @@ C...This should be fixed, since sed is currently broken-cem
       READ(25,*) !fluxtype
       READ(25,*) !RK stuff
       READ(25,*) !DG to CG
-      READ(25,*) !Modal_IC
+      READ(25,*) MODAL_IC
       READ(25,*) !DG_HOT
       READ(25,*) !Slopeflag
       READ(25,*) !SEDFLAG

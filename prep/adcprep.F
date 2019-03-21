@@ -188,7 +188,7 @@ C
            WRITE(150,'(3I8)') NNEG(1,I),NNEG(2,I),NNEG(3,I)
         ENDDO
         DO I=1, NWEIR
-           WRITE(150,'(3I8)') WEIR(I), WEIRD(I)
+           WRITE(150,'(2I8)') WEIR(I), WEIRD(I)
         ENDDO
         CLOSE(150) 
 #endif
@@ -204,6 +204,11 @@ C
         IF(HBFLAG.EQ.1) THEN
           CALL READHB() 
           print *, 'Hard Bottom file read successfully'
+        ENDIF
+        
+        IF (MIC.EQ.1) THEN
+          CALL READIC()
+          print *, 'Initial conditions files read successfully'
         ENDIF
 
 C
@@ -226,7 +231,7 @@ C
           ALLOCATE(WEIR2(NWEIR2))
           ALLOCATE(WEIRD2(NWEIR2))
           DO I=1, NWEIR2
-             READ(150,'(3I8)') WEIR2(I), WEIRD2(I)
+             READ(150,'(2I8)') WEIR2(I), WEIRD2(I)
           ENDDO
           CLOSE(150) 
           CALL METIS2(MNPROC2,MNP2,MNE2,MNEI2,NWEIR2,
@@ -357,6 +362,12 @@ C
         print *, ""
         print *, "Writing fort.dg file for each PE"
         CALL PREP_DG()
+C
+        if (MIC.EQ.1) then
+          print *, ""
+          print *, "Writing initial conditions files for each PE"
+          CALL PREP_IC()
+        endif
 C--
 C
         print *, ""

@@ -1179,6 +1179,39 @@ C
 C
       RETURN
       END
+		
+      SUBROUTINE READIC()
+      USE PRE_GLOBAL
+      INTEGER P_READ,P_READ2		
+		
+		
+      OPEN(163,FILE=DIRNAME//'/../'//'Initial_Conditions.163')
+      OPEN(164,FILE=DIRNAME//'/../'//'Initial_Conditions.164')
+      OPEN(114,FILE=DIRNAME//'/../'//'Initial_Bathymetry.114')
+      READ(163,*) P_READ
+      READ(164,*) P_READ,P_READ2
+      READ(114,*) P_READ
+		DOFH = (P_READ + 1)*(P_READ + 2)/2
+		CALL ALLOC_IC()
+		
+      DO J = 1,NELG
+         DO K = 1,DOFH
+            READ(163,*) ICZE(K,J)
+            READ(164,*) ICQX(K,J),ICQY(K,J)
+            READ(114,*) ICHB(K,J)
+         ENDDO
+      ENDDO
+      CLOSE(163)
+      CLOSE(164)
+      CLOSE(114)
+		
+		END
+C
+C----------------------------------------------------------------------
+C     Reads the hard bottom file (fort.hb) for data decomposition 
+C     sb  9/15/05
+C---------------------------------------------------------------------
+C
 
 
 *******************************************************************************

@@ -691,7 +691,6 @@ C
          READ(LOC(IPROC),'(A85)')  INLINE
          READ(LOC(IPROC),3645)  NDSETGE,NE,DTE,NSTEMP,ITEMPE
          IF (NE.NE.NELP(IPROC)) THEN
-           print *, "NE = ",NP," NELP = ",NELP(IPROC)
            STOP 'Inconsistency in number of local elements'
          ENDIF
       ENDDO
@@ -809,10 +808,10 @@ C
             IF (IPROC.EQ.1) WRITE(63,2120) TIMEOUTE,ITE
             DO K = 1,NNODP(IPROC)
                READ(LOC(IPROC),80,END=9999,ERR=9999) ETASCP(K)
-               INDEX = IMAP_NOD_LG(K,IPROC) !IMAP_NOD_LG(K,IPROC)
-               !IF (IMAP_EL_LG(1,INDEX).EQ.IPROC) THEN
+               INDEX = IMAP_NOD_LG(K,IPROC) !IMAP_EL_LG(K,IPROC)
+               IF (IMAP_NOD_GL(1,INDEX).EQ.IPROC) THEN
                  ETASC(INDEX) = ETASCP(K)
-                !ENDIF
+               ENDIF
             ENDDO  
          ENDDO 
 c        DO I = 1,NELG
@@ -947,14 +946,14 @@ C
             READ(LOC(IPROC),REC=IREC(IPROC)+1) TIMEOUTE
             READ(LOC(IPROC),REC=IREC(IPROC)+2) ITE
             IREC(IPROC) = IREC(IPROC) + 2
-            DO K=1, NELP(IPROC)
+            DO K=1, NNODP(IPROC)
                READ(LOC(IPROC),REC=IREC(IPROC)+K) ETBINP(K)
             ENDDO
-            DO K=1,NELP(IPROC)
-               INDEX =  IMAP_EL_LG(K,IPROC) !IMAP_NOD_LG(K,IPROC)
-               !IF (IMAP_NOD_GL(1,INDEX).EQ.IPROC) THEN
+            DO K=1,NNODP(IPROC)
+               INDEX =  IMAP_NOD_LG(K,IPROC) !IMAP_EL_LG(K,IPROC)
+               IF (IMAP_NOD_GL(1,INDEX).EQ.IPROC) THEN
                  ETBIN(INDEX) = ETBINP(K)
-               !ENDIF
+               ENDIF
             ENDDO
             IREC(IPROC) = IREC(IPROC) + NNODP(IPROC)
          ENDDO
@@ -962,7 +961,7 @@ C
          WRITE(63,REC=OREC+1) TIMEOUTE
          WRITE(63,REC=OREC+2) ITE
          OREC = OREC + 2
-         DO K=1, NELG
+         DO K=1, NNODG
             WRITE(63,REC=OREC+K) ETBIN(K)
          ENDDO
          OREC = OREC + NELG
@@ -1007,13 +1006,13 @@ C
          write(*,*) iproc,nnodp(iproc),mnpp
          DO K = 1,NNODP(IPROC)
             READ(LOC(IPROC),80,END=9999,ERR=9999) ETASCP(K)
-            INDEX = IMAP_NOD_LG(K,IPROC) !IMAP_NOD_LG(K,IPROC)
-               !IF (IMAP_EL_LG(1,INDEX).EQ.IPROC) THEN
+            INDEX = IMAP_NOD_LG(K,IPROC) !IMAP_EL_LG(K,IPROC)
+            IF (IMAP_NOD_GL(1,INDEX).EQ.IPROC) THEN
             if (index.gt.mnp) then
                write(*,*) 'error ',index,mnp
             endif
-            ETASC(INDEX) = ETASCP(K)
-                !ENDIF
+              ETASC(INDEX) = ETASCP(K)
+            ENDIF
          ENDDO  
       ENDDO 
 c        DO I = 1,NELG
@@ -1031,6 +1030,10 @@ C
       DO IPROC = 1,NPROC
          CLOSE(LOC(IPROC))
       ENDDO
+		
+		DEALLOCATE (LOC,IREC,LOCNAME)
+		DEALLOCATE (ETASC,ETASCP) 
+		DEALLOCATE (ETBIN,ETBINP) 
 C
    80 FORMAT(A80)
  888  FORMAT(I10,A80)
@@ -1571,7 +1574,7 @@ C
 
       ALLOCATE (LOC(MNPROC),IREC(MNPROC))
       ALLOCATE (ETBIN(MNE),ETBINP(MNEP))
-      ALLOCATE (ETASC(MNE),ETASCP(MNEP))
+      ALLOCATE (ETASC(MNE),ETASCP(MNPP))
       ALLOCATE (LOCNAME(MNPROC))
 
 C
@@ -1600,23 +1603,22 @@ C
            RETURN
          ENDIF
          READ(LOC(IPROC),'(A85)')  INLINE
-         READ(LOC(IPROC),3645)  NDSETGE,NE,DTE,NSTEMP,ITEMPE
-         IF (NE.NE.NELP(IPROC)) THEN
-           print *, "NE = ",NE," NELP = ",NELP(IPROC)
-           STOP 'Inconsistency in number of local elems'
+         READ(LOC(IPROC),3645)  NDSETGE,NP,DTE,NSTEMP,ITEMPE
+         IF (NP.NE.NNODP(IPROC)) THEN
+           STOP 'Inconsistency in number of local nodes'
          ENDIF
       ENDDO
       OPEN(UNIT=4441,FILE='fort.4l')
 C
       WRITE(4441,'(A85)') INLINE
-      WRITE(4441,3645) NDSETGE,NELG,DTE,NSPOOLGE,ITEMPE
+      WRITE(4441,3645) NDSETGE,NNODG,DTE,NSPOOLGE,ITEMPE
 C
       DO J=1,NDSETGE
 C
          DO IPROC=1,NPROC
             READ(LOC(IPROC),FMT=2120,END=9999,ERR=9999) TIMEOUTE,ITE
             IF (IPROC.EQ.1) WRITE(4441,2120) TIMEOUTE,ITE
-            DO K = 1,NELP(IPROC)
+            DO K = 1,NNODP(IPROC)
                READ(LOC(IPROC),80,END=9999,ERR=9999) ETASCP(K)
                INDEX =  IMAP_EL_LG(K,IPROC) !IMAP_NOD_LG(K,IPROC)
                !IF (IMAP_NOD_GL(1,INDEX).EQ.IPROC) THEN
@@ -1741,7 +1743,7 @@ C
 C--Write same info to Global file and close it to flush buffer also
 C
       WRITE(4441,REC=OREC+1) NDSETGE
-      WRITE(4441,REC=OREC+2) NELG
+      WRITE(4441,REC=OREC+2) NNODG
       WRITE(4441,REC=OREC+3) DTE
       WRITE(4441,REC=OREC+4) NSPOOLGE
       WRITE(4441,REC=OREC+5) ITEMPE
@@ -1822,9 +1824,9 @@ C
       CHARACTER*14,ALLOCATABLE  ::  LOCNAME(:)
 
       ALLOCATE (LOC(MNPROC),IREC(MNPROC))
-      ALLOCATE (UUBIN(MNE),VVBIN(MNE))
-      ALLOCATE (UUBINP(MNEP),VVBINP(MNEP))
-      ALLOCATE (UU(MNE),UUP(MNEP))
+      ALLOCATE (UUBIN(MNP),VVBIN(MNP))
+      ALLOCATE (UUBINP(MNPP),VVBINP(MNPP))
+      ALLOCATE (UU(MNP),UUP(MNPP))
       ALLOCATE (LOCNAME(MNPROC))
 
 C
@@ -1868,13 +1870,13 @@ C
             IF (IPROC.EQ.1) WRITE(64,2120) TIMEOUTV,ITV
             DO K = 1,NNODP(IPROC)
                READ(LOC(IPROC),80,END=9999,ERR=9999) UUP(K)
-               INDEX =  IMAP_NOD_LG(K,IPROC) !IMAP_NOD_LG(K,IPROC)
-               !IF(IMAP_NOD_GL(1,INDEX).EQ.IPROC) THEN
-                UU(INDEX) = UUP(K)
-               !ENDIF
+               INDEX =  IMAP_NOD_LG(K,IPROC) !IMAP_EL_LG(K,IPROC)
+               IF(IMAP_NOD_GL(1,INDEX).EQ.IPROC) THEN
+                 UU(INDEX) = UUP(K)
+               ENDIF
             ENDDO
          ENDDO 
-c        DO I = 1,NELG
+c        DO I = 1,NNODG
 c           CALL NEWINDEX(UU(I),OUTMSG,I)
 c           READ(UU(I),*)  IDUM, U1,V1
 c           WRITE(64,2454) I, U1, V1
@@ -1977,13 +1979,13 @@ C  and then close files to flush file buffers
 C
       DO IPROC = 1,NPROC
          READ(LOC(IPROC),REC=IREC(IPROC)+1) NDSETGV
-         READ(LOC(IPROC),REC=IREC(IPROC)+2) NE
+         READ(LOC(IPROC),REC=IREC(IPROC)+2) NP
          READ(LOC(IPROC),REC=IREC(IPROC)+3) DTV
          READ(LOC(IPROC),REC=IREC(IPROC)+4) NSTEMP
          READ(LOC(IPROC),REC=IREC(IPROC)+5) ITEMPV
          IREC(IPROC) = IREC(IPROC)+5
          CLOSE(LOC(IPROC))    ! Flush the Write Buffer
-         IF (NE.NE.NELP(IPROC)) THEN
+         IF (NP.NE.NNODP(IPROC)) THEN
            STOP 'Inconsistency in number of local nodes'
          ENDIF
          OPEN(LOC(IPROC),FILE=LOCNAME(IPROC),ACCESS='DIRECT',RECL=NBYTE)
@@ -1992,7 +1994,7 @@ C
 C--Write same info to Global file and close it to flush buffer also
 C
       WRITE(64,REC=OREC+1) NDSETGV
-      WRITE(64,REC=OREC+2) NELG
+      WRITE(64,REC=OREC+2) NNODG
       WRITE(64,REC=OREC+3) DTV
       WRITE(64,REC=OREC+4) NSPOOLV
       WRITE(64,REC=OREC+5) ITEMPV
@@ -2006,13 +2008,13 @@ C
             READ(LOC(IPROC),REC=IREC(IPROC)+1) TIMEOUTV
             READ(LOC(IPROC),REC=IREC(IPROC)+2) ITV
             IREC(IPROC) = IREC(IPROC) + 2
-            DO K=1, NELP(IPROC)
+            DO K=1, NNODP(IPROC)
                READ(LOC(IPROC),REC=IREC(IPROC)+2*K-1) UUBINP(K)
                READ(LOC(IPROC),REC=IREC(IPROC)+2*K) VVBINP(K)
             ENDDO
-            DO K=1,NELP(IPROC)
-               UUBIN(IMAP_EL_LG(K,IPROC)) = UUBINP(K)
-               VVBIN(IMAP_EL_LG(K,IPROC)) = VVBINP(K)
+            DO K=1,NNODP(IPROC)
+               UUBIN(IMAP_NOD_LG(K,IPROC)) = UUBINP(K)
+               VVBIN(IMAP_NOD_LG(K,IPROC)) = VVBINP(K)
             ENDDO
            IREC(IPROC) = IREC(IPROC) + 2*NELP(IPROC)
          ENDDO
@@ -2020,7 +2022,7 @@ C
          WRITE(64,REC=OREC+1) TIMEOUTV
          WRITE(64,REC=OREC+2) ITV
          OREC = OREC + 2
-         DO K=1, NELG
+         DO K=1, NNODG
             WRITE(64,REC=OREC+2*K-1) UUBIN(K)
             WRITE(64,REC=OREC+2*K)   VVBIN(K)
          ENDDO

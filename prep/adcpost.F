@@ -130,20 +130,20 @@ C
           CALL POST62()
         ENDIF
 C
-c        IF (NOUTGE.NE.0) THEN
-c          print *, "Post-Processing DG.63"
-c          CALL POSTDG63()
-c        ENDIF
+        IF (NOUTGE.NE.0) THEN
+          print *, "Post-Processing DG.63"
+          CALL POSTDG63()
+        ENDIF
 C
 c        IF (NOUTGE.NE.0) THEN
 c          print *, "Post-Processing DG.65"
 c          CALL POSTDG65()
 c        ENDIF
 C
-c        IF (NOUTGV.NE.0) THEN
-c          print *, "Post-Processing DG.64"
-c          CALL POSTDG64()
-c        ENDIF
+        IF (NOUTGV.NE.0) THEN
+          print *, "Post-Processing DG.64"
+          CALL POSTDG64()
+        ENDIF
 C
         IF (NOUTGE.NE.0) THEN
           print *, "Post-Processing Unit 63"
@@ -160,10 +160,10 @@ c          print *, "Post-Processing Unit 89"
 c          CALL POST89()
 c        ENDIF
 C
-c        IF (NOUTGV.NE.0) THEN
-c          print *, "Post-Processing Unit 64"
-c          CALL POST64()
-c        ENDIF
+        IF (NOUTGV.NE.0) THEN
+          print *, "Post-Processing Unit 64"
+          CALL POST64()
+        ENDIF
 C
 c        IF (NOUTGV.NE.0) THEN
 c          print *, "Post-Processing Unit 84"

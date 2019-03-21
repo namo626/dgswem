@@ -88,7 +88,7 @@ C
          READ(12,*) JKI, DUM1, DUM2, STARTDRY(I) 
          IF (JKI.NE.I) THEN
            print *, "Warning -- NonFatal Error:"
-           print *, "Node numberbering in unit 12 is not sequential"
+           print *, "Node numbering in unit 12 is not sequential"
          ENDIF
       ENDDO
 C
@@ -2566,9 +2566,60 @@ C
 
       END SUBROUTINE
 
-
-
-
+DMW--
+      SUBROUTINE PREP_IC()
+      USE PRE_GLOBAL
+C
+C------------------------------------------------------------------------C
+C                     (  Serial Version  01/18/18  )                     C 
+C  This routine writes the initial conditions files for each subdomain.  C
+C  (eg: "Initial_Conditions.163/164","Initial_Bathymetry.114")           C
+C------------------------------------------------------------------------C
+C
+      IMPLICIT NONE
+      LOGICAL FOUND
+      INTEGER IPROC
+      REAL(SZ) PREAL
+      INTEGER P,J,K,IELG
+      CHARACTER LOCFN1*29, LOCFN2*29, LOCFN3*29
+      
+      PREAL = 0.5d0*(sqrt(8.0d0*DOFH + 1.0d0) - 3.0d0)
+      P = INT(PREAL)
+      DO IPROC = 1,NPROC
+         LOCFN1(1:29) = 'PE0000/Initial_Conditions.163'
+         CALL IWRITE(LOCFN1,3,6,IPROC-1)
+         OPEN (163,FILE=LOCFN1) !! Open file to write initial surface elevations
+         
+         LOCFN2(1:29) = 'PE0000/Initial_Conditions.164'
+         CALL IWRITE(LOCFN2,3,6,IPROC-1)
+         OPEN (164,FILE=LOCFN2) !! Open file to write initial velocities
+         
+         LOCFN3(1:29) = 'PE0000/Initial_Bathymetry.114'
+         CALL IWRITE(LOCFN3,3,6,IPROC-1)
+         OPEN (114,FILE=LOCFN3) !! Open file to write initial bathymetry
+      
+         WRITE(163,121) P !! Write DG order to each initial condition file
+         WRITE(164,122) P, P
+         WRITE(114,121) P
+         DO J = 1,NELP(IPROC)
+            IELG = IMAP_EL_LG(J,IPROC)
+            DO K = 1,DOFH
+               WRITE(163,123) ICZE(K,IELG) !! Write surface elevation
+               WRITE(164,124) ICQX(K,IELG),ICQY(K,IELG) !! Write velocities
+               WRITE(114,123) ICHB(K,IELG) !! Write bathymetry
+            ENDDO
+         ENDDO
+ 121     FORMAT(2X,I8)
+ 122     FORMAT(2X,I8,2X,I8)
+ 123     FORMAT(2X,E23.16E2)
+ 124     FORMAT(2X,E23.16E2,2X,E23.16E2)
+         CLOSE(163)
+         CLOSE(164)
+         CLOSE(114)
+      ENDDO
+         
+      END SUBROUTINE
+		
 c***********************************************************************
 c   Subroutine to write out to the hotstart file (UNITS 67 and 68)     *
 c   header information and the LHS matrix for the harmonic analysis    *
