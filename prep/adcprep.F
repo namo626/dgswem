@@ -205,11 +205,6 @@ C
           CALL READHB() 
           print *, 'Hard Bottom file read successfully'
         ENDIF
-        
-        !IF (MIC.EQ.1) THEN
-        !  CALL READIC()
-        !  print *, 'Initial conditions files read successfully'
-        !ENDIF
 
 C
 C-- Partiton Nodes with METIS 4.0 Graph Partition Library
