@@ -206,10 +206,10 @@ C
           print *, 'Hard Bottom file read successfully'
         ENDIF
         
-        IF (MIC.EQ.1) THEN
-          CALL READIC()
-          print *, 'Initial conditions files read successfully'
-        ENDIF
+        !IF (MIC.EQ.1) THEN
+        !  CALL READIC()
+        !  print *, 'Initial conditions files read successfully'
+        !ENDIF
 
 C
 C-- Partiton Nodes with METIS 4.0 Graph Partition Library
@@ -364,6 +364,8 @@ C
         CALL PREP_DG()
 C
         if (MIC.EQ.1) then
+          CALL READIC()
+          print *, 'Initial conditions files read successfully'
           print *, ""
           print *, "Writing initial conditions files for each PE"
           CALL PREP_IC()
