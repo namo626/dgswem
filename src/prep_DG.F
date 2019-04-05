@@ -469,8 +469,7 @@ C.....Retrieve the normals to the edges
 
       CALL CALC_NORMAL()
 C***********************************************************************
-C Edited by Dylan Wood starting here (03-14-2017) until next line of *'s
-C-----------------------------------------------------------------------
+C dmw 03-14-2017 until next line of *'s
 C.....Master element type for quadrature
 C.....(1 = triangle, 2 = quad)
       ELEM = 1 ! For future release using quads. For now only tris work
@@ -481,171 +480,117 @@ C.....Retrieve the area integral gauss quadrature points
          if (j.eq.1) then
             phh = 2*ph
             if (ELEM.eq.1 .and. DIM.eq.2) then
-               REGION = 'TRIANGLE'
-               if (phh.le.1) then
-                  NAGP(ph) = 1
-               elseif (phh.le.2) then
-                  NAGP(ph) = 3
-               elseif (phh.le.4) then
-                  NAGP(ph) = 6
-               elseif (phh.le.5) then
-                  NAGP(ph) = 7
-               elseif (phh.le.6) then
-                  NAGP(ph) = 12
-               elseif (phh.le.8) then
-                  NAGP(ph) = 16
-               elseif (phh.le.9) then
-                  NAGP(ph) = 19
-               elseif (phh.le.10) then
-                  NAGP(ph) = 25
-               elseif (phh.le.11) then
-                  NAGP(ph) = 28
-               elseif (phh.le.12) then
-                  NAGP(ph) = 33
-               elseif (phh.le.13) then
-                  NAGP(ph) = 37
-               elseif (phh.le.14) then
-                  NAGP(ph) = 42
-               elseif (phh.le.15) then
-                  NAGP(ph) = 52
-               elseif (phh.le.16) then
-                  NAGP(ph) = 55
-               elseif (phh.le.17) then
-                  NAGP(ph) = 61
-               elseif (phh.le.18) then
-                  NAGP(ph) = 72
-               elseif (phh.le.19) then   
-                  NAGP(ph) = 73
-               elseif (phh.le.20) then
-                  NAGP(ph) = 88
-               elseif (phh.le.21) then
-                  NAGP(ph) = 91
-               endif
-            elseif (ELEM.eq.2 .and. DIM.eq.2) then
-               REGION = 'SQUARE  '
-               if (phh.le.1) then
-                  NAGP(ph) = 1
-               elseif (phh.le.2) then
-                  NAGP(ph) = 3
-               elseif (phh.le.3) then
-                  NAGP(ph) = 4
-               elseif (phh.le.4) then
-                  NAGP(ph) = 6
-               elseif (phh.le.5) then
-                  NAGP(ph) = 7
-               elseif (phh.le.6) then
-                  NAGP(ph) = 10
-               elseif (phh.le.7) then
-                  NAGP(ph) = 8
-               elseif (phh.le.8) then
-                  NAGP(ph) = 16
-               elseif (phh.le.9) then
-                  NAGP(ph) = 17
-               elseif (phh.le.10) then
-                  NAGP(ph) = 22
-               elseif (phh.le.11) then
-                  NAGP(ph) = 24
-               elseif (phh.le.12) then
-                  NAGP(ph) = 31
-               elseif (phh.le.13) then
-                  NAGP(ph) = 33
-               elseif (phh.le.15) then
-                  NAGP(ph) = 44
-               elseif (phh.le.17) then
-                  NAGP(ph) = 56
-               elseif (phh.le.19) then
-                  NAGP(ph) = 68
-               elseif (phh.le.21) then
-                  NAGP(ph) = 81
-               elseif (phh.le.23) then
-                  NAGP(ph) = 100
-               endif
-            endif
+             REGION = 'TRIANGLE'
+             if (phh.eq.0) then
+               NAGP(L) = 1
+             elseif (phh.le.2) then
+               NAGP(L) = 3
+             elseif (phh.le.4) then
+               NAGP(L) = 6
+             elseif (phh.le.6) then
+               NAGP(L) = 12
+             elseif (phh.le.8) then
+               NAGP(L) = 16
+             elseif (phh.le.10) then
+               NAGP(L) = 25
+             elseif (phh.le.12) then
+               NAGP(L) = 33
+             elseif (phh.le.14) then
+               NAGP(L) = 42
+             elseif (phh.le.16) then
+               NAGP(L) = 55
+             elseif (phh.le.18) then
+               NAGP(L) = 72
+             elseif (phh.le.20) then
+               NAGP(L) = 88
+             endif
+           elseif (ELEM.eq.2 .and. DIM.eq.2) then
+             REGION = 'SQUARE  '
+             if (phh.eq.0) then
+               NAGP(L) = 1
+             elseif (phh.le.2) then
+               NAGP(L) = 3
+             elseif (phh.le.4) then
+               NAGP(L) = 6
+             elseif (phh.le.6) then
+               NAGP(L) = 10
+             elseif (phh.le.8) then
+               NAGP(L) = 16
+             elseif (phh.le.10) then
+               NAGP(L) = 22
+             elseif (phh.le.12) then
+               NAGP(L) = 31
+             elseif (phh.le.14) then
+               NAGP(L) = 44
+             elseif (phh.le.16) then
+               NAGP(L) = 56
+             elseif (phh.le.18) then
+               NAGP(L) = 68
+             elseif (phh.le.20) then
+               NAGP(L) = 81
+             elseif (phh.le.22) then
+               NAGP(L) = 100
+             endif
+           endif
 C...........Allocate XaGP, YaGP, and WaGP
 
-            call ALLOC_AREA_GAUSS()
-         endif
-         jj = 2*j
-         if (ELEM.eq.1 .and. DIM.eq.2) then
-            if (jj.le.1) then
-               SZ2 = 1
-            elseif (jj.le.2) then
-               SZ2 = 3
-            elseif (jj.le.4) then
-               SZ2 = 6
-            elseif (jj.le.5) then
-               SZ2 = 7
-            elseif (jj.le.6) then
-               SZ2 = 12
-            elseif (jj.le.8) then
-               SZ2 = 16
-            elseif (jj.le.9) then
-               SZ2 = 19
-            elseif (jj.le.10) then
-               SZ2 = 25
-            elseif (jj.le.11) then
-               SZ2 = 28
-            elseif (jj.le.12) then
-               SZ2 = 33
-            elseif (jj.le.13) then
-               SZ2 = 37
-            elseif (jj.le.14) then
-               SZ2 = 42
-            elseif (jj.le.15) then
-               SZ2 = 52
-            elseif (jj.le.16) then
-               SZ2 = 55
-            elseif (jj.le.17) then
-               SZ2 = 61
-            elseif (jj.le.18) then
-               SZ2 = 72
-            elseif (jj.le.19) then
-               SZ2 = 73
-            elseif (jj.le.20) then
-               SZ2 = 88
-            elseif (jj.le.21) then
-               SZ2 = 91
-            endif 
-         elseif (ELEM.eq.2 .and. DIM.eq.2) then
-            if (jj.le.1) then
-               SZ2 = 1
-            elseif (jj.le.2) then
-               SZ2 = 3
-            elseif (jj.le.3) then
-               SZ2 = 4
-            elseif (jj.le.4) then
-               SZ2 = 6
-            elseif (jj.le.5) then
-               SZ2 = 7
-            elseif (jj.le.6) then
-               SZ2 = 10
-            elseif (jj.le.7) then
-               SZ2 = 8
-            elseif (jj.le.8) then
-               SZ2 = 16
-            elseif (jj.le.9) then
-               SZ2 = 17
-            elseif (jj.le.10) then
-               SZ2 = 22
-            elseif (jj.le.11) then
-               SZ2 = 24
-            elseif (jj.le.12) then
-               SZ2 = 31
-            elseif (jj.le.13) then
-               SZ2 = 33
-            elseif (jj.le.15) then
-               SZ2 = 44
-            elseif (jj.le.17) then
-               SZ2 = 56
-            elseif (jj.le.19) then
-               SZ2 = 68
-            elseif (jj.le.21) then
-               SZ2 = 81
-            elseif (jj.le.23) then
-               SZ2 = 100
-            endif
-         endif
+           call ALLOC_AREA_GAUSS()
+           SZ2 = NAGP(L)
 
+         else
+           if (ELEM.eq.1 .and. DIM.eq.2) then
+             if (jj.le.0) then
+               SZ2 = 1
+             elseif (jj.le.2) then
+               SZ2 = 3
+             elseif (jj.le.4) then
+               SZ2 = 6
+             elseif (jj.le.6) then
+               SZ2 = 12
+             elseif (jj.le.8) then
+               SZ2 = 16
+             elseif (jj.le.10) then
+               SZ2 = 25
+             elseif (jj.le.12) then
+               SZ2 = 33
+             elseif (jj.le.14) then
+               SZ2 = 42
+             elseif (jj.le.16) then
+               SZ2 = 55
+             elseif (jj.le.18) then
+               SZ2 = 72
+             elseif (jj.le.20) then
+               SZ2 = 88
+             endif
+           elseif (ELEM.eq.2 .and. DIM.eq.2) then
+             if (jj.le.0) then
+               SZ2 = 1
+             elseif (jj.le.2) then
+               SZ2 = 3
+             elseif (jj.le.4) then
+               SZ2 = 6
+             elseif (jj.le.6) then
+               SZ2 = 10
+             elseif (jj.le.8) then
+               SZ2 = 16
+             elseif (jj.le.10) then
+               SZ2 = 22
+             elseif (jj.le.12) then
+               SZ2 = 31
+             elseif (jj.le.14) then
+               SZ2 = 44
+             elseif (jj.le.16) then
+               SZ2 = 56
+             elseif (jj.le.18) then
+               SZ2 = 68
+             elseif (jj.le.20) then
+               SZ2 = 81
+             elseif (jj.le.22) then
+               SZ2 = 100
+             endif
+           endif
+         endif
+         
          Allocate( PTS(SZ2,DIM), WTS(SZ2) )
 
          call QUADRATURE( jj, REGION, PTS, WTS, NAGP(j), SZ2, 2 )
