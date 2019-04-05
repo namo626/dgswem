@@ -35,21 +35,22 @@ C
 C-----------------------------------------------------------------------
 
       SUBROUTINE QUADRATURE( D, REGION, PTS, WTS, N, SZ2, SZ3 )
+      USE SIZES
 
       IMPLICIT NONE
 
 C.....Declare subroutine input and output
 
-      INTEGER, INTENT(IN) :: D, SZ2, SZ3
-      CHARACTER(LEN = 8), INTENT(IN) :: REGION
-      INTEGER, INTENT(OUT) :: N
-      REAL(8), INTENT(OUT) :: PTS(SZ2,SZ3)
-      REAL(8), INTENT(OUT) :: WTS(SZ2)
+      INTEGER :: D, SZ2, SZ3
+      CHARACTER(LEN = 8) :: REGION
+      INTEGER :: N
+      REAL(SZ) :: PTS(SZ2,SZ3)
+      REAL(SZ) :: WTS(SZ2)
 
       INTEGER :: I, J, K, L
-      REAL(8) :: AREA
-      REAL(8) :: V1(2), V2(2), V3(2)
-      REAL(8), ALLOCATABLE :: A(:), B(:), C(:), M(:), W(:)
+      REAL(SZ) :: AREA
+      REAL(SZ) :: V1(2), V2(2), V3(2)
+      REAL(SZ), ALLOCATABLE :: A(:), B(:), C(:), M(:), W(:)
 
 C-----------------------------------------------------------------------
 C                        EDGE QUADRATURE RULES
@@ -205,7 +206,7 @@ C-----------------------------------------------------------------------
         ELSE
 C-----------------------------------------------------------------------
           call quad_rules_general(N, .false., 0.0, 0.0, pts, wts)
-          
+        
         ENDIF
 C-----------------------------------------------------------------------
         J = MOD(N,2)
@@ -1749,7 +1750,7 @@ C        ALLOCATE ( PTS(N,3), WTS(N) )
 C.......Transform quadrature points to master element coordinates
 
         J = 1
-        DO I = 1,L
+        DO I = 1,N
           IF (M(I).EQ.1) THEN
             PTS(J,1)   =  A(I)
             PTS(J,2)   =  B(I)

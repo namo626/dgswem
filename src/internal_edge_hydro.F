@@ -402,7 +402,7 @@ C......... dummy
 C.....Check if the flux is large enough to dry up the elements
 C.....1.01D0 is a safty factor.
 
-            IF ( (1.01*F_HAT*XLEN_EL_IN*MAX_BOA_DT(IRK).GE.MASS_EL_IN).OR.
+          IF ( (1.01*F_HAT*XLEN_EL_IN*MAX_BOA_DT(IRK).GE.MASS_EL_IN).OR.
      &           (1.01*F_HAT*XLEN_EL_EX*MAX_BOA_DT(IRK)*(-1.D0).GE.
      &           MASS_EL_EX)) THEN
 
@@ -622,7 +622,7 @@ C........Check to make sure mass flux is not coming from a dry element
 
                                 !Let us add some diffusive penalties
 #ifdef WAVE_DIF
-            F_HAT_O = F_HAT_O + 0.5D0*(HZ_X_IN*SFAC_IN+HZ_X_EX*SFAC_EX)*NX + 
+        F_HAT_O = F_HAT_O + 0.5D0*(HZ_X_IN*SFAC_IN+HZ_X_EX*SFAC_EX)*NX +
      &           0.5D0*(HZ_Y_IN+HZ_Y_EX)*NY
             !F_HAT_EX = F_HAT_EX + 0.5D0*(HZ_X_IN+HZ_X_EX)*SFAC_IN*NX + 
             !&           0.5D0*(HZ_Y_EX+HZ_Y_EX)*NY
@@ -650,7 +650,7 @@ cnd try adding the penalty term in the LDG method
 
 #ifdef TRACE
 
-            I_HAT_O = I_HAT_O + 0.5D0*(TZ_X_IN*SFAC_IN+TZ_X_EX*SFAC_EX)*NX + 
+        I_HAT_O = I_HAT_O + 0.5D0*(TZ_X_IN*SFAC_IN+TZ_X_EX*SFAC_EX)*NX +
      &           0.5D0*(TZ_Y_IN+TZ_Y_EX)*NY
       !&           +ESLM*.01D0*(iota_IN-iota_EX)
 
@@ -661,10 +661,10 @@ cnd try adding the penalty term in the LDG method
 #ifdef SED_LAY
             do ll=1,layers
                bed_HAT_IN(ll) = bed_HAT_IN(ll) + 0.5D0 * ( (MZ_X_IN(ll)+
-     &              MZ_X_EX(ll))*SFAC_IN*NX+(MZ_Y_IN(ll)+MZ_Y_EX(ll))*NY)
+     &             MZ_X_EX(ll))*SFAC_IN*NX+(MZ_Y_IN(ll)+MZ_Y_EX(ll))*NY)
 
                bed_HAT_EX(ll) = bed_HAT_EX(ll) + 0.5D0 * ( (MZ_X_IN(ll)+
-     &              MZ_X_EX(ll))*SFAC_IN*NX+(MZ_Y_IN(ll)+MZ_Y_EX(ll))*NY)
+     &             MZ_X_EX(ll))*SFAC_IN*NX+(MZ_Y_IN(ll)+MZ_Y_EX(ll))*NY)
             enddo
 #endif
 
@@ -685,27 +685,29 @@ C.....Compute the edge integral
 
 #ifdef TRACE
 
-               RHS_iota(K,EL_IN,IRK) = RHS_iota(K,EL_IN,IRK) - W_IN*I_HAT_O 
-               RHS_iota(K,EL_EX,IRK) = RHS_iota(K,EL_EX,IRK) + W_EX*I_HAT_O
+            RHS_iota(K,EL_IN,IRK) = RHS_iota(K,EL_IN,IRK) - W_IN*I_HAT_O
+            RHS_iota(K,EL_EX,IRK) = RHS_iota(K,EL_EX,IRK) + W_EX*I_HAT_O
 #endif
 
 #ifdef CHEM
-               RHS_iota(K,EL_IN,IRK)  = RHS_iota(K,EL_IN,IRK)  - W_IN*I_HAT_O 
-               RHS_iota2(K,EL_IN,IRK) = RHS_iota2(K,EL_IN,IRK) - W_IN*J_HAT_O 
-               RHS_iota(K,EL_EX,IRK)  = RHS_iota(K,EL_EX,IRK)  + W_EX*I_HAT_O
-               RHS_iota2(K,EL_EX,IRK) = RHS_iota2(K,EL_EX,IRK) + W_EX*J_HAT_O
+          RHS_iota(K,EL_IN,IRK)  = RHS_iota(K,EL_IN,IRK)  - W_IN*I_HAT_O
+          RHS_iota2(K,EL_IN,IRK) = RHS_iota2(K,EL_IN,IRK) - W_IN*J_HAT_O
+          RHS_iota(K,EL_EX,IRK)  = RHS_iota(K,EL_EX,IRK)  + W_EX*I_HAT_O
+          RHS_iota2(K,EL_EX,IRK) = RHS_iota2(K,EL_EX,IRK) + W_EX*J_HAT_O
 #endif
 
 #ifdef DYNP
-               RHS_dynP(K,EL_IN,IRK) = RHS_dynP(K,EL_IN,IRK) - W_IN*K_HAT_O 
-               RHS_dynP(K,EL_EX,IRK) = RHS_dynP(K,EL_EX,IRK) + W_EX*K_HAT_O
+           RHS_dynP(K,EL_IN,IRK) = RHS_dynP(K,EL_IN,IRK) - W_IN*K_HAT_O
+           RHS_dynP(K,EL_EX,IRK) = RHS_dynP(K,EL_EX,IRK) + W_EX*K_HAT_O
 #endif
 
 
 #ifdef SED_LAY
                do ll = 1,layers
-                  RHS_bed(K,EL_IN,IRK,ll) = RHS_bed(K,EL_IN,IRK,ll) - W_IN*bed_HAT_IN(ll) 
-                  RHS_bed(K,EL_EX,IRK,ll) = RHS_bed(K,EL_EX,IRK,ll) + W_EX*bed_HAT_EX(ll)
+                  RHS_bed(K,EL_IN,IRK,ll) = RHS_bed(K,EL_IN,IRK,ll) -
+     & W_IN*bed_HAT_IN(ll)
+                  RHS_bed(K,EL_EX,IRK,ll) = RHS_bed(K,EL_EX,IRK,ll) +
+     & W_EX*bed_HAT_EX(ll)
                enddo
 #endif
 
@@ -928,21 +930,22 @@ C.....Compute the edge integral
                RHS_QY(K,EL_IN,IRK) = RHS_QY(K,EL_IN,IRK) - W_IN*H_HAT
 
 #ifdef TRACE
-               RHS_iota(K,EL_IN,IRK) = RHS_iota(K,EL_IN,IRK) - W_IN*I_HAT
+             RHS_iota(K,EL_IN,IRK) = RHS_iota(K,EL_IN,IRK) - W_IN*I_HAT
 #endif
 
 #ifdef CHEM
-               RHS_iota(K,EL_IN,IRK)  = RHS_iota(K,EL_IN,IRK)  - W_IN*I_HAT
-               RHS_iota2(K,EL_IN,IRK) = RHS_iota2(K,EL_IN,IRK) - W_IN*J_HAT
+            RHS_iota(K,EL_IN,IRK)  = RHS_iota(K,EL_IN,IRK)  - W_IN*I_HAT
+            RHS_iota2(K,EL_IN,IRK) = RHS_iota2(K,EL_IN,IRK) - W_IN*J_HAT
 #endif
 
 #ifdef DYNP
-               RHS_dynP(K,EL_IN,IRK) = RHS_dynP(K,EL_IN,IRK) - W_IN*K_HAT
+              RHS_dynP(K,EL_IN,IRK) = RHS_dynP(K,EL_IN,IRK) - W_IN*K_HAT
 #endif
 
 #ifdef SED_LAY
                do ll = 1,layers
-                  RHS_bed(K,EL_IN,IRK,ll) = RHS_bed(K,EL_IN,IRK,ll) - W_IN*bed_HAT(ll) 
+                  RHS_bed(K,EL_IN,IRK,ll) = RHS_bed(K,EL_IN,IRK,ll) -
+     & W_IN*bed_HAT(ll)
                enddo
 #endif
 
@@ -1147,21 +1150,22 @@ C.....Compute the edge integral
                RHS_QY(K,EL_EX,IRK) = RHS_QY(K,EL_EX,IRK) + W_EX*H_HAT
 
 #ifdef TRACE
-               RHS_iota(K,EL_EX,IRK) = RHS_iota(K,EL_EX,IRK) + W_EX*I_HAT
+              RHS_iota(K,EL_EX,IRK) = RHS_iota(K,EL_EX,IRK) + W_EX*I_HAT
 #endif
 
 #ifdef CHEM
-               RHS_iota(K,EL_EX,IRK)  = RHS_iota(K,EL_EX,IRK)  + W_EX*I_HAT
-               RHS_iota2(K,EL_EX,IRK) = RHS_iota2(K,EL_EX,IRK) + W_EX*J_HAT
+            RHS_iota(K,EL_EX,IRK)  = RHS_iota(K,EL_EX,IRK)  + W_EX*I_HAT
+            RHS_iota2(K,EL_EX,IRK) = RHS_iota2(K,EL_EX,IRK) + W_EX*J_HAT
 #endif
 
 #ifdef DYNP
-               RHS_dynP(K,EL_EX,IRK) = RHS_dynP(K,EL_EX,IRK) + W_EX*K_HAT
+             RHS_dynP(K,EL_EX,IRK) = RHS_dynP(K,EL_EX,IRK) + W_EX*K_HAT
 #endif
 
 #ifdef SED_LAY
                do ll = 1,layers
-                  RHS_bed(K,EL_EX,IRK,ll) = RHS_bed(K,EL_EX,IRK,ll) + W_EX*bed_HAT(ll) 
+                  RHS_bed(K,EL_EX,IRK,ll) = RHS_bed(K,EL_EX,IRK,ll) +
+     & W_EX*bed_HAT(ll)
                enddo
 #endif
 

@@ -216,7 +216,7 @@ C.....Compute the edge integral
 
             
             DO K = 1,DOFS(EL_IN)
-               W_IN = 2.0*M_INV(K,pa)/AREAS(EL_IN)*XLEN(GED)*
+               W_IN = 2.0d0*M_INV(K,pa)/AREAS(EL_IN)*XLEN(GED)*
      &              PHI_EDGE(K,I,LED,pa)*WEGP(I,pa)
                RHS_ZE(K,EL_IN,IRK) = RHS_ZE(K,EL_IN,IRK) - W_IN*F_HAT
                RHS_QX(K,EL_IN,IRK) = RHS_QX(K,EL_IN,IRK) - W_IN*G_HAT

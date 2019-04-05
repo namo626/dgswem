@@ -590,7 +590,7 @@ C...........Allocate XaGP, YaGP, and WaGP
              endif
            endif
          endif
-         
+
          Allocate( PTS(SZ2,DIM), WTS(SZ2) )
 
          call QUADRATURE( jj, REGION, PTS, WTS, NAGP(j), SZ2, 2 )
@@ -651,13 +651,14 @@ C.....Loop over orders of polynomials required
          SZ2 = (P+2)*(P+1)**(DIM-1)/2
          Allocate ( BASIS(SZ2),DBASIS(SZ2,DIM) )
 
-C........Allocate JACOBI
+C........Allocate JACOBI (orthobasis routine is no longer used so
+C........ALLOC_JACOBI is no longer needed)
 
-         if (L.eq.1.and.p.eq.1) then
- 
-            call ALLOC_JACOBI()
-
-         endif
+C$$$        if (L.eq.1 .and. p.eq.1) then
+C$$$ 
+C$$$           call ALLOC_JACOBI()
+C$$$
+C$$$        endif
 
 C.......Calculate orthogonal basis functions and derivatives at
 C.......gauss area integral points, element barycenter and vertices
@@ -1627,8 +1628,9 @@ C--
 
 C.....Close files
 
-      CLOSE(115)
-      CLOSE(25)
+!      CLOSE(115)
+!      CLOSE(25)
+      
       RETURN
       END SUBROUTINE PREP_DG
 
@@ -1672,6 +1674,11 @@ C.....The forward Euler method
          BTVD(1,1) = 1.D0
 
 C.....SSP(s,2) schemes
+C.....THESE ARE DG-OPTIMIZED METHODS!
+C..... Kubatko, Ethan J., Benjamin A. Yeager, and David I. Ketcheson. 
+C....."Optimal strong-stability-preserving Runge–Kutta time 
+C..... discretizations for discontinuous Galerkin methods." 
+C..... Journal of Scientific Computing 60.2 (2014): 313-344.
       ELSEIF (RK_ORDER.EQ.2) THEN
         ATVD(:,:) = 0.D0
         BTVD(:,:) = 0.D0
