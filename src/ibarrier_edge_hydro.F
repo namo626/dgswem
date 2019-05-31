@@ -184,8 +184,8 @@ C.........Obtain the height of the barrier at the quadrature point
             ENDDO
 
 
-            SFACB = SFACED(I,LEDB,ELB,pa)
-            SFACF = SFACED(I,LEDF,ELF,pa)
+            SFACB = SFACED(GPB,LEDB,ELB,pa)
+            SFACF = SFACED(GPF,LEDF,ELF,pa)
             
             ABOVEB = 0.D0
             ABOVEF = 0.D0 
@@ -541,9 +541,9 @@ C...........Compute the x and y components of the external state flow
 c     
             DO K = 1,DOFS(el)
 
-               WEGPB = 2.0*M_INV(K,pa)/AREAS(ELB)*XLEN(GEDB)
+               WEGPB = 2.0d0*M_INV(K,pa)/AREAS(ELB)*XLEN(GEDB)
      &              *PHI_EDGE(K,GPB,LEDB,pa)*WEGP(GPB,pa)
-               WEGPF = 2.0*M_INV(K,pa)/AREAS(ELF)*XLEN(GEDF)
+               WEGPF = 2.0d0*M_INV(K,pa)/AREAS(ELF)*XLEN(GEDF)
      &              *PHI_EDGE(K,GPF,LEDF,pa)*WEGP(GPF,pa)
 
                RHS_ZE(K,ELB,IRK) = RHS_ZE(K,ELB,IRK) - WEGPB*FB_HAT
@@ -556,20 +556,20 @@ c
 
 #ifdef TRACE
                RHS_iota(K,ELB,IRK) = RHS_iota(K,ELB,IRK) - WEGPB*IB_HAT
-               RHS_iota(K,ELF,IRK) = RHS_iota(K,ELF,IRK) - WEGPB*IF_HAT
+               RHS_iota(K,ELF,IRK) = RHS_iota(K,ELF,IRK) - WEGPF*IF_HAT
 #endif
 
 #ifdef CHEM
                RHS_iota(K,ELB,IRK) = RHS_iota(K,ELB,IRK) - WEGPB*IB_HAT
-               RHS_iota(K,ELF,IRK) = RHS_iota(K,ELF,IRK) - WEGPB*IF_HAT
+               RHS_iota(K,ELF,IRK) = RHS_iota(K,ELF,IRK) - WEGPF*IF_HAT
                
                RHS_iota2(K,ELB,IRK) = RHS_iota2(K,ELB,IRK) - WEGPB*JB_HAT
-               RHS_iota2(K,ELF,IRK) = RHS_iota2(K,ELF,IRK) - WEGPB*JF_HAT
+               RHS_iota2(K,ELF,IRK) = RHS_iota2(K,ELF,IRK) - WEGPF*JF_HAT
 #endif
 
 #ifdef DYNP
                RHS_dynP(K,ELB,IRK) = RHS_dynP(K,ELB,IRK) - WEGPB*KB_HAT
-               RHS_dynP(K,ELF,IRK) = RHS_dynP(K,ELF,IRK) - WEGPB*KF_HAT
+               RHS_dynP(K,ELF,IRK) = RHS_dynP(K,ELF,IRK) - WEGPF*KF_HAT
 #endif
 
             ENDDO
