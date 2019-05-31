@@ -53,7 +53,7 @@ C.........Obtain the height of the barrier at the quadrature point
             ZE_IN = ZE(1,EL,IRK)
             QX_IN = QX(1,EL,IRK)
             QY_IN = QY(1,EL,IRK)
-            HB_IN = BATHED(I,LED,EL_IN,pa)
+            HB_IN = BATHED(I,LED,EL,pa)
 
 #ifdef TRACE
             iota_IN = iota(1,EL,IRK)
@@ -74,7 +74,7 @@ C.........Obtain the height of the barrier at the quadrature point
                HB(1,EL,irk) = HB(1,EL,irk) + bed(1,EL,irk,ll)
             enddo
             bed_IN(:) = bed(1,EL,irk,:)
-            HB_IN = HB(1,EL_IN,irk)
+            HB_IN = HB(1,EL,irk)
 #endif
 
 
@@ -166,7 +166,7 @@ C.........Compute numerical flux
 
             DO K = 1,DOFS(EL)
 
-               W_IN = 2.0*M_INV(K,pa)/AREAS(EL)*XLEN(GED)
+               W_IN = 2.d0*M_INV(K,pa)/AREAS(EL)*XLEN(GED)
      &              *PHI_EDGE(K,I,LED,pa)*WEGP(I,pa)
 
                RHS_ZE(K,EL,IRK) = RHS_ZE(K,EL,IRK) - W_IN*F_HAT
