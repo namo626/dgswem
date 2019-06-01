@@ -158,6 +158,9 @@ sizes.f: ../src/sizes.F
 
 tidal_potential.f: ../src/tidal_potential.F
       fpp $(DA) ../src/tidal_potential.F   ../work/tidal_potential.f
+      
+vortex.f: ../src/vortex.F   
+	fpp $(DA)  ../src/vortex.F ../work/vortex.f      
 
 wind.f: ../src/wind.F   
 	fpp $(DA)  ../src/wind.F ../work/wind.f
@@ -195,8 +198,8 @@ nodalattr.f: ../src/nodalattr.F
 #  a general variable name to both
 #
 
-ADCIRC_MODS   =  sizes.f global.f harm.f wind.f dg.f sed.f diff45_41.f global_3dvs.f owiwind.f nodalattr.f
-ADCIRC_MANS   =  adcirc.f calc_normal.f create_edge_data.f cstart.f detector.f DG_hydro_timestep.f DG_sed_timestep.f edge_int_hydro.f edge_int_sed.f flow_edge_hydro.f flow_edge_sed.f hstart.f ibarrier_edge_hydro.f ibarrier_fluxes.f internal_edge_hydro.f internal_edge_sed.f land_edge_hydro.f land_edge_sed.f lund_formula.f modified_wave_friction.f ocean_edge_hydro.f ocean_edge_sed.f orthogonal_basis_v1.f prep_DG.f prep_sed.f quadrature_v1.f radiation_edge_hydro.f read_input.f rhs_dg_hydro.f rhs_dg_sed.f tidal_potential.f wind.f write_results.f slopelimiter.f prep_slopelim.f sta_basis.f LDG_hydro.f wetdry.f DG_timestep.f numerical_flux.f ebarrier_edge_hydro.f met_forcing.f
+ADCIRC_MODS   =  sizes.f global.f harm.f vortex.f wind.f dg.f sed.f diff45_41.f global_3dvs.f owiwind.f nodalattr.f
+ADCIRC_MANS   =  adcirc.f calc_normal.f create_edge_data.f cstart.f detector.f DG_hydro_timestep.f DG_sed_timestep.f edge_int_hydro.f edge_int_sed.f flow_edge_hydro.f flow_edge_sed.f hstart.f ibarrier_edge_hydro.f ibarrier_fluxes.f internal_edge_hydro.f internal_edge_sed.f land_edge_hydro.f land_edge_sed.f lund_formula.f modified_wave_friction.f ocean_edge_hydro.f ocean_edge_sed.f orthogonal_basis_v1.f prep_DG.f prep_sed.f quadrature_v1.f radiation_edge_hydro.f read_input.f rhs_dg_hydro.f rhs_dg_sed.f tidal_potential.f vortex.f wind.f write_results.f slopelimiter.f prep_slopelim.f sta_basis.f LDG_hydro.f wetdry.f DG_timestep.f numerical_flux.f ebarrier_edge_hydro.f met_forcing.f
 
 
 
@@ -214,7 +217,7 @@ preprocessed_mans:  $(ADCIRC_MANS)
 #  this assigns a general variable name to the modules and mains object files
 #
 
-ADCIRC_MODS_OBJS   =  sizes.obj global.obj harm.obj wind.obj dg.obj sed.obj diff45_41.obj global_3dvs.obj owiwind.obj nodalattr.obj
+ADCIRC_MODS_OBJS   =  sizes.obj global.obj harm.obj vortex.obj wind.obj dg.obj sed.obj diff45_41.obj global_3dvs.obj owiwind.obj nodalattr.obj
 ADCIRC_MANS_OBJS   =  adcirc.obj calc_normal.obj create_edge_data.obj cstart.obj detector.obj DG_hydro_timestep.obj DG_sed_timestep.obj edge_int_hydro.obj edge_int_sed.obj flow_edge_hydro.obj flow_edge_sed.obj hstart.obj ibarrier_edge_hydro.obj ibarrier_fluxes.obj internal_edge_hydro.obj internal_edge_sed.obj land_edge_hydro.obj land_edge_sed.obj lund_formula.obj modified_wave_friction.obj ocean_edge_hydro.obj ocean_edge_sed.obj orthogonal_basis_v1.obj prep_DG.obj prep_sed.obj quadrature_v1.obj radiation_edge_hydro.obj read_input.obj rhs_dg_hydro.obj rhs_dg_sed.obj tidal_potential.obj write_results.obj slopelimiter.obj prep_slopelim.obj sta_basis.obj LDG_hydro.obj wetdry.obj DG_timestep.obj numerical_flux.obj ebarrier_edge_hydro.obj met_forcing.obj
 
 

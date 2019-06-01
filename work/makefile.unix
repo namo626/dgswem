@@ -80,7 +80,7 @@ POST_MSRC  =  post_global.F
 ADC_MSRC   =  sizes.F diff45_41.F global.F dg.F global_3dvs.F nodalattr.F fparser.F90 fparser2.F90 \
               read_fort_dg.F90              
 HARM_MSRC  =  harm.F  
-WIND_MSRC  =  wind.F  
+WIND_MSRC  =  vortex.F wind.F  
 #Casey 121126: Add file for coupling to unstructured SWAN.
 COUP_MSRC  =  couple2swan.F
 
@@ -107,7 +107,7 @@ ADC_SRC    =  dgswem.F owiwind.F read_input.F cstart.F hstart.F radiation_edge_h
 	DG_timestep.F DG_hydro_timestep.F \
 	edge_int_hydro.F flow_edge_hydro.F \
 	internal_edge_hydro.F land_edge_hydro.F \
-	ocean_edge_hydro.F  \
+	ocean_edge_hydro.F \
 	orthogonal_basis_v1.F p_enrichment.F prep_DG.F quadrature_v1.F \
 	radiation_edge_hydro.F read_input.F rhs_dg_hydro.F quad_rules_general.F \
 	numerical_flux.F tidal_potential.F write_results.F \
@@ -294,6 +294,7 @@ $(O_DIR)global.o      			:  global.F  $(O_DIR)sizes.o
 $(O_DIR)messenger.o   			:  messenger.F  $(ADC_MOBJ)
 $(O_DIR)messenger_elem.o		:  messenger_elem.F  $(ADC_MOBJ)
 $(O_DIR)harm.o        			:  harm.F
+$(O_DIR)vortex.o                        :  vortex.F $(ADC_MOBJ)
 $(O_DIR)wind.o        			:  wind.F
 $(O_DIR)itpackv.o     			:  itpackv.F   $(ADC_MOBJ)
 $(O_DIR)dg.o          			:  dg.F sizes.F global.F
@@ -339,6 +340,8 @@ $(O_DIR)pdg_debug.o                 :  pdg_debug.F  $(ADC_MOBJ) $(MSG_MOBJ)
 $(O_DIR)ghost_internal_edge_hydro.o :  ghost_internal_edge_hydro.F  $(ADC_MOBJ) $(MSG_MOBJ)
 $(O_DIR)slopelimiter.o              :  slopelimiter.F  $(ADC_MOBJ)
 $(O_DIR)prep_slopelim.o             :  prep_slopelim.F  $(ADC_MOBJ)
+$(O_DIR)ocean_edge_hydro_post.o     :  ocean_edge_hydro_post.F $(ADC_MOBJ)
+$(O_DIR)ocean_flow_edge_hydro.o     :  ocean_flow_edge_hydro.F $(ADC_MOBJ)
 $(O_DIR)wetdry.o                    :  wetdry.F  $(ADC_MOBJ)
 $(O_DIR)LDG_hydro.o                 :  LDG_hydro.F  $(ADC_MOBJ)
 $(O_DIR)met_forcing.o               :  met_forcing.F  $(ADC_MOBJ)
