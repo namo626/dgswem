@@ -60,10 +60,30 @@ Casey 121128: Added variables for the output of global files from SWAN.
 
       Logical vertexslope
 
-C.....PI and degrees to radians conversions
-      REAL(8), PARAMETER  ::  PI=3.141592653589793D0
-      REAL(8), PARAMETER  ::  DEG2RAD = PI/180.D0
-      REAL(8), PARAMETER  ::  RAD2DEG = 180.D0/PI
+C.....Background Atmospheric Pressure in mb
+      REAL(SZ), PARAMETER :: PRBCKGRND = 1013.0d0   !tcm 20100617 v49.16 Added
+      REAL(8) :: rhoAir = 1.15d0         ! kg/m^3
+      REAL(8) :: windReduction = 0.9d0
+      REAL(8) :: one2ten = 0.8928d0
+      REAL(8) :: ten2one = 1.d0/0.8928d0
+Casey 121019: Added multiplication factor to be used before sending winds to coupled wave models.
+      REAL(SZ) :: WaveWindMultiplier = 1.D0
+C.....PI etc
+      REAL(8), PARAMETER ::  PI=3.141592653589793D0
+      REAL(8), PARAMETER ::  DEG2RAD = PI/180.D0  ! degrees to radians
+      REAL(8), PARAMETER ::  RAD2DEG = 180.D0/PI  ! radians to degrees
+      REAL(8), PARAMETER ::  e=2.718281828459045d0
+C.....Days to seconds conversion
+      REAL(8), PARAMETER :: day2sec=24.d0*3600.d0
+      REAL(8), PARAMETER :: sec2day=1.d0/day2sec
+      ! jgf50.38.03: Additional useful constants
+      REAL(8), PARAMETER :: Rearth = 6378206.4d0 ! radius of earth (m)
+      REAL(8), PARAMETER :: nm2m = 1852.d0 ! nautical miles to meters
+      REAL(8), PARAMETER :: m2nm = 1.d0/nm2m ! meters to nautical miles
+      REAL(8), PARAMETER :: kt2ms = nm2m / 3600.0 ! knots to m/s
+      REAL(8), PARAMETER :: ms2kt = 1.d0 / kt2ms ! m/s to knots
+      REAL(8), PARAMETER :: omega = 2.0d0*pi / 86164.2d0
+      REAL(8), PARAMETER :: mb2pa = 100.d0
 
 C.....parameters used in barrier overflow
       REAL(SZ), PARAMETER ::  BARMIN=0.01D0
@@ -417,6 +437,32 @@ C-------------------end of data declarations----------------------------------C
 
 
       CONTAINS
+
+C     ----------------------------------------------------------------
+C      F U N C T I O N   S P H E R I C A L   D I S T A N C E
+C     ----------------------------------------------------------------
+C     jgf49.1001 Function to get the distance along the surface of
+C     a sphere (the earth's surface in this case).
+C     ----------------------------------------------------------------
+      REAL(SZ) FUNCTION sphericalDistance(dx, dy, y1, y2)
+      IMPLICIT NONE
+      REAL(SZ), intent(in) :: DX    ! longitude distance in radians
+      REAL(SZ), intent(in) :: DY    ! latitude distance in radians
+      REAL(SZ), intent(in) :: y1    ! degrees latitude of starting point
+      REAL(SZ), intent(in) :: y2    ! degrees latitude of ending point
+C
+C     compute the distances based on haversine formula for
+C     distance along a sphere
+      sphericalDistance = Rearth *
+     &  ( 2.0d0*ASIN(
+     &     sqrt(sin(DY/2.0d0)**2.0d0
+     &      + cos(y1*DEG2RAD)*cos(y2*DEG2RAD)*sin(DX/2.0d0)**2.0d0
+     &   )))
+
+      RETURN
+C     ----------------------------------------------------------------
+      END FUNCTION sphericalDistance
+C     ----------------------------------------------------------------
 
       SUBROUTINE ALLOC_MAIN1()
 C

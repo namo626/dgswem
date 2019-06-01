@@ -254,13 +254,6 @@ C.........Compute momentum flux terms
             HVV = FV_NL*V_IN
             HUV = FU_NL*V_IN
             GH2 = FG_NL*(0.5D0*ZE_IN + HB_IN) + FG_L*ZE_IN
-#ifdef SED_LAY
-            !Not well-balanced, be careful here!
-            !GH2 =  0.D0
-            !GH2 =  0.5D0*G*(DEPTH**2)
-            !GH2 =  WDFLG(L)*0.5D0*G*(DEPTH**2)
-            !GH2 = FG_NL*(0.5D0*ZE_IN + 2.D0*HB_IN) + 0.5D0*FG_L* (ZE_IN**2 - DEPTH**2
-#endif
            
 C.........Compute x momentum fluxes
 
@@ -278,23 +271,12 @@ C.........Compute y momentum fluxes
 
 C.........Compute the friction factor
             if (LoadManningsN) then
-c     MN_IN=MANN(1,L)
-c     do k=2,dof
-c     MN_IN=MN_IN + MANN(K,L)*PHI_AREA(K,I)
-c     enddo
                fric_el(L)=G*
      $              ((ManningsN(n1)+ManningsN(n2)+ManningsN(n3))/3.)**2
-c     $            MN_IN**2
      $              /(DEPTH**(1.d0/3.d0))
                if (fric_el(L).lt.CF) fric_el(L)=CF
             endif
             TAU = FRIC_EL(L)
-C     IF (IFLINBF.EQ.0) THEN
-C     UMAG = SQRT( U_IN*U_IN + V_IN*V_IN )
-C     TAU  = TAU*UMAG*FH_NL
-C     IF (IFHYBF.EQ.1) TAU = TAU*
-C     &             (1.D0  + (HBREAK*FH_NL)**FTHETA)**(FGAMMA/FTHETA)
-C     ENDIF
 C     Modified to compute TAU using elemental averages.
 C     This seems necessary to avoid exessive bottom friction
 C     at wetting-drying fronts where the total column height is very
@@ -303,23 +285,17 @@ C     small. S.B. 9-Feb-2008
             IF (IFLINBF.EQ.0) THEN
                UMAG = SQRT( U_IN*U_IN + V_IN*V_IN )
 c     cnd modified 4/23/10 to test friction 
-c     TAU  = TAU*UMAG_C*FH_NL_C
                TAU  = TAU*UMAG*FH_NL
                IF (IFHYBF.EQ.1) TAU = TAU*
      &              (1.D0  + (HBREAK*FH_NL_C)**FTHETA)**(FGAMMA/FTHETA)
-c     &            (1.D0  + (HBREAK*FH_NL)**FTHETA)**(FGAMMA/FTHETA)
 C     It is numerically probable that the bottom friction is large enoght
 C     to reverse the direction of currents backward due to a too small column
 C     height even though it does not happen in reality. To avoid this, the MIN
 C     function bellow is added. It is expected that this MIN function upper-limits
 C     TAU so the bottom friction force does not reverse the currents within
 C     half a time step.  S.B. 9-Feb-2008
-c     IF(TAU.GT.2.D0*DTDPH) PRINT *, "TAU = ", TAU, 2.D0*DTDPH,
-c     $           u_in,v_in,myproc,L
-c     TAU = MIN(TAU, 2.D0*DTDPH)
                TAU = MIN(TAU, .9D0*DTDPH)
             ENDIF
-c     IF (RAMPDG.LT.1.D0) TAU = MAX(TAU,0.001)
 
 C.........Compute the x momentum source/sink terms
 
@@ -360,8 +336,6 @@ C.........4.) Wind and pressure forcing (in x and y)
                FW_NL = 1.D0/F1_NL
                SOURCE_X = SOURCE_X + FW_NL*( WSX2(N1)*PSI1(I,pa)
      &              + WSX2(N2)*PSI2(I,pa)  + WSX2(N3)*PSI3(I,pa) )
-c     &                          - G*DEPTH*( PR2(N1)*DPSIDX(1)
-c     nd
      &              - G*SFACQUAD*DEPTH
      $              *( PR2(N1)*DPSIDX(1)
      &              + PR2(N2)*DPSIDX(2) + PR2(N3)*DPSIDX(3))
@@ -371,20 +345,12 @@ c     nd
      &              + PR2(N2)*DPSIDY(2) + PR2(N3)*DPSIDY(3))
             ENDIF
 
-c     if (myproc.eq.1.and.l.eq.440.and.i.eq.1) then
-c     write(440,*) 'tau ',tau,umag,fric_el(l)
-c     endif
 
 C.........5) Tidal potential forcing (in x and y)
 
             IF (NTIP.NE.0) THEN
-c$$$               SOURCE_X = SOURCE_X + RAMPDG*G*DEPTH*SFAC_ELEM(I,L,pa)*
-c$$$     &              ( DPSIDX(1)*TIP2(N1)
-c$$$     &              + DPSIDX(2)*TIP2(N2) + DPSIDX(3)*TIP2(N3) )
 
                SOURCE_X = SOURCE_X + 
-c     $            RAMPDG*G*DEPTH*( DPSIDX(1)*TIP2(N1)
-c     nd
      $              RAMPDG*G*DEPTH*SFACQUAD*( DPSIDX(1)*TIP2(N1)
      &              + DPSIDX(2)*TIP2(N2) + DPSIDX(3)*TIP2(N3) )
                

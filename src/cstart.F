@@ -28,6 +28,7 @@ C
       USE NodalAttributes, ONLY : STARTDRY, GeoidOffset, LoadGeoidOffset
       IMPLICIT NONE
 
+      REAL(SZ) AsymmetricTime
       INTEGER i,j
 C
       ITHS = 0
@@ -246,6 +247,25 @@ Cek added nws = 12 for owi winds
           WTIME1 = STATIM*86400.D0
           WTIME2 = WTIME1 + WTIMINC
         ENDIF
+
+C     RJW Merged:
+!    rjw added nws = 19: asymmetric hurricane winds v2.0
+        IF(NWS.EQ.19) THEN
+           AsymmetricTime = STATIM*86400.D0
+           OPEN(22,FILE=TRIM(GBLINPUTDIR)//'/'//'fort.22',STATUS='OLD')
+          CALL NWS19GET(SLAM,SFEA,WVNX2,WVNY2,PRN2,NP,AsymmetricTime,ICS)
+        ENDIF
+
+      ! jgf52.14: Implementing Casey's fix for uninitialized
+      ! wvnx1 and wvny1 arrays; they are not used/needed/initialized
+      ! by the parametric vortex meteorological models but are used in
+      ! the padcswan_init() subroutine to initialize the SWAN wind
+      ! velocities. Failure to initialize them causes NaNs in the
+      ! solution.
+      if ( (abs(nws).eq.8).or.(abs(nws).eq.19).or.(abs(nws).eq.20)) then
+         WVNX1 = WVNX2
+         WVNY1 = WVNY2
+      endif
 
 C...INPUT RADIATION STRESS INFORMATION FROM UNIT 23
 C....READ IN THE TIME LEVEL 1 AND LEVEL 2 FIELDS

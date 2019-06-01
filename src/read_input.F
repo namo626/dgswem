@@ -185,7 +185,8 @@ C.....Write out header information describing how code has been set up
       WRITE(16,*) '      - CODE WILL USE JCG ITERATIVE GWCE SOLVER'
       WRITE(16,1112)
 
-      
+C     jgf50.32: Initialize default values in wind module.
+      CALL initWindModule()      
       
 C.....Read in the fort.dg file
 
@@ -661,7 +662,7 @@ C.....Read and process NWS - wind and pressure forcing & wave rad stress
       IF ( (NWS.NE.0)  .AND.(NWS.NE.1)       .AND.(ABS(NWS).NE.2)  .AND.
      &     (NWS.NE.3)  .AND.(ABS(NWS).NE.4)  .AND.(ABS(NWS).NE.5)  .AND.
      &     (NWS.NE.6)  .AND.(NWS.NE.10)      .AND.(NWS.NE.11)      .AND.
-     &     (ABS(NWS).NE.12 ).AND.
+     &     (ABS(NWS).NE.12 ).AND.(NWS.NE.19)                       .AND.
      &     (NWS.NE.100).AND.(NWS.NE.101)     .AND.(ABS(NWS).NE.102).AND.
      &     (NWS.NE.103).AND.(ABS(NWS).NE.104).AND.(ABS(NWS).NE.105).AND.
      &     (NWS.NE.106).AND.(NWS.NE.110)     .AND.(NWS.NE.111)     .AND.
@@ -887,6 +888,31 @@ C.....ek added for NWS=-12,12
      &    /,9X,'WIND SPEEDS ARE CONVERTED TO STRESS USING THE GARRET ',
      &        'DRAG LAW.')
       ENDIF
+C     rjw added nws = 19: asymmetric hurricane winds v2.0
+      IF(NWS.EQ.19) THEN
+         WRITE(16,2400) NWS
+ 2400    FORMAT(/,5X,'NWS = ',I3,
+     &    /,9X,'HURRICANE PARAMETERS AND THE ASYMMETRIC WIND MODEL',
+     &    /,9X,'  ARE USED TO FORCE THE COMPUTATION',
+     &    /,9X,'VALUES ARE READ IN FOR THE STORM FROM UNIT 22',
+     &    /,9X,
+     &    'WHICH IS CREATED FROM TEH ATCF FILE USING THE ASWIP PROGRAM',
+     &    /,9X,'THE UNIT 22 FILE BEGINS AT TIME=STATIM.',
+     &    /,9X,'INTERPOLATION IN TIME IS DONE TO SYNC THE STORM DATA ',
+     &    /,9X,'WITH THE MODEL TIME STEP.')
+      ENDIF
+      IF(NWS.EQ.-19) THEN
+         WRITE(16,2401) NWS
+ 2401    FORMAT(/,5X,'NWS = ',I3,
+     &    /,9X,'HURRICANE PARAMETERS AND THE ASYMMETRIC WIND MODEL',
+     &    /,9X,'  ARE USED TO FORCE THE COMPUTATION',
+     &    /,9X,'VALUES ARE READ IN FOR THE STORM FROM UNIT 22',
+     &    /,9X,
+     &    'WHICH IS CREATED FROM TEH ATCF FILE USING THE ASWIP PROGRAM',
+     &    /,9X,'THE UNIT 22 FILE BEGINS AT THE TIME OF THE HOT START',
+     &    /,9X,'INTERPOLATION IN TIME IS DONE TO SYNC THE STORM DATA ',
+     &    /,9X,'WITH THE MODEL TIME STEP.')
+      ENDIF
       IF (NRS.EQ.1) THEN
          WRITE(16,2391) NRS
  2391    FORMAT(/,5X,'NRS = ',I2,
@@ -1077,6 +1103,16 @@ C.....ek added NWS=12 (OWI format) from version 46
       IF(ABS(NWS).EQ.12) THEN
          IF(NRS.EQ.0) READ(15,*) WTIMINC
          IF(NRS.GE.1) READ(15,*) WTIMINC,RSTIMINC ! sb46.28sb03
+      ENDIF
+
+C     rjw added nws = 19: asymmetric hurricane winds
+      IF(ABS(NWS).EQ.19) THEN
+         IF (NRS.EQ.0) THEN
+            READ(15,*) IREFYR,IREFMO,IREFDAY,IREFHR,StormNumber,BLAdj
+         ELSEIF (NRS.GE.1) THEN
+            READ(15,*) IREFYR,IREFMO,IREFDAY,IREFHR,StormNumber,BLAdj,
+     &           RSTIMINC
+         ENDIF
       ENDIF
 
       IF (NWS.NE.0) WRITE(16,1117) WTIMINC
@@ -4464,6 +4500,8 @@ C.....Write table of parameter sizes (vjp 11/28/99)
       IF (ABS(NWS).EQ.5) WRITE(16,4115)
       IF (NWS.EQ.10) WRITE(16,4016)
       IF (NWS.EQ.11) WRITE(16,4017)
+      IF(NWS.EQ.19) WRITE(16,4018)      !rjw added nws = 19
+      IF(NWS.EQ.19) WRITE(16,4019)      !rjw added nws = 19
       IF ((NFREQ.EQ.0).OR.(FMV.EQ.0.)) WRITE(16,4021)
       IF ((NFREQ.GE.1).AND.(FMV.NE.0.)) WRITE(16,4022)
       IF (ILUMP.EQ.0) WRITE(16,4031)
@@ -4500,6 +4538,8 @@ C.....Write table of parameter sizes (vjp 11/28/99)
  4015 FORMAT(' *   Also, PBL/JAG wind forcing will be used,        *')
  4115 FORMAT(' *   Also, Standard wind vel and pres will be used,  *')
  4016 FORMAT(' *   Also, AVN wind & pressure forcing will be used, *')
+ 4018 FORMAT(' *   Asymmetric hurricane wind and pressure forcing  *')
+ 4019 FORMAT(' *              will be used,                        *')
  4017 FORMAT(' *   Also, ETA wind & pressure forcing will be used, *')
  4021 FORMAT(' *   means and variance calculation will NOT be made,*')
  4022 FORMAT(' *   means and variance calculation will be made,    *')

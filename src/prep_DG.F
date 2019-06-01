@@ -363,8 +363,8 @@ C.....Initialize the DG arrays
       RHS_QY = 0.D0
       RHS_iota = 0.D0
       RHS_iota2 = 0.D0
-      WSX2(:) = 0
-      WSY2(:) = 0
+      WSX2(:) = 0.d0
+      WSY2(:) = 0.d0
 C.....If using modal initial conditions transform the bathymetry from
 C.....nodal coordinates to modal dof
 
@@ -462,8 +462,8 @@ C.....3. Set the DOF at dry elements = 1
       PHI_CHECK = 0.D0
       PSI_CHECK = 0.D0
       H0L = H0
-      H0H = H0 * 1.0
-      HABSMIN = H0 * 1.0
+      H0H = H0 * 1.0d0
+      HABSMIN = H0 * 1.0d0
             
 C.....Retrieve the normals to the edges
 
@@ -651,15 +651,6 @@ C.....Loop over orders of polynomials required
          SZ2 = (P+2)*(P+1)**(DIM-1)/2
          Allocate ( BASIS(SZ2),DBASIS(SZ2,DIM) )
 
-C........Allocate JACOBI (orthobasis routine is no longer used so
-C........ALLOC_JACOBI is no longer needed)
-
-C$$$        if (L.eq.1 .and. p.eq.1) then
-C$$$ 
-C$$$           call ALLOC_JACOBI()
-C$$$
-C$$$        endif
-
 C.......Calculate orthogonal basis functions and derivatives at
 C.......gauss area integral points, element barycenter and vertices
 
@@ -680,9 +671,9 @@ C...........Evaluate basis functions for specified element at current
 C...........point, order basis functions hierarchically         
             call ORTHOGONAL_BASIS(ELEM,PT,P,DIM,BASIS,DBASIS)
             if (Q.le.NAGP(L)) then
-               PHI_AREA(:,Q,P) = BASIS
-               DRPHI(:,Q,P) = DBASIS(:,1)
-               DSPHI(:,Q,P) = DBASIS(:,2)
+               PHI_AREA(1:SZ2,Q,P) = BASIS
+               DRPHI(1:SZ2,Q,P) = DBASIS(:,1)
+               DSPHI(1:SZ2,Q,P) = DBASIS(:,2)
             elseif (Q.eq.NAGP(L)+1) then
                PHI_CENTER(:,P) = BASIS
             else
@@ -887,88 +878,6 @@ C.....Do the L2-projection of the initial conditions
       ze = 0.D0
       ydub = 0.d0
       hb1 = 0.D0
-c$$$      do k = 1,MNE
-c$$$
-c$$$         
-c$$$         n1 = NM(k,1)
-c$$$         n2 = NM(k,2)
-c$$$         n3 = NM(k,3)
-c$$$                                !Define lagrange transform
-c$$$
-c$$$         do mm = 1,nagp(ph)     !ICs should not have higher order 
-c$$$                                !than ph
-c$$$
-c$$$            ell_1 = -0.5D0 * ( xagp(mm,ph) + yagp(mm,ph) )
-c$$$            ell_2 =  0.5D0 * ( xagp(mm,ph) + 1.D0 )
-c$$$            ell_3 =  0.5D0 * ( yagp(mm,ph) + 1.D0 )
-c$$$
-c$$$            XBCbt(k) = x(n1)*ell_1 + x(n2)*ell_2 + x(n3)*ell_3
-c$$$            YBCbt(k) = y(n1)*ell_1 + y(n2)*ell_2 + y(n3)*ell_3
-c$$$
-c$$$
-c$$$            rev =  3.141592653589793D0 / 4.D0
-c$$$
-c$$$            Ox = XBCbt(k)*cos(rev) - YBCbt(k)*sin(rev)
-c$$$            Oy = YBCbt(k)*cos(rev) + XBCbt(k)*sin(rev)
-c$$$
-c$$$            radial(k) = min(sqrt( Ox**2 + (Oy + 0.25D0)**2 ), 
-c$$$     &        0.18D0)/0.18D0
-c$$$
-c$$$
-c$$$            do j = 1,dofh
-c$$$
-c$$$               QX(j,k,1) = QX(j,k,1) + YBCbt(k) * wagp(mm,ph) 
-c$$$     &                                           * phi_area(j,mm,ph)
-c$$$
-c$$$               QY(j,k,1) = QY(j,k,1) - XBCbt(k) * wagp(mm,ph) 
-c$$$     &                                           * phi_area(j,mm,ph)        
-c$$$
-c$$$               iota(j,k,1) = iota(j,k,1) + 0.25D0 *( 1.0D0 + 
-c$$$     &            cos(3.141592653589793D0*radial(k)) ) * wagp(mm,ph) 
-c$$$     &                                           * phi_area(j,mm,ph)  
-c$$$               
-c$$$               iota(j,k,1) = iota(j,k,1) + 0.5D0 
-c$$$     &              *( exp ( - ( (XBCbt(k)+.05D0)**2 
-c$$$     &              + (YBCbt(k)+.05D0)**2  ) /0.001D0 ) ) 
-c$$$     &              * wagp(mm,ph) * phi_area(j,mm,ph) 
-c$$$
-c$$$               if( ( sqrt((Ox + 0.25D0 )**2 + Oy**2)).le.0.18D0
-c$$$     &             .and.(sqrt((Ox + 0.25D0 )**2 + Oy**2)).ge.0.025D0
-c$$$     &             .and.(Ox.le.(-0.23D0) )) then
-c$$$
-c$$$                  iota(j,k,1) = iota(j,k,1) + 1.0D0 * wagp(mm,ph) 
-c$$$     &                                           * phi_area(j,mm,ph) 
-c$$$
-c$$$               elseif(sqrt( (Ox -.25D0)**2 + Oy**2 ).le.0.18D0 ) then
-c$$$
-c$$$                  iota(j,k,1) =  iota(j,k,1) + (1.D0 
-c$$$     &                 - ( 1.D0 / 0.18D0 )
-c$$$     &                 * sqrt((Ox -0.25D0)**2 + Oy**2 ) ) 
-c$$$     &                 * wagp(mm,ph) * phi_area(j,mm,ph) 
-c$$$
-c$$$               endif
-c$$$
-c$$$               hb(j,k,1) = hb(j,k,1) + 1.D0*wagp(mm,ph) 
-c$$$     &                                           * phi_area(j,mm,ph)
-c$$$
-c$$$            enddo
-c$$$
-c$$$
-c$$$         enddo
-c$$$
-c$$$                             ! get back the coeffs in each component
-c$$$
-c$$$         do j= 1,dofh
-c$$$
-c$$$            QX(j,k,1) =  QX(j,k,1) * M_inv(j,ph)
-c$$$            QY(j,k,1) =  QY(j,k,1) * M_inv(j,ph)
-c$$$            iota(j,k,1) =  iota(j,k,1) * M_inv(j,ph)
-c$$$            hb(j,k,1) =  hb(j,k,1) * M_inv(j,ph)
-c$$$
-c$$$         enddo
-c$$$
-c$$$      enddo
-      !iotaa = iota
  
       hb(1:dofh,:,1) = hbo(1:dofh,:,1)
       ze(1:dofh,:,1) = zeo(1:dofh,:,1)
@@ -1381,9 +1290,9 @@ C........Retrieve global node numbers for element
 
 C........Check to see if nodes are initially dry
 
-            ZE1 = 0
-            ZE2 = 0
-            ZE3 = 0
+            ZE1 = 0.d0
+            ZE2 = 0.d0
+            ZE3 = 0.d0
             IF (STARTDRY(N1).EQ.1) ZE1 = H0 - DP(N1)
             IF (DP(N1).LT.H0) ZE1 = H0 - DP(N1)
             IF (STARTDRY(N2).EQ.1) ZE2 = H0 - DP(N2)
@@ -1529,11 +1438,6 @@ c$$$#endif
 #ifdef DYNP
                READ(291,*) dynP(K,J,1)
 #endif
-c$$$#ifdef SED_LAY
-c$$$               do ll=1,layers
-c$$$                  READ(290,*) bed(K,J,1,ll)
-c$$$               enddo
-c$$$#endif
             ENDDO
          ENDDO
          CLOSE(263)
@@ -1545,9 +1449,6 @@ c$$$#endif
 #ifdef CHEM
          CLOSE(289)
 #endif
-c$$$#ifdef SED_LAY
-c$$$         CLOSE(290)
-c$$$#endif
 #ifdef DYNP
          CLOSE(291)
 #endif

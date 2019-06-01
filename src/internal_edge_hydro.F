@@ -402,8 +402,8 @@ C......... dummy
 C.....Check if the flux is large enough to dry up the elements
 C.....1.01D0 is a safty factor.
 
-          IF ( (1.01*F_HAT*XLEN_EL_IN*MAX_BOA_DT(IRK).GE.MASS_EL_IN).OR.
-     &           (1.01*F_HAT*XLEN_EL_EX*MAX_BOA_DT(IRK)*(-1.D0).GE.
+          IF ( (1.01d0*F_HAT*XLEN_EL_IN*MAX_BOA_DT(IRK).GE.MASS_EL_IN)
+     &          .OR.(1.01d0*F_HAT*XLEN_EL_EX*MAX_BOA_DT(IRK)*(-1.D0).GE.
      &           MASS_EL_EX)) THEN
 
 C...........Put back the saved RHS
@@ -490,8 +490,7 @@ C........Check to make sure mass flux is not coming from a dry element
                      H_HAT_EX = H_HAT
 
                      ! on the dry side (in): do nothing
-                     G_HAT_IN = G_HAT
-                     H_HAT_IN = H_HAT
+
                      G_HAT_IN = 0.D0 
                      H_HAT_IN = 0.D0 
 
@@ -515,7 +514,7 @@ C........Check to make sure mass flux is not coming from a dry element
 
                   ELSE
                      ! Flux coming from wet side (ex)
-                     ! Leave fluxes on ex side intact and use zero gravtity flux for dry side      
+                     ! Leave fluxes on ex side intact and use zero gravity flux for dry side      
                      NLEQG_TMP = NLEQG
                      NLEQG = 0.D0
                      G_TMP = G
@@ -588,14 +587,12 @@ C........Check to make sure mass flux is not coming from a dry element
                      G_HAT_IN = G_HAT
                      H_HAT_IN = H_HAT
 
-                     ! zero out mentum flux on the dry side (ex)
-                     G_HAT_EX = G_HAT
-                     H_HAT_EX = H_HAT
+                     ! zero out momentum flux on the dry side (ex)
                      G_HAT_EX = 0.D0 
                      H_HAT_EX = 0.D0 
                   ELSE
                      ! Flux comming from the wet side (in)
-                     ! Leave fluxes on in side intact and use zero gravtity for flux for dry (ex) side     
+                     ! Leave fluxes on in side intact and use zero gravity for flux for dry (ex) side     
                      NLEQG_TMP = NLEQG
                      NLEQG = 0.D0
                      G_TMP = G
@@ -879,7 +876,6 @@ C.....Compute the x and y components of the external state flow
 
 C.....Compute the numerical flux
 
-C     CALL NUMERICAL_FLUX(IT)
             IF(WDFLG(EL_IN).EQ.0) THEN
                NLEQG_TMP = NLEQG
                NLEQG = 0.D0
@@ -1100,7 +1096,6 @@ C.....Compute the x and y components of the external state flow
 
 C.....Compute the numerical flux
 
-C     CALL NUMERICAL_FLUX(IT,L)
             IF(WDFLG(EL_EX).EQ.0) THEN
                NLEQG_TMP = NLEQG
                NLEQG = 0.D0

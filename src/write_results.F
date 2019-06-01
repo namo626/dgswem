@@ -1161,17 +1161,14 @@ C
           endif 
 C          
 #ifdef CMPI
-          IF( (MYPROC.EQ.0).AND.(ELMAX.LT.200.0).AND.
+          IF( (MYPROC.EQ.0).AND.(ELMAX.LT.200.d0).AND.
      &        (MOD(IT,NSCREEN_INC).EQ.0) ) THEN
-             WRITE(6,1991) IT,TIME_A/86400.,
+             WRITE(6,1991) IT,TIME_A/86400.d0,
      $            ETA2(KEMAX),KEMAX,VELMAX,KVMAX,MYPROC
  1991        FORMAT(1X,'TIME STEP =',I8,5X,'TIME = ',F12.6,
      &            /,2X,'ELMAX = ', E11.4,' AT NODE',I7,
      &            2X,'SPEEDMAX = ',E11.4,' AT NODE',I7,
      &            2X,'ON MYPRnOC = ',I4)
-c             write(6,*) 'elmaxe, imaxze, qmaxe, imaxq ',elmaxe,imaxze,
-c     &            qmaxe,imaxq,qx(2,imaxq,1),qx(3,imaxq,1),
-c     &            qy(2,imaxq,1),qy(3,imaxq,1)
 
 
 
@@ -1221,10 +1218,10 @@ c     &            qy(2,imaxq,1),qy(3,imaxq,1)
           
           
           
-          IF(ELMAX.GT.200.0) THEN
-            WRITE(6,1993) IT,TIME_A/86400,
+          IF(ELMAX.GT.200.d0) THEN
+            WRITE(6,1993) IT,TIME_A/86400.d0,
      &            ETA2(KEMAX),KEMAX,VELMAX,KVMAX,MYPROC
-            WRITE(16,1993) IT,TIME_A/86400,
+            WRITE(16,1993) IT,TIME_A/86400.d0,
      &           ETA2(KEMAX),KEMAX,VELMAX,KVMAX,MYPROC
  1993       FORMAT(1X,'TIME STEP =',I8,6X,'TIME =',F12.6,
      &       /,2X,'ELMAX = ', E11.4,' AT NODE',I7,
@@ -1238,8 +1235,8 @@ c     &            qy(2,imaxq,1),qy(3,imaxq,1)
             stop
          ENDIF
 #else
-         IF(ELMAX.LT.200.0.and.(MOD(IT,NSCREEN_INC).EQ.0) ) THEN
-           WRITE(6,1992) IT,TIME_A/86400.,ETA2(KEMAX),KEMAX,VELMAX,KVMAX
+         IF(ELMAX.LT.200.d0.and.(MOD(IT,NSCREEN_INC).EQ.0) ) THEN
+           WRITE(6,1992) IT,TIME_A/86400.d0,ETA2(KEMAX),KEMAX,VELMAX,KVMAX
  1992      FORMAT(1X,'TIME STEP =',I8,5X,'TIME =',F12.6,
      &           /,2X,'ELMAX = ', E11.4,' AT NODE',I7,
      &           2X,'SPEEDMAX = ',E11.4,' AT NODE',I7)
@@ -1268,10 +1265,10 @@ c     &            qy(2,imaxq,1),qy(3,imaxq,1)
 
          ENDIF
 C
-         IF(ELMAX.GT.200.0) THEN
-            WRITE(6,1994) IT,TIME_A/86400.,
+         IF(ELMAX.GT.200.d0) THEN
+            WRITE(6,1994) IT,TIME_A/86400.d0,
      $           ETA2(KEMAX),KEMAX,VELMAX,KVMAX
-            WRITE(16,1994) IT,TIME_A/86400.,
+            WRITE(16,1994) IT,TIME_A/86400.d0,
      $           ETA2(KEMAX),KEMAX,VELMAX,KVMAX
  1994       FORMAT(1X,'TIME STEP =',I8,6X,'TIME =',F12.6,
      &           /,2X,'ELMAX = ', E11.4,' AT NODE',I7,

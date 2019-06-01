@@ -26,12 +26,10 @@ Casey 101118: We need these values from other places.
       
       IMPLICIT NONE
       
-      REAL(SZ) WindDragLimit
+      REAL(SZ) AsymmetricTime
+      REAL(SZ) PRDIFF,PRBCKGRND_MH2O     ! tcm v49.16 20100617 added
       INTEGER II, IT
 
-C.....Set the wind drag limit
-
-      WindDragLimit = 0.002
       RampMete = rampdg
 
 Casey 130710: Added this section.
@@ -164,7 +162,7 @@ C..........Interpolate in time
 C..........Compute wind drag
            
            WINDMAG = SQRT( WINDX*WINDX + WINDY*WINDY )
-           WDRAGCO = WindDrag( WINDMAG, WindDragLimit, "Garratt   ")
+           WDragCo = WindDrag(WindMag, I)
            
 C..........Apply directional wind reductions
            
@@ -173,7 +171,7 @@ C..........Apply directional wind reductions
      &                                          DP(II), ETA2(II), H0, G,
      &                                          WINDX, WINDY )
              WINDMAG = SQRT( WINDX*WINDX + WINDY*WINDY )
-             WDRAGCO = WindDrag(WINDMAG, WindDragLimit, "Garratt   " )
+             WDragCo = WindDrag(WindMag, I)
            ENDIF
            
 C..........Apply met ramp
@@ -236,7 +234,7 @@ C.........Interpolate in time
 C.........Compute wind drag
             
           WINDMAG = SQRT( WINDX*WINDX + WINDY*WINDY )
-          WDRAGCO = WindDrag( WINDMAG, WindDragLimit, "Garratt   " )
+          WDragCo = WindDrag(WindMag, I)
            
 C.........Apply directional wind reductions
 
@@ -245,7 +243,7 @@ C.........Apply directional wind reductions
      &                                          DP(II), ETA2(II), H0, G,
      &                                          WINDX, WINDY )
             WINDMAG = SQRT(WINDX*WINDX+WINDY*WINDY)
-            WDRAGCO = WindDrag(WINDMAG, WindDragLimit, "Garratt   ")
+            WDragCo = WindDrag(WindMag, I)
           ENDIF
             
 C.........Apply met ramp
@@ -308,7 +306,7 @@ C.........Interpolate in time
 C.........Compute wind drag
           
           WINDMAG = SQRT( WINDX*WINDX + WINDY*WINDY )
-          WDRAGCO = WindDrag( WINDMAG, WindDragLimit, "Garratt   " )
+          WDragCo = WindDrag(WindMag, I)
           
 C.........Apply directional wind reductions
           
@@ -317,7 +315,7 @@ C.........Apply directional wind reductions
      &                                          DP(II), ETA2(II), H0, G,
      &                                          WINDX, WINDY )
             WINDMAG = SQRT( WINDX*WINDX + WINDY*WINDY )
-            WDRAGCO = WindDrag(WINDMAG, WindDragLimit, "Garratt   ")
+            WDragCo = WindDrag(WindMag, I)
           ENDIF
           
 C.........Apply met ramp
@@ -386,7 +384,7 @@ C.........Interpolate in time
 C.........Compute wind drag
           
           WINDMAG = SQRT(WINDX*WINDX+WINDY*WINDY)
-          WDRAGCO = WindDrag( WINDMAG, WindDragLimit, "Garratt   " )
+          WDragCo = WindDrag(WindMag, I)
           
 C.........Apply directional wind reductions
 
@@ -395,7 +393,7 @@ C.........Apply directional wind reductions
      &                                          DP(II), ETA2(II), H0, G,
      &                                          WINDX, WINDY )
             WINDMAG = SQRT(WINDX*WINDX+WINDY*WINDY)
-            WDRAGCO = WindDrag(WINDMAG, WindDragLimit, "Garratt   ")
+            WDragCo = WindDrag(WindMag, I)
           ENDIF
           
 C.........Apply met ramp
@@ -492,7 +490,7 @@ c         write(*,*) 'calling HollandGet ',time_a
 C.........Compute wind drag
           
           WINDMAG = SQRT(WINDX*WINDX+WINDY*WINDY)
-          WDRAGCO = WindDrag( WINDMAG, WindDragLimit, "Garratt   " )
+          WDragCo = WindDrag(WindMag, I)
           
 C.........Apply directional wind reductions
           
@@ -501,7 +499,7 @@ C.........Apply directional wind reductions
      &                                          DP(II), ETA2(II), H0, G,
      &                                          WINDX, WINDY )
             WINDMAG = SQRT(WINDX*WINDX + WINDY*WINDY)
-            WDRAGCO = WindDrag( WINDMAG, WindDragLimit, "Garratt   " )
+            WDragCo = WindDrag(WindMag, I)
           ENDIF
             
 C.........Apply met ramp
@@ -618,7 +616,7 @@ C.........Interpolate in time
 C.........Compute wind drag
            
           WINDMAG = SQRT(WINDX*WINDX + WINDY*WINDY)
-          WDRAGCO = WindDrag( WINDMAG, WindDragLimit, "Garratt   " )
+          WDragCo = WindDrag(WindMag, I)
 
 C.........Apply directional wind reductions
 
@@ -627,7 +625,7 @@ C.........Apply directional wind reductions
      &                                          DP(II), ETA2(II), H0, G,
      &                                          WINDX, WINDY )
             WINDMAG = SQRT(WINDX*WINDX + WINDY*WINDY)
-            WDRAGCO = WindDrag( WINDMAG, WindDragLimit, "Garratt   " )
+            WDragCo = WindDrag(WindMag, I)
           ENDIF
           
 C.........Apply met ramp
@@ -700,7 +698,7 @@ C.........Interpolate in time
 C.........Compute wind drag
             
           WINDMAG = SQRT(WINDX*WINDX+WINDY*WINDY)
-          WDRAGCO = WindDrag(WINDMAG, WindDragLimit, "Garratt   ")
+          WDragCo = WindDrag(WindMag, I)
             
 C.........Apply directional wind reductions
 
@@ -709,7 +707,7 @@ C.........Apply directional wind reductions
      &                                          DP(II), ETA2(II), H0, G,
      &                                          WINDX, WINDY )
             WINDMAG = SQRT(WINDX*WINDX + WINDY*WINDY)
-            WDRAGCO = WindDrag( WINDMAG, WindDragLimit, "Garratt   " )
+            WDragCo = WindDrag(WindMag, I)
           ENDIF
             
 C.........Apply met ramp
@@ -769,7 +767,7 @@ C.........Interpolate in time
 C.........Compute wind drag
           
           WINDMAG = SQRT(WINDX*WINDX + WINDY*WINDY)
-          WDRAGCO = WindDrag( WINDMAG, WindDragLimit, "Garratt   " )
+          WDragCo = WindDrag(WindMag, I)
           
 C.........Apply directional wind reductions
           
@@ -778,7 +776,7 @@ C.........Apply directional wind reductions
      &                                          DP(II), ETA2(II), H0, G,
      &                                          WINDX, WINDY )
             WINDMAG = SQRT(WINDX*WINDX + WINDY*WINDY)
-            WDRAGCO = WindDrag(WINDMAG, WindDragLimit, "Garratt   ")
+            WDragCo = WindDrag(WindMag, I)
           ENDIF
           
 C.........Apply met ramp
@@ -798,5 +796,40 @@ Casey 101118: Added these lines for coupling winds to SWAN.
         ENDDO
       ENDIF
       
+      !     rjw added nws = 19: asymmetric hurricane winds
+      AsymmetricTime = TIME_A
+      IF(NWS.EQ.19) THEN
+         CALL NWS19GET(SLAM,SFEA,WVNX2,WVNY2,PRN2,NP,AsymmetricTime,ICS)
+         DO II=1,NP
+            WindX = WVNX2(II)
+            WindY = WVNY2(II)
+            WindMag = SQRT(WindX*WindX+WindY*WindY)
+            WDragCo = WindDrag(WindMag, I)
+            IF (LoadDirEffRLen) THEN
+               CALL ApplyDirectionalWindReduction(II, WDragCo,
+     &              WindMag, DP(II), ETA2(II), H0, G, WindX, WindY)
+               WindMag = SQRT(WindX*WindX+WindY*WindY)
+               WDragCo = WindDrag(WindMag, I)
+            ENDIF
+
+            WSX2(II) = RampMete*0.001293d0*WDragCo*WindX*WindMag
+            WSY2(II) = RampMete*0.001293d0*WDragCo*WindY*WindMag
+!            PR2(II)=RampMete*PRN2(II)
+            PRBCKGRND_MH2O = 100.0D0*PRBCKGRND/(RHOWAT0*G)
+            PRDIFF = RampMete*(PRN2(II)-PRBCKGRND_MH2O)
+            PR2(II) = PRBCKGRND_MH2O + PRDIFF
+            WVNXOUT(II)=RampMete*WindX
+            WVNYOUT(II)=RampMete*WindY
+#ifdef CSWAN
+Casey 090302: Added these lines for coupling winds to SWAN.
+Casey 121019: Added multiplication factor to be used before sending winds to coupled wave models.
+            IF(COUPWIND)THEN
+               SWAN_WX2(II,2) = WindX/WindMultiplier
+               SWAN_WY2(II,2) = WindY/WindMultiplier
+            ENDIF
+#endif
+         END DO
+      ENDIF
+
       RETURN
       END SUBROUTINE MET_FORCING

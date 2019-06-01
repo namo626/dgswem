@@ -1,4 +1,3 @@
-
 C***********************************************************************
 C PADCIRC RELEASE VERSION 41.11 09/14/2001  
 C    last changes in this file VERSION 41.11
@@ -34,7 +33,6 @@ C
      
       IMPLICIT NONE
       INTEGER i,j, IT
-      REAL(SZ) WindDragLimit  !jgf46.01 Cap on max wind drag coefficient
       REAL(SZ) RampExtFlux1   ! Ramp for external flux b.c.s @ITHS-1
       REAL(SZ) RampExtFlux2   ! Ramp for external flux b.c.s @ITHS
       REAL(SZ) RampIntFlux1   ! Ramp for internal flux b.c.s @ITHS-1
@@ -42,6 +40,7 @@ C
       REAL(SZ) RampTip2   ! Ramp for tidal potential @ITHS
       REAL(SZ) RampMete2  ! Ramp for wind and atmospheric pressure @ITHS
       REAL(SZ) RampWRad2  ! Ramp for wave radiation stress @ITHS
+      REAL(SZ) PRDIFF,PRBCKGRND_MH2O     ! tcm v49.16 20100617 added
 C...
 C.....READ IN 2DDI HOT START INITIAL CONDITION OVER WHOLE DOMAIN
 C.....THIS FILE ALWAYS HAS A RECL=8 BECAUSE IT IS ASSUMED THAT THE 
@@ -88,7 +87,7 @@ Casey 130211: Debug.
           RAMP2=TANH((2.D0*ITHS*DTDP/86400.D0)/DRAMP)
         ENDIF
         
-        IF (NRamp .eq.0) THEN
+        IF (NRamp.eq.0) THEN
           RampExtFlux1 = 1.0d0
           RampExtFlux2 = 1.0d0
           RampIntFlux1 = 1.0d0
@@ -210,10 +209,6 @@ C......FILE IF IT IS REQUIRED
           ENDIF
           QTRATIO=(TIME_A-QTIME1)/FTIMINC
         ENDIF
-
-
-
-
 
 C......RESTART WIND AND PRESSURE INFORMATION
 
@@ -538,12 +533,12 @@ Cek added NWS = 12 and -12 from version 46
             WINDX = WVNX1(I) + WTRATIO*(WVNX2(I)-WVNX1(I))
             WINDY = WVNY1(I) + WTRATIO*(WVNY2(I)-WVNY1(I))
             WINDMAG = SQRT(WINDX*WINDX+WINDY*WINDY)
-            WDragCo = WindDrag(WindMag, WindDragLimit, "Garratt   ")
+            WDragCo = WindDrag(WindMag, I)
             IF (LoadDirEffRLen) THEN
               CALL ApplyDirectionalWindReduction(I, WDragCo,
      &              WindMag, DP(I), ETA2(I), H0, G, WindX, WindY)
               WindMag = SQRT(WindX*WindX+WindY*WindY)
-              WDragCo = WindDrag(WindMag, WindDragLimit, "Garratt   ")
+              WDragCo = WindDrag(WindMag, I)
             ENDIF
             WSX2(I)    = RampMete2*0.001293d0*WDRAGCO*WINDX*WINDMAG
             WSY2(I)    = RampMete2*0.001293d0*WDRAGCO*WINDY*WINDMAG
@@ -563,12 +558,12 @@ Cek added NWS = 12 and -12 from version 46
             WINDX   = WVNX1(I)
             WINDY   = WVNY1(I)
             WINDMAG = SQRT(WINDX*WINDX+WINDY*WINDY)
-            WDragCo = WindDrag(WindMag, WindDragLimit, "Garratt   ")
+            WDragCo = WindDrag(WindMag, I)
             IF (LoadDirEffRLen) THEN
               CALL ApplyDirectionalWindReduction(I, WDragCo,
      &              WindMag, DP(I), ETA2(I), H0, G, WindX, WindY)
               WindMag = SQRT(WindX*WindX+WindY*WindY)
-              WDragCo = WindDrag(WindMag, WindDragLimit, "Garratt   ")
+              WDragCo = WindDrag(WindMag, I)
             ENDIF
             WSX2(I)    = RampMete2*0.001293d0*WDRAGCO*WINDX*WINDMAG
             WSY2(I)    = RampMete2*0.001293d0*WDRAGCO*WINDY*WINDMAG
@@ -577,6 +572,45 @@ Cek added NWS = 12 and -12 from version 46
             WVNYOUT(I) = RampMete*WINDY
           ENDDO
        ENDIF
+
+       !     rjw added nws = 19: asymmetric hurricane winds v2.0
+
+      IF(ABS(NWS).EQ.19) THEN
+         OPEN(22,FILE=TRIM(GBLINPUTDIR)//'/'//'fort.22',STATUS='OLD')
+             CALL NWS19GET(SLAM,SFEA,WVNX2,WVNY2,PRN2,NP,TIME_A, ICS)
+         DO I=1,NP
+            WindX = WVNX2(I)
+            WindY = WVNY2(I)
+            WindMag = SQRT(WindX*WindX+WindY*WindY)
+            WDragCo = WindDrag(WindMag, I)
+            IF (LoadDirEffRLen) THEN
+               CALL ApplyDirectionalWindReduction(I, WDragCo,
+     &              WindMag, DP(I), ETA2(I), H0, G, WindX, WindY)
+               WindMag = SQRT(WindX*WindX+WindY*WindY)
+               WDragCo = WindDrag(WindMag, I)
+            ENDIF
+            WSX2(I) = RampMete2*0.001293d0*WDragCo*WindX*WindMag
+            WSY2(I) = RampMete2*0.001293d0*WDragCo*WindY*WindMag
+C  tcm v49.16 20100617
+!            PR2(I)=RampMete2*PRN2(I)
+            PRBCKGRND_MH2O = 100.0D0*PRBCKGRND/(RHOWAT0*G)
+            PRDIFF = RampMete2*(PRN2(I)-PRBCKGRND_MH2O)
+            PR2(I) = PRBCKGRND_MH2O + PRDIFF
+            WVNXOUT(I)=RampMete2*WindX
+            WVNYOUT(I)=RampMete2*WindY
+         ENDDO
+      ENDIF
+
+      ! jgf52.14: Implementing Casey's fix for uninitialized
+      ! wvnx1 and wvny1 arrays; they are not used/needed/initialized
+      ! by the parametric vortex meteorological models but are used in
+      ! the padcswan_init() subroutine to initialize the SWAN wind
+      ! velocities. Failure to initialize them causes NaNs in the
+      ! solution.
+      if ( (abs(nws).eq.8).or.(abs(nws).eq.19).or.(abs(nws).eq.20)) then
+         WVNX1 = WVNX2
+         WVNY1 = WVNY2
+      endif
 
 C......RESTART THE WAVE RADIATION STRESS
 
@@ -644,7 +678,6 @@ cjjw/vjpm002 - modified/added the following 5 lines
            END DO
          ENDIF
       endif     !   CTIP
-
 
 
 C...
@@ -1716,8 +1749,6 @@ C..Read in Means and Squares
           ENDIF
 
 
-
-
        if(C3DVS) then
 C3DVS..UNCOMMENT THE FOLLOWING LINES TO RUN THE CODE IN 3D VS MODE.
 C3DVS..COMMENT OUT THE FOLLOWING LINES TO RUN THE CODE IN 2DDI OR 3D DSS
@@ -1749,7 +1780,6 @@ C
  3220 FORMAT(1X,A32,2X,A24,2X,A24)
  3645 FORMAT(1X,I10,1X,I10,1X,E15.7,1X,I5,1X,I5)
 C
-
 
 C.....Adjust Morphology timestep counter (defunct)
       
