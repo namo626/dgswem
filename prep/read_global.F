@@ -201,8 +201,8 @@ C
       INTEGER IG1,IG2,IG3,IL1,IL2,IL3
       REAL(8) X1, X2, X3, X4, Y1, Y2, Y3, Y4, A1, A2, A3
       REAL(8) AE, AEMIN, AREASK, AA
-      REAL(8) SL0,SL1,SF0,SF1
-      INTEGER NBV(MNVEL)
+      REAL(8) SL0,SL1,SF0,SF1,RDUM
+      INTEGER NBV(MNVEL),IDUM
 C
 C--The Run Info file was opened in SIZEUP, performed a rewind, and is ready here
 C
@@ -368,7 +368,7 @@ C     sb46.28sb01 added NWS=12: OWI format
      &       (NWS.NE.3).AND.(ABS(NWS).NE.4) .AND.(ABS(NWS).NE.5).AND.
      &       (ABS(NWS).NE.45).AND.(ABS(NWS).NE.6).AND.
      &       (ABS(NWS).NE.8).AND.(ABS(NWS).NE.9).AND.
-     &       (ABS(NWS).NE.12))  THEN
+     &       (ABS(NWS).NE.12).AND.(ABS(NWS).NE.19))  THEN
            print *, "Value for NWS not supported by parallel code"
            stop
         ENDIF
@@ -451,12 +451,29 @@ C     jgf46.02 Added NWS=8
 C     jgf46.16 Merged:
 C     cf & cm Added NWS=9: asymmetric hurricane wind model
 C     sb46.28sb01 added NWS=12: OWI format
-      IF((ABS(NWS).EQ.2).OR.(ABS(NWS).EQ.4).OR.(ABS(NWS).EQ.5)
-     &     .OR.(ABS(NWS).EQ.45).OR.(ABS(NWS).EQ.8).OR.
-     &         (ABS(NWS).EQ.9).OR.(ABS(NWS).EQ.12)) THEN
+      IF (ABS(NWS).EQ.2) THEN
          READ(15,80) WSMSG1
          IF(NRS.EQ.0) READ(WSMSG1,*) WTIMINC
          IF(NRS.GE.1) READ(WSMSG1,*) WTIMINC,RSTIMINC ! sb46.28sb03
+      ENDIF
+
+      IF((ABS(NWS).EQ.4).OR.(ABS(NWS).EQ.5)
+     &     .OR.(ABS(NWS).EQ.45).OR.(ABS(NWS).EQ.8).OR.
+     &         (ABS(NWS).EQ.9).OR.(ABS(NWS).EQ.12)
+     &     .OR.(ABS(NWS).EQ.15) !jgf50.38.05: Added NWS=15 for HWind.
+     &     .OR.(ABS(NWS).EQ.20) !jie: Added NWS=20 for GAHM
+     &     .OR.(ABS(NWS).EQ.19).OR.(ABS(NWS).EQ.16)) THEN
+         READ(15,80) WSMSG1
+         IF(NRS.EQ.0) READ(WSMSG1,*) WTIMINC
+         IF((NRS.EQ.1).OR.(NRS.EQ.2).OR.(NRS.EQ.4))
+     &         READ(WSMSG1,*) WTIMINC,RSTIMINC
+         IF(NRS.EQ.3) THEN  !Casey 090825: Fix for NRS = 3.
+            IF(ABS(NWS).EQ.8)THEN
+               READ(WSMSG1,*) IDUM,IDUM,IDUM,IDUM,IDUM,RDUM,RSTIMINC
+            ELSE
+               READ(WSMSG1,*) WTIMINC,RSTIMINC
+            ENDIF
+         ENDIF
       ENDIF
 C
       IF(ABS(NWS).EQ.6) THEN
