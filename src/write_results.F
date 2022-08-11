@@ -668,6 +668,8 @@ C.....time step falls within the specified window
              
 #endif
               endif
+
+#ifdef DGOUT
 C.....Write DG.63 results
               
                DO J = 1,NE
@@ -675,7 +677,7 @@ C.....Write DG.63 results
                    WRITE(631,*) J, ZE(K,J,1)
                  ENDDO
                ENDDO
-              
+
 C.....Write DG.65 results, elemental statuses (wet/dry)
               
               IF (NOLIFA.GE.2) THEN
@@ -685,7 +687,8 @@ C.....Write DG.65 results, elemental statuses (wet/dry)
  2455             FORMAT(2X,I8,2X,I2)
                 ENDDO
               ENDIF
-              
+#endif
+
               IGEP = IGEP + 1 + NP
               
               open(963,FILE=DIRNAME//'/'//'maxele.63',STATUS="REPLACE")
@@ -754,13 +757,13 @@ C.....Had trouble writing out numbers with less than E-99 (EJK)
               endif
                   
 C.....Write DG.64 results
-
+#ifdef DGOUT
               DO J = 1,NE
                 DO K = 1,DOFS(J)
                   WRITE(641,*) J, QX(K,J,1), QY(K,J,1)
                 ENDDO
               ENDDO
-              
+#endif
               IGVP = IGVP + 1 + NP
             ENDIF
             IF (ABS(NOUTGV).EQ.2) THEN

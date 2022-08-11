@@ -1453,7 +1453,9 @@ c$$$#endif
          CLOSE(291)
 #endif
       ENDIF
-      
+  
+
+#ifdef DGOUT
 C.....Initialize the DG.63 output file
 
       IF (ABS(NOUTGE).EQ.1) THEN
@@ -1463,7 +1465,7 @@ C.....Initialize the DG.63 output file
       ENDIF
 
 C.....Initialize the DG.64 output file
-
+ 
       IF (ABS(NOUTGV).EQ.1) THEN
          OPEN(641,FILE=DIRNAME//'/'//'DG.64')
          WRITE(641,3220) RUNDES, RUNID, AGRID
@@ -1480,6 +1482,7 @@ C.....as the wet/dry status.
       ENDIF
  3220 FORMAT(1X,A32,2X,A24,2X,A24)
  3645 FORMAT(1X,I10,1X,I10,1X,E15.7,1X,I5,1X,I5)
+#endif
 
 C.....Set p back to original value if p = 0
 
