@@ -59,7 +59,7 @@
       !                          the Generalized Asymmetric Holland Model (GAHM)
       !
       !=================================================================
-      MODULE vortex
+      MODULE VORTEX
       USE SIZES, ONLY : sz
       USE GLOBAL, ONLY : sphericalDistance, deg2rad, rad2deg,
      &                   omega, mb2pa, rhoAir, kt2ms, nm2m, m2nm,
@@ -601,7 +601,6 @@
       !    Subroutine directly accesses global class instance variables
       !=================================================================
       SUBROUTINE uvp(lat,lon, uTrans,vTrans, u,v, p)
-
       REAL(sz), INTENT(IN)  :: lat
       REAL(sz), INTENT(IN)  :: lon
       REAL(sz), INTENT(IN)  :: uTrans
@@ -610,6 +609,7 @@
       REAL(sz), INTENT(OUT) :: u
       REAL(sz), INTENT(OUT) :: v
       REAL(sz), INTENT(OUT) :: p
+      !REAL(sz), INTENT(OUT), OPTIONAL :: TRR
 
       REAL(sz) :: TransSpdX  !NWS8-style translation speed
       REAL(sz) :: TransSpdY  !NWS8-style translation speed
@@ -630,6 +630,7 @@
       REAL(sz) :: vmaxFactor
       INTEGER :: i
 
+      
       !------------------------------------------------------
       ! Calculate distance and angle between eye of hurricane
       ! and input nodal point
@@ -728,7 +729,7 @@
       !   v = 0.0d0
       !   p = mb2pa * Pn
       !endif
-
+      
       END SUBROUTINE uvp
 
       !=================================================================

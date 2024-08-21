@@ -15,6 +15,7 @@ C***********************************************************************
 
 C.....Use appropriate modules
 
+      USE precipitation, only: prec3
       USE GLOBAL
       USE DG
       USE HARM
@@ -550,6 +551,8 @@ C.....time step falls within the specified window
                 
                   IF (ABS(ETA2(I)).LE.(10.0**(-30))) ETA2(I) = 0.D0
                   IF (NOLIFA .EQ. 2) THEN
+                    ! namo - 6/22 temporarily plot total depth (H)
+                    !IF (NODECODE(I).EQ.1) WRITE(63,2453) I,ETA2(I)+DP(I)
                     IF (NODECODE(I).EQ.1) WRITE(63,2453) I,ETA2(I)
                     IF (NODECODE(I).EQ.0) WRITE(63,2453) I,-99999.
                   ELSE
@@ -593,11 +596,11 @@ C.....time step falls within the specified window
                 if (ModetoNode.eq.0) then
 
                   write(777,*) 'ZONE ZONETYPE=FETRIANGLE ',
-     $            'NODES=', np, 
-     $            ' ELEMENTS=', ne, 
-     $            ' DATAPACKING=BLOCK ',
-     $            'SOLUTIONTIME=',time_a,
-     $            'VARLOCATION=([3,4,5,6,7,8,10,11,12,13,14]=CELLCENTERED)'
+     &            'NODES=', np, 
+     &            ' ELEMENTS=', ne, 
+     &            ' DATAPACKING=BLOCK ',
+     &            'SOLUTIONTIME=',time_a,
+     &        'VARLOCATION=([3,4,5,6,7,8,10,11,12,13,14]=CELLCENTERED)'
                   do i=1,np
                      write(777,7777)  x(i)
                   enddo
@@ -786,7 +789,7 @@ C.....Write DG.64 results
 C...
 C...OUTPUT GLOBAL WIND STRESS and atmospheric pressure data IF NOUTGW<>0 AND THE
 C....TIME STEP FALLS WITHIN THE SPECIFIED WINDOW
-C...
+C...namo - add accumulated rain output to fort.99
       IF((NWS.NE.0).AND.(NOUTGW.NE.0)) THEN
          IF((IT.GT.NTCYSGW).AND.(IT.LE.NTCYFGW).OR.FORCE_WRITE) THEN
             NSCOUGW=NSCOUGW+1
@@ -794,9 +797,11 @@ C...
                IF(ABS(NOUTGW).EQ.1) THEN
                   write(73,2120) time_A,it
                   WRITE(74,2120) time_A,IT
+                  IF (RAINFALL.gt.0) WRITE(99,2120) TIME_A,IT
                   DO I=1,NP
                      write(73,2453) i,pr2(i)
                      WRITE(74,2454) i,wvnxout(i),wvnyout(i)
+                     IF (RAINFALL.gt.0) WRITE(99,2453) I,PREC3(I)
                   ENDDO
                   igpp = igpp+1+np
                   IGWP = IGWP+1+NP
@@ -1164,7 +1169,7 @@ C
           endif 
 C          
 #ifdef CMPI
-          IF( (MYPROC.EQ.0).AND.(ELMAX.LT.200.d0).AND.
+          IF( (MYPROC.EQ.0).AND.(ELMAX.LT.1000.d0).AND.
      &        (MOD(IT,NSCREEN_INC).EQ.0) ) THEN
              WRITE(6,1991) IT,TIME_A/86400.d0,
      $            ETA2(KEMAX),KEMAX,VELMAX,KVMAX,MYPROC
@@ -1221,7 +1226,7 @@ C
           
           
           
-          IF(ELMAX.GT.200.d0) THEN
+          IF(ELMAX.GT.1000.d0) THEN
             WRITE(6,1993) IT,TIME_A/86400.d0,
      &            ETA2(KEMAX),KEMAX,VELMAX,KVMAX,MYPROC
             WRITE(16,1993) IT,TIME_A/86400.d0,
@@ -1238,7 +1243,7 @@ C
             stop
          ENDIF
 #else
-         IF(ELMAX.LT.200.d0.and.(MOD(IT,NSCREEN_INC).EQ.0) ) THEN
+         IF(ELMAX.LT.1000.d0.and.(MOD(IT,NSCREEN_INC).EQ.0) ) THEN
            WRITE(6,1992) IT,TIME_A/86400.d0,ETA2(KEMAX),KEMAX,VELMAX,KVMAX
  1992      FORMAT(1X,'TIME STEP =',I8,5X,'TIME =',F12.6,
      &           /,2X,'ELMAX = ', E11.4,' AT NODE',I7,
@@ -1268,7 +1273,7 @@ C
 
          ENDIF
 C
-         IF(ELMAX.GT.200.d0) THEN
+         IF(ELMAX.GT.1000.d0) THEN
             WRITE(6,1994) IT,TIME_A/86400.d0,
      $           ETA2(KEMAX),KEMAX,VELMAX,KVMAX
             WRITE(16,1994) IT,TIME_A/86400.d0,

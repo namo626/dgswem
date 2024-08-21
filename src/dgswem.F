@@ -4,6 +4,10 @@ C
 C******************************************************************************
 
       PROGRAM DGSWEM
+
+        ! rainfall
+      use precipitation, only : alloc_precipitation, prec2
+      use owi_rain, only : ncrain1_init, ncrain_get
 C     
 C     sb-disabled for Linux&Intel compiler
 #ifdef VF
@@ -30,6 +34,7 @@ Casey 101118: We need the following information to couple to unstructured SWAN.
       USE MESSENGER_ELEM
 C--   
       IMPLICIT NONE
+      real(4) crain_time1, crain_time2, crain_timinc
       
       INTEGER TESTFLAG,OUTITER,istop,i
 C     sb-PDG1
@@ -48,6 +53,7 @@ c     nd
       CALL READ_INPUT()         ! Establish sizes by reading fort.14 and fort.15
 #else
       IMPLICIT NONE
+      real(4) crain_time1, crain_time2, crain_timinc
       
       REAL(4) CPU_TIME,CPU_SEC(2)
       REAL(4) TARRAY(2)
@@ -58,7 +64,18 @@ c     nd
       CALL READ_INPUT()         ! Establish sizes by reading fort.14 and fort.15
 #endif         
 
-      
+
+      if (rainfall.gt.0) then
+        CALL alloc_precipitation() 
+      end if
+
+      if (rainfall.eq.3) then
+        CRAIN_TIMINC = 3600
+        call ncrain1_init(PREC2, NP)
+        call ncrain_get(PREC2, NP)
+        CRAIN_TIME1 = STATIM*86400.D0
+        CRAIN_TIME2 = CRAIN_TIME1 + CRAIN_TIMINC
+      ENDIF
       
 C...  
 C...  ******************* START PROGRAM SETUP SECTION ****************************
@@ -177,6 +194,9 @@ c     write(200+myproc,*) 'call prep_dg'
 c     write(200+myproc,*) 'back from prep_dg'
 
       CALL PREP_DG()
+
+      ! namo - test DG hotstart
+      ITHS = 0
       CALL WRITE_RESULTS(0,.FALSE.)
 
                                !cnd...for tecplot output
@@ -324,6 +344,17 @@ c$$$            if (myproc.eq.0) write(*,*) 'timestep ',itime_a
 c$$$c     write(200+myproc,*) 'timestep ',itime_a,myproc
 c$$$         endif
          CALL DG_TIMESTEP(ITIME_A)
+
+C-------! OWI rainfall-------------------------------------
+         IF (rainfall.eq.2) then
+           if(itime_A*DTDP.GT.crain_time2) then
+             crain_time1 = crain_time2
+             crain_time2 = crain_time2 + crain_timinc
+             CALL NCRAIN_GET(PREC2,NP)
+           ENDIF
+         ENDIF
+C-------END OWI RAINFALL -----------------------------------
+
 #ifdef SWAN
 Casey 090302: If it is time, then call the following subroutine
 C             to then call the SWAN time-stepping subroutine.

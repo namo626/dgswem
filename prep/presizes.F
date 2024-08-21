@@ -45,6 +45,15 @@ C
 
       LOGICAL CLUMP,CTIP,CSOLIT,CSOLDIR,
      &  CSOLDIA,CHARMV
+
+      ! namo
+      LOGICAL BndBCRiver ! .TRUE. if 3D, baroclinc and includes rivers in the simulation
+      INTEGER NRIVBCN    ! number of river nodes to be evaluate for salinity and temperature
+      INTEGER :: NDISC
+      INTEGER :: skipNETA ! avoid collision with NETA in pre_global module
+      LOGICAL :: fluxBoundary = .false. ! avoid collision with NFLUXF in pre_global module
+
+      ! namo
 Csb
 C  FORT.DG section
       INTEGER  SEDFLAG,HBFLAG
@@ -228,6 +237,15 @@ C
 C
       DO IL=1,MNBOU
          READ(14,*) NBN,IBTYPE
+
+         ! namo
+         IF (ABS(IBTYPE/100).EQ.1) THEN
+           BndBCRiver=.TRUE.
+           NRIVBCN=NRIVBCN+NBN
+           IBTYPE=(ABS(IBTYPE)-100)*(IBTYPE/ABS(IBTYPE))
+         END IF
+         ! namo
+
          IF((IBTYPE.EQ.2).OR.(IBTYPE.EQ.12).OR.(IBTYPE.EQ.22)) THEN
            NFLUXF=1
            NDISC=NDISC+NBN

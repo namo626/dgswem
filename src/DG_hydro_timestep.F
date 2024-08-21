@@ -27,6 +27,7 @@ C.....Use appropriate modules
       
       USE GLOBAL
       USE DG
+      USE precipitation, only : prec2
 
 #ifdef CMPI
       USE MESSENGER_ELEM 
@@ -42,6 +43,7 @@ Casey 101118: Add variables for coupling to SWAN.
       
 C.....Declare local variables
 
+      real(sz) avg_rain
 
       INTEGER IT,L,GED,NBOREL,NNBORS,NDRYNBORS,NQEDS,Istop,k,j,kk,i,mm
       INTEGER Detected,flagger,store
@@ -230,7 +232,7 @@ C.......Compute internal edges
 
 C.......Compute elements to finish building the rhs
          
-         CALL RHS_DG_HYDRO()
+         CALL RHS_DG_HYDRO(IT)
 
 C.......SSP Runge-Kutta Time Scheme
 
@@ -358,7 +360,7 @@ C.......Compute internal edges
 
 C.......Compute elements to finish building the rhs
          
-         CALL RHS_DG_HYDRO()
+         CALL RHS_DG_HYDRO(IT)
 
 C.......RKC Time Scheme
 
@@ -681,6 +683,7 @@ C......Filter chemistry transported terms if flagged
             ZE(K,J,1) = ZE(K,J,NRK+1)
             QX(K,J,1) = QX(K,J,NRK+1)
             QY(K,J,1) = QY(K,J,NRK+1)
+
 #ifdef TRACE
             iota(K,J,1) = iota(K,J,NRK+1)
 #endif
@@ -698,6 +701,14 @@ C......Filter chemistry transported terms if flagged
             bed(K,J,1,:) = bed(K,J,NRK+1,:)
 #endif
          ENDDO
+         ! namo - 5/22 add rain to dry elements manually
+         !IF (WDFLG(J) .EQ. 0) THEN
+         !  N1 = NM(J,1)
+         !  N2 = NM(J,2)
+         !  N3 = NM(J,3)
+         !  avg_rain = DTDP*(1./3)*(PREC2(N1) + PREC2(N2) + PREC2(N3))
+         !  ZE(1,J,1) = ZE(1,J,1) + avg_rain
+         !END IF
       ENDDO
 
       DO KK = 2,NRK+1

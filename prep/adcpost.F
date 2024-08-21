@@ -130,32 +130,20 @@ C
           CALL POST62()
         ENDIF
 C
-        print *," ***********************************"
-        print *," ADCPOST version 1.1  (5/04/99)"
-        print *," Parallel ADCIRC Post-processor"
-        print *," ***********************************"
-19      print *, " "
-        print *," Do you want to process DG.* files?"
-        print *, " "
-        print *," yes/no  "
-
-C
-        read(*,'(A7)') PHASE2
-C
-        IF ((NOUTGE.NE.0).and.(PHASE(1:4).EQ.'yes')) THEN
-          print *, "Post-Processing DG.63"
-          CALL POSTDG63()
-        ENDIF
+        ! IF ((NOUTGE.NE.0).and.(PHASE(1:4).EQ.'yes')) THEN
+        !   print *, "Post-Processing DG.63"
+        !   CALL POSTDG63()
+        ! ENDIF
 C
 c        IF ((NOUTGE.NE.0).and.(PHASE(1:4).EQ.'yes')) THEN
 c          print *, "Post-Processing DG.65"
 c          CALL POSTDG65()
 c        ENDIF
 C
-        IF ((NOUTGV.NE.0).and.(PHASE(1:4).EQ.'yes')) THEN
-          print *, "Post-Processing DG.64"
-          CALL POSTDG64()
-        ENDIF
+        !IF ((NOUTGV.NE.0).and.(PHASE(1:4).EQ.'yes')) THEN
+        !  print *, "Post-Processing DG.64"
+        !  CALL POSTDG64()
+        !ENDIF
 C
         IF (NOUTGE.NE.0) THEN
           print *, "Post-Processing Unit 63"
@@ -211,6 +199,10 @@ C
         IF (NOUTGW.NE.0) THEN
           print *, "Post-Processing Unit 74"
           CALL POST74()
+
+          ! rainfall
+          print *, "Post-Processing Unit 99"
+          CALL POST99()
         ENDIF
 C
 C ***POST PROCESSING FOR 3D FILES***

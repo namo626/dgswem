@@ -1,4 +1,5 @@
 
+
        MODULE WIND
        USE SIZES, ONLY : SZ, LOCALDIR
        USE GLOBAL, ONLY : ScreenUnit
@@ -198,13 +199,16 @@ C..   260-  0 : Left (3).
                   Dir2 = MOD(StormDirection+  0.D0,360.D0)
                ENDIF
                IF(Dir1.GT.Dir2)THEN
-                  IF((Dir1.LE.NodeDirection).AND.(NodeDirection.LE.360.D0))THEN
+                  IF((Dir1.LE.NodeDirection).AND.
+     &             (NodeDirection.LE.360.D0))THEN
                      Dir2 = Dir2 + 360.D0
-                  ELSEIF((0.D0.LE.NodeDirection).AND.(NodeDirection.LE.Dir2))THEN
+                  ELSEIF((0.D0.LE.NodeDirection).AND.
+     &             (NodeDirection.LE.Dir2))THEN
                      Dir1 = Dir1 - 360.D0
                   ENDIF
                ENDIF
-               IF((Dir1.LE.NodeDirection).AND.(NodeDirection.LE.Dir2))THEN
+               IF((Dir1.LE.NodeDirection).AND.(NodeDirection.LE.Dir2))
+     &          THEN
                   IF(MOD(IS,2).EQ.0)THEN
                      FoundSector = .TRUE.
                      Weight = 0.D0
@@ -222,8 +226,10 @@ C..   260-  0 : Left (3).
                         IW1 = 2
                         IW2 = 3
                      ENDIF
-                     Weight(IW1) = 1.D0 + (0.D0-1.D0)/(Dir2-Dir1)*(NodeDirection-Dir1)
-                     Weight(IW2) = 0.D0 + (1.D0-0.D0)/(Dir2-Dir1)*(NodeDirection-Dir1)
+                     Weight(IW1) = 1.D0 + (0.D0-1.D0)/(Dir2-Dir1)*
+     &                (NodeDirection-Dir1)
+                     Weight(IW2) = 0.D0 + (1.D0-0.D0)/(Dir2-Dir1)*
+     &                (NodeDirection-Dir1)
                   ENDIF
                ENDIF
             ENDDO
@@ -239,7 +245,8 @@ C.. Determine the wind drag for sector 1 (right).
                      Drag(1) = 0.0020
                   ENDIF
                ELSEIF(WindSpeed.LE.45.0)THEN
-                  Drag(1) = 0.0020 + (0.0030-0.0020)/(45.0-35.0)*(WindSpeed-35.0)
+                  Drag(1) = 0.0020 + (0.0030-0.0020)/(45.0-35.0)*
+     &             (WindSpeed-35.0)
                ELSE
                   Drag(1) = 0.0030
                ENDIF
@@ -250,7 +257,8 @@ C.. Determine the wind drag for sector 2 (rear).
                      Drag(2) = 0.0020
                   ENDIF
                ELSEIF(WindSpeed.LE.45.0)THEN
-                  Drag(2) = 0.0020 + (0.0010-0.0020)/(45.0-35.0)*(WindSpeed-35.0)
+                  Drag(2) = 0.0020 + (0.0010-0.0020)/(45.0-35.0)*
+     &             (WindSpeed-35.0)
                ELSE
                   Drag(2) = 0.0010
                ENDIF
@@ -260,15 +268,18 @@ C.. Determine the wind drag for sector 3 (left).
                   IF(WindSpeed.LE.25.0)THEN
                      Drag(3) = 0.0018
                   ELSEIF(WindSpeed.LE.30.0)THEN
-                     Drag(3) = 0.0018 + (0.0045-0.0018)/(30.0-25.0)*(WindSpeed-25.0)
+                     Drag(3) = 0.0018 + (0.0045-0.0018)/(30.0-25.0)*
+     &                (WindSpeed-25.0)
                   ELSEIF(WindSpeed.LE.45.0)THEN
-                     Drag(3) = 0.0045 + (0.0010-0.0045)/(45.0-30.0)*(WindSpeed-30.0)
+                     Drag(3) = 0.0045 + (0.0010-0.0045)/(45.0-30.0)*
+     &                (WindSpeed-30.0)
                   ELSE
                      Drag(3) = 0.0010
                   ENDIF
                ENDIF
 C.. Apply a weighted average.
-               WindDrag = Weight(1)*Drag(1) + Weight(2)*Drag(2) + Weight(3)*Drag(3)
+               WindDrag = Weight(1)*Drag(1) + Weight(2)*Drag(2)
+     &          + Weight(3)*Drag(3)
             ENDIF
          ENDIF
 
@@ -1423,7 +1434,7 @@ c     compute the coordinates of the closest Eta29 grid node
       im2=nwlon*2
       call e29calc(i,j,lamda,phi,n)
 
-c     compute the coordinates of neighbor node "a" (located SW of closest node)
+C     compute the coordinates of neighbor node "a" (located SW of closest node)
 
       if ((i.eq.1).and.(mod(j,2).eq.0)) then
          ia=i
@@ -1440,7 +1451,7 @@ c                                 this neighbor lies outside of Eta29 grid
          call e29calc(ia,ja,lamdaa,phia,na)
       endif
 
-c     compute the coordinates of neighbor node "b" (located W of closest node)
+C     compute the coordinates of neighbor node "b" (located W of closest node)
 
       ib=i-1
       jb=j
@@ -1450,7 +1461,7 @@ c     compute the coordinates of neighbor node "b" (located W of closest node)
          call e29calc(ib,jb,lamdab,phib,nb)
       endif
 
-c     compute the coordinates of neighbor node "c" (located NW of closest node)
+C     compute the coordinates of neighbor node "c" (located NW of closest node)
 
       if ((i.eq.1).and.(mod(j,2).eq.0)) then
          ic=i
@@ -1459,14 +1470,14 @@ c     compute the coordinates of neighbor node "c" (located NW of closest node)
          ic=ia
          jc=j+1
       endif
-c                                    this neighbor lies outside of Eta29 grid
+C                                    this neighbor lies outside of Eta29 grid
       if ((ic.lt.1).or.(jc.gt.nwlat)) then  
          nc=0
       else
          call e29calc(ic,jc,lamdac,phic,nc)
       endif
 
-c     compute the coordinates of neighbor node "d" (located NE of closest node)
+C     compute the coordinates of neighbor node "d" (located NE of closest node)
 
       if ((i.eq.181).and.(mod(j,2).ne.0)) then
          id=i
@@ -1475,14 +1486,14 @@ c     compute the coordinates of neighbor node "d" (located NE of closest node)
          id=ic+1
          jd=j+1
       endif
-c                                    this neighbor lies outside of Eta29 grid
+C                                    this neighbor lies outside of Eta29 grid
       if ((id.gt.nwlon).or.(jd.gt.nwlat)) then  
          nd=0
       else
          call e29calc(id,jd,lamdad,phid,nd)
       endif
 
-c     compute the coordinates of neighbor node "e" (located E of closest node)
+C     compute the coordinates of neighbor node "e" (located E of closest node)
 
       ie=i+1
       je=j
@@ -1492,7 +1503,7 @@ c     compute the coordinates of neighbor node "e" (located E of closest node)
          call e29calc(ie,je,lamdae,phie,ne)
       endif
       
-c     compute the coordinates of neighbor node "g" (located SE of closest node)
+C     compute the coordinates of neighbor node "g" (located SE of closest node)
 
       if ((i.eq.181).and.(mod(j,2).ne.0)) then
          ig=i
@@ -1508,21 +1519,21 @@ c                                    this neighbor lies outside of Eta29 grid
          call e29calc(ig,jg,lamdag,phig,ng)
       endif
 
-c     if (myproc == 0) then
-c      write(screenunit,*) 'closest E29 node i,j = ',n,i,j,lamda,phi
-c      if(na.eq.0) write(screenunit,*) 'point a falls outside of Eta29 grid'
-c      if(na.ne.0) write(screenunit,*) 'point a   = ',na,ia,ja,lamdaa,phia
-c      if(nb.eq.0) write(screenunit,*) 'point b falls outside of Eta29 grid'
-c      if(nb.ne.0) write(screenunit,*) 'point b   = ',nb,ib,jb,lamdab,phib
-c      if(nc.eq.0) write(screenunit,*) 'point c falls outside of Eta29 grid'
-c      if(nc.ne.0) write(screenunit,*) "point c   = ",nc,ic,jc,lamdac,phic
-c      if(nd.eq.0) write(screenunit,*) 'point d falls outside of Eta29 grid'
-c      if(nd.ne.0) write(screenunit,*) "point d   = ",nd,id,jd,lamdad,phid
-c      if(ne.eq.0) write(screenunit,*) 'point e falls outside of Eta29 grid'
-c      if(ne.ne.0) write(screenunit,*) "point e   = ",ne,ie,je,lamdae,phie
-c      if(ng.eq.0) write(screenunit,*) 'point g falls outside of Eta29 grid'
-c      if(ng.ne.0) write(screenunit,*) "point g   = ",ng,ig,jg,lamdag,phig
-c     endif
+C     if (myproc == 0) then
+C      write(screenunit,*) 'closest E29 node i,j = ',n,i,j,lamda,phi
+C      if(na.eq.0) write(screenunit,*) 'point a falls outside of Eta29 grid'
+C      if(na.ne.0) write(screenunit,*) 'point a   = ',na,ia,ja,lamdaa,phia
+C      if(nb.eq.0) write(screenunit,*) 'point b falls outside of Eta29 grid'
+C      if(nb.ne.0) write(screenunit,*) 'point b   = ',nb,ib,jb,lamdab,phib
+C      if(nc.eq.0) write(screenunit,*) 'point c falls outside of Eta29 grid'
+C      if(nc.ne.0) write(screenunit,*) "point c   = ",nc,ic,jc,lamdac,phic
+C      if(nd.eq.0) write(screenunit,*) 'point d falls outside of Eta29 grid'
+C      if(nd.ne.0) write(screenunit,*) "point d   = ",nd,id,jd,lamdad,phid
+C      if(ne.eq.0) write(screenunit,*) 'point e falls outside of Eta29 grid'
+C      if(ne.ne.0) write(screenunit,*) "point e   = ",ne,ie,je,lamdae,phie
+C      if(ng.eq.0) write(screenunit,*) 'point g falls outside of Eta29 grid'
+C      if(ng.ne.0) write(screenunit,*) "point g   = ",ng,ig,jg,lamdag,phig
+C     endif
 
       NN1=1
       NN2=1
@@ -2655,11 +2666,14 @@ C     ----------------------------------------------------------------
       !     http://www.unc.edu/~cmattock/ncfs/NCFSreport.pdf
       !=================================================================
       SUBROUTINE NWS19GET(slam,sfea, wvnx,wvny, press, np, TIMELOC, ics)
-      USE VORTEX, ONLY : newVortex, setRmaxes, fitRmaxes, uvp,
-     &                   getLatestRmax, getLatestAngle
+      USE VORTEX
+C      , ONLY : newVortex, setRmaxes,
+C     &  fitRmaxes, uvp, getLatestRmax, getLatestAngle
       USE GLOBAL, ONLY : ScreenUnit,
      &    Rearth, pi, deg2rad, rad2deg, e, PRBCKGRND, g, rhoWat0,
      &    sphericalDistance, rhoAir, one2ten, windReduction
+      USE PRECIPITATION, only : UPDATE_PREC
+      USE DG, only : rainfall
       IMPLICIT NONE
 
       INTEGER  :: np, ics
@@ -3024,7 +3038,8 @@ C     &      "The simulation has run out of meteorological data.")
       ! scale (Vmax - Vt) and Vr up to the top of the surface,
       ! where the cylcostrophic wind balance is valid.
       !-------------------------------------------------------
-      stormMotion = 1.5d0*(SQRT(uTransNow**2.d0+vTransNow**2.d0))**0.63d0
+      stormMotion = 1.5d0*(SQRT(uTransNow**2.d0+vTransNow**2.d0))
+     & **0.63d0
       VmaxBL = (Vmax-stormMotion)/windReduction
       call newVortex(Pn,Pc,cLat,cLon,VmaxBL)
       call setRmaxes(crmaxw)
@@ -3049,6 +3064,10 @@ C     &      "The simulation has run out of meteorological data.")
          ! elevation (meters).
          !-------------------------------------------
          press(i) = press(i) / RhoWatG
+         ! parametric rain update 
+         if (rainfall.eq.1) then
+           call UPDATE_PREC(i, ycoor(i), xcoor(i), cLon, cLat, Pn, Pc,crmaxw(i),Vmax,1)
+         end if
 
          if (writeFullCircleRmaxes.eqv..true.) then
             write(444,*) getLatestRmax(), getLatestAngle()
@@ -3167,6 +3186,8 @@ C***********************************************************************
      &    Rearth, pi, deg2rad, rad2deg, e, PRBCKGRND, g, rhoWat0,
      &    sphericalDistance, rhoAir, one2ten, windReduction,
      &    kt2ms, nm2m,deg2rad,omega, Rearth, m2nm, mb2pa, rnday
+      USE PRECIPITATION, ONLY : update_prec
+      USE DG, only : rainfall
       IMPLICIT NONE
 
       INTEGER  :: np, ics
@@ -3204,6 +3225,7 @@ C***********************************************************************
       REAL(sz), SAVE :: Pc
       REAL(sz), SAVE :: cLat
       REAL(sz), SAVE :: cLon
+      REAL(sz), SAVE :: Rmax, Vmax
       REAL(SZ), SAVE :: told
       ! save parameters for each node
       ! change them to allocatable, save Aug. 2013, Jie
@@ -3652,6 +3674,10 @@ c      endif
       cVmwBL   =  cVmwBL1(:) +
      &                         wtratio*(cVmwBL2(:)-cVmwBL1(:))
       corio = 2.0d0 * omega * SIN(deg2rad*cLat)
+     &
+      Rmax  = 1.d0*(atcfRMW(icyc-1) + wtratio * (atcfRMW(icyc)-atcfRMW(icyc-1)))
+     &
+      Vmax = 1.d0*(ispd(icyc-1) + wtratio * (ispd(icyc)-ispd(icyc-1))) 
 !Jie debug GAHM
 !         WRITE(16,700) 'Temporal interpolation:',
 !     &           CycleTime(icyc-1), TIMELOC, CycleTime(icyc)
@@ -3733,6 +3759,8 @@ c      endif
       stormMotionU = sin(dirNow/rad2deg)*stormMotion
       stormMotionV = cos(dirNow/rad2deg)*stormMotion
       call setVortex(Pn,Pc,cLat,cLon)
+      Write (16,*) Pn
+  
       DO i=1,np
          CALL uvpr(dist(i),aziangle(i),crmaxw(i),crmaxwTrue(i),
      &        cHollBs(i),cVmwBL(i),cPhiFactor(i),stormMotionU,
@@ -3742,6 +3770,13 @@ c      endif
          ! atmospheric pressure-induced water surface
          ! elevation (meters).
          !-------------------------------------------
+         ! namo - add rain
+         if (rainfall.eq.1) then
+           call UPDATE_PREC(i, ycoor(i), xcoor(i), cLon, cLat, Pn, Pc, Rmax, Vmax, 1)
+        elseif (rainfall.eq.3)then
+           call UPDATE_PREC(i, ycoor(i), xcoor(i), cLon, cLat, Pn, Pc, Rmax, Vmax, 3)
+
+         end if
          press(i) = press(i) / RhoWatG
       END DO
       !-----------------------------------

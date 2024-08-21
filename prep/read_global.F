@@ -20,8 +20,9 @@ C***********************************************************************
       INTEGER BBN, DISC, IBP, I1
       INTEGER MAXNEIGH
       
-      IERROR = 0
 
+
+      IERROR = 0
 C.....Read Grid Title
 
       READ(14,80) AGRID
@@ -96,7 +97,7 @@ C.....and construct LBCODE array for read15 routine
           J = J + 1
           LBCODE(J) = ITYPE
         ENDDO
-
+!
         IF   ((ITYPE.NE.0).AND.(ITYPE.NE.10).AND.(ITYPE.NE.20)
      &   .AND.(ITYPE.NE.1).AND.(ITYPE.NE.11).AND.(ITYPE.NE.21)
      &   .AND.(ITYPE.NE.2).AND.(ITYPE.NE.12).AND.(ITYPE.NE.22)
@@ -108,7 +109,7 @@ C.....and construct LBCODE array for read15 routine
           IERROR = 3
           GOTO 1003
         ENDIF
-
+!
         IF ((ITYPE.NE.3).AND.(ITYPE.NE.13).AND.(ITYPE.NE.23).AND.
      &      (ITYPE.NE.4).AND.(ITYPE.NE.24)) THEN
           DO I = 1,NVELL(K)
@@ -116,27 +117,30 @@ C.....and construct LBCODE array for read15 routine
             IBCONNR(K,I) = 0
           ENDDO
         ENDIF
-
+!
         IF ((ITYPE.EQ.3).OR.(ITYPE.EQ.13).OR.(ITYPE.EQ.23)) THEN
           DO I = 1,NVELL(K)
             READ(14,*) NBVV(K,I),BAR1(K,I),BAR2(K,I)
             IBCONNR(K,I) = 0
           ENDDO
         ENDIF
-
+!
         IF ((ITYPE.EQ.4).OR.(ITYPE.EQ.24)) THEN
           DO I=1,NVELL(K)
             READ(14,*) NBVV(K,I),IBCONNR(K,I),
      &                 BAR1(K,I),BAR2(K,I),BAR3(K,I)
-
-C.....Construct List of WEIR nodes and their duals
-
+!
+C....Construct List of WEIR nodes and their duals
+!
             NWEIR = NWEIR+1
             WEIR(NWEIR) = NBVV(K,I)
             WEIRD(NWEIR) = IBCONNR(K,I)
           ENDDO
         ENDIF
       ENDDO
+!
+
+      
 
 C.....Close Global Grid file
 
@@ -663,8 +667,37 @@ C
             ENDDO
          ELSE
             APERIODIC_FLOW_BC = .TRUE. !jgf45.09 need to break up a fort.20
-         ENDIF
+
+C namo 7/12/21 added this section to break up fort.20 with aperiodic
+C flow true
+Cvjp 5/1/99  added to help localize the flow boundary nodes
+C  NBV    =  global node number of all boundary nodes
+C  NFLBN  =  number of flow boundary nodes
+C  FLBN   =  global node number of flow boundary nodes
+C  FLBNX  =  index of flow boundary nodes as per NBV
+C
+            JG = 1
+         DO K = 1,NBOU
+               DO I=1, NVELL(K)
+                  INDEX = NBVV(K,I)
+                  NBV(JG) = INDEX
+                  JG = JG + 1
+               ENDDO
+         ENDDO
+C
+         NFLBN = 0
+         DO J=1,NVEL
+               IF ((LBCODE(J).EQ.2).OR.(LBCODE(J).EQ.12)
+     &              .OR.(LBCODE(J).EQ.22).OR.(LBCODE(J).EQ.52)) THEN
+                  NFLBN = NFLBN+1
+                  FLBN(NFLBN) = NBV(J)
+                  FLBNX(NFLBN) = J
+               ENDIF
+         ENDDO
+       ENDIF
+
       ENDIF
+! end namo
 
 C
 C--Read Elevation Recording Stations

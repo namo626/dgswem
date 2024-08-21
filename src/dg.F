@@ -24,8 +24,9 @@ C.....Use appropriate modules
 
       USE SIZES
 
-C.....Declare integer variables
 
+C.....Declare integer variables
+      INTEGER, TARGET :: rainfall
       INTEGER, TARGET :: DGFLAG,DGHOT,DGHOTSPOOL
       INTEGER DOF,dofh,dofl,dofx
       INTEGER EL

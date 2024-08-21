@@ -79,7 +79,7 @@
                     pflag2con1,pflag2con2,lebesgueP,fluxtype,rk_stage,rk_order, &
                     modal_ic,dghot,dghotspool,slopeflag,slope_weight,porosity, &
                     sevdm,mnes,artdif,kappa,s0,uniform_dif,tune_by_hand, &
-                    sl2_m,sl2_nyu,sl3_md
+                    sl2_m,sl2_nyu,sl3_md, rainfall
             
       
       IMPLICIT NONE
@@ -419,7 +419,7 @@
       USE dg, ONLY: padapt,pflag,gflag,diorism,pl,ph,px,slimit,plimit, &
                     pflag2con1,pflag2con2,lebesgueP,fluxtype,rk_stage,rk_order, &
                     modal_ic,dghot,dghotspool,slopeflag,slope_weight,porosity, &
-                    sevdm,mnes,artdif,kappa,s0,uniform_dif,tune_by_hand
+                    sevdm,mnes,artdif,kappa,s0,uniform_dif,tune_by_hand,rainfall
       
       IMPLICIT NONE        
       
@@ -481,6 +481,7 @@
       fortdg(33)%key = "tune_by_hand";  fortdg(33)%iptr => tune_by_hand;   fortdg(33)%required = 1;  fortdg(33)%iptr = 0
       fortdg(34)%key = "sed_equationX"; fortdg(34)%cptr => sed_equationX;  fortdg(34)%required = 0;  fortdg(34)%cptr = sedXdef
       fortdg(35)%key = "sed_equationY"; fortdg(35)%cptr => sed_equationY;  fortdg(35)%required = 0;  fortdg(35)%cptr = sedYdef
+      fortdg(36)%key = "rainfall";      fortdg(36)%iptr => rainfall; fortdg(36)%required = 0; fortdg(36)%iptr = 0
       
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       ! End configuration

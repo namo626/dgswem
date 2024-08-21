@@ -170,6 +170,7 @@ C.....Compute the total mass in the elements
          MASS_EL_IN = (ZE(1,EL_IN,IRK)+HB(1,EL_IN,1))*AREAS(EL_IN)*0.5D0
          MASS_EL_EX = (ZE(1,EL_EX,IRK)+HB(1,EL_EX,1))*AREAS(EL_EX)*0.5D0
 
+
 #ifdef SED_LAY                  !Must add up the layers as they shift
          HB(1,EL_IN,irk) = 0.D0
          HB(1,EL_EX,irk) = 0.D0
@@ -405,6 +406,8 @@ C.....1.01D0 is a safty factor.
           IF ( (1.01d0*F_HAT*XLEN_EL_IN*MAX_BOA_DT(IRK).GE.MASS_EL_IN)
      &          .OR.(1.01d0*F_HAT*XLEN_EL_EX*MAX_BOA_DT(IRK)*(-1.D0).GE.
      &           MASS_EL_EX)) THEN
+
+C......namo 5/22 - modify for rain (source term no longer zero)
 
 C...........Put back the saved RHS
 

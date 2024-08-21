@@ -316,6 +316,14 @@ C
           CALL PREP19()
         ENDIF
 C
+
+C-- Namo 7/12/21: Write a local fort.20 file for each PE
+        print *, "Number of flow nodes is: ", NFLBN
+        if ((NFLBN .ne. 0) .and. (APERIODIC_FLOW_BC)) then
+          print *, "Ready to write Local UNIT 20 File for each PE"
+          call PREP20()
+        endif
+
 C-- If required write a Local fort.21 file for each PE
 C
         IF (NWP.EQ.1)  THEN
