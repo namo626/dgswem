@@ -1,6 +1,7 @@
 SHELL:=/bin/sh
 #
-#  Makefile to Build DGSWEM and its pre/post-processor 
+#  Makefile to Build DGSWEM and its pre/post-processor
+export MPICH_FC=ifort
 
 ########################################################################
 #  Get Canonical Machine NAME from config.guess
@@ -17,27 +18,27 @@ include ../swan/macros.inc
 
 ######################## Target Specific Rules ###################################
 
-#                                      adcprep   
+#                                      adcprep
 ifeq ($(BUILDTYPE),adcprep)
   CF:= $(PPFC)
   O_DIR:=odir1/
-  FFLAGS:= $(FFLAGS1) $(DPRE) $(IMODS)$(O_DIR) 
-  VPATH :=  ../prep 
+  FFLAGS:= $(FFLAGS1) $(DPRE) $(IMODS)$(O_DIR)
+  VPATH :=  ../prep
   PMSG_OBJ:=
 endif
-#                                      adcpost  
+#                                      adcpost
 ifeq ($(BUILDTYPE),adcpost)
   CF:= $(PPFC)
   O_DIR:=odir3/
-  FFLAGS:= $(FFLAGS1) $(DPRE) $(IMODS)$(O_DIR) 
+  FFLAGS:= $(FFLAGS1) $(DPRE) $(IMODS)$(O_DIR)
   VPATH :=  ../prep
 endif
-#                                      adcirc   
+#                                      adcirc
 ifeq ($(BUILDTYPE),dgswem_serial)
   CF:= $(PPFC)
   O_DIR:=odir4/
-  FFLAGS:= $(FFLAGS3) $(DA) $(IMODS)$(O_DIR) 
-  VPATH:=  ../src 
+  FFLAGS:= $(FFLAGS3) $(DA) $(IMODS)$(O_DIR) -g -p -traceback -fpe0
+  VPATH:=  ../src
   MSG_MOBJ:=
 endif
 #Casey 121126: Add rules for the serial SWAN+ADCIRC.
@@ -49,14 +50,14 @@ ifeq ($(BUILDTYPE),swemswan)
   VPATH:=  ../src:../swan
   MSG_MOBJ:= $(O_DIR)globalio.o
 endif
-#                                      padcirc   
+#                                      padcirc
 ifeq ($(BUILDTYPE),dgswem)
   CF:= $(PFC)
   O_DIR:=odir5/
-  FFLAGS:= $(FFLAGS4) $(DP) $(IMODS)$(O_DIR)
-  VPATH :=  ../src 
+  FFLAGS:= $(FFLAGS4) $(DP) $(IMODS)$(O_DIR) -traceback -fpe0
+  VPATH :=  ../src
   MSG_MOBJ:= $(O_DIR)messenger_elem.o $(O_DIR)messenger.o
-  MSG_OBJ:= 
+  MSG_OBJ:=
 endif
 #Casey 121126: Add rules for the parallel SWAN+ADCIRC.
 #                                      padcswan
@@ -74,15 +75,19 @@ $(O_DIR):
 
 ######################### Module Source, Object, & Mod Files ######################
 
-PREP_MSRC  =  presizes.F 
-PGLO_MSRC  =  pre_global.F  
+PREP_MSRC  =  presizes.F
+PGLO_MSRC  =  pre_global.F
 POST_MSRC  =  post_global.F
 ADC_MSRC   =  sizes.F diff45_41.F global.F dg.F global_3dvs.F nodalattr.F fparser.F90 fparser2.F90 \
-              read_fort_dg.F90              
-HARM_MSRC  =  harm.F  
-WIND_MSRC  =  vortex.F wind.F  
+              read_fort_dg.F90
+HARM_MSRC  =  harm.F
+WIND_MSRC  =  vortex.F wind.F
 #Casey 121126: Add file for coupling to unstructured SWAN.
 COUP_MSRC  =  couple2swan.F
+
+RAIN_MSRC = precipitation.F
+# namo
+OWIRAIN_MSRC = owi_rain.F
 
 PREP_MOBJ:= $(patsubst %.F, $(O_DIR)%.o, $(PREP_MSRC) )
 PGLO_MOBJ:= $(patsubst %.F, $(O_DIR)%.o, $(PGLO_MSRC) )
@@ -94,6 +99,9 @@ WIND_MOBJ := $(patsubst %.F, $(O_DIR)%.o, $(WIND_MSRC)  )
 #Casey 121126: Add rules for coupling to unstructured SWAN.
 COUP_MOBJ := $(patsubst %.F, $(O_DIR)%.o, $(COUP_MSRC)  )
 
+# namo
+RAIN_MOBJ := $(patsubst %.F, $(O_DIR)%.o, $(RAIN_MSRC)  )
+OWIRAIN_MOBJ := $(patsubst %.F, $(O_DIR)%.o, $(OWIRAIN_MSRC)  )
 
 ############################# Source & Object Files ##############################
 
@@ -172,25 +180,25 @@ $(O_DIR)%.o  : %.f90
 
 ########################## Executable Targets ##################################
 
-.PHONY: all metis adcprep adcpost dgswem_serial dgswem #winds
+.PHONY: all install metis adcprep adcpost dgswem_serial dgswem #winds
 
 all :  metis adcprep adcpost dgswem_serial dgswem #winds
- 
-#winds : 
-#	python ./get_winds.py 
+
+#winds :
+#	python ./get_winds.py
 
 ifeq ($(MAKELEVEL),0)
    metis:
 	$(MAKE) -C ../metis/Lib/ CC="$(CC)"  CFLAGS="$(CFLAGS)"
    graphchk:
-	$(MAKE) -C ../metis/Programs/ CC="$(CC)"  CFLAGS="$(CFLAGS)" 
+	$(MAKE) -C ../metis/Programs/ CC="$(CC)"  CFLAGS="$(CFLAGS)"
 	mv ../metis/graphchk ../work
    adcprep:
-	$(MAKE) BUILDTYPE=adcprep  $@            
+	$(MAKE) BUILDTYPE=adcprep  $@
    adcprep2:
-	$(MAKE) BUILDTYPE=adcprep2 $@ 
+	$(MAKE) BUILDTYPE=adcprep2 $@
    adcpost:
-	$(MAKE) BUILDTYPE=adcpost $@            
+	$(MAKE) BUILDTYPE=adcpost $@
    dgswem_serial:
 	$(MAKE) BUILDTYPE=dgswem_serial  $@
    dgswem:
@@ -209,19 +217,19 @@ else
    dgswem_serial::   $(O_DIR)
    dgswem::  $(O_DIR)
 
-   adcprep ::  $(METIS1_OBJ) $(PREP_OBJ) 
+   adcprep ::  $(METIS1_OBJ) $(PREP_OBJ)
 	$(CF) $(FFLAGS) -o $@  $(O_DIR)*.o  $(LIBS) $(LDFLAGS)
 
-   adcprep2 :: $(PMSG_OBJ) $(METIS2_OBJ) $(PREP_OBJ) 
+   adcprep2 :: $(PMSG_OBJ) $(METIS2_OBJ) $(PREP_OBJ)
 	$(CF) $(FFLAGS) -o $@  $(O_DIR)*.o  $(LIBS) $(MSGLIBS) $(LDFLAGS)
 
-   adcpost ::  $(POST_OBJ) 
+   adcpost ::  $(POST_OBJ)
 	$(CF) $(FFLAGS) -o $@  $(O_DIR)*.o
 
-   dgswem_serial ::  $(ADC_OBJ) 
+   dgswem_serial ::  $(ADC_OBJ)
 	$(CF) $(FFLAGS) -o $@  $(O_DIR)*.o
 
-   dgswem ::  $(MSG_MOBJ) $(MSG_OBJ) $(ADC_OBJ) 
+   dgswem ::  $(MSG_MOBJ) $(MSG_OBJ) $(ADC_OBJ)
 	$(CF) $(FFLAGS) -o $@  $(O_DIR)*.o  $(MSGLIBS)
 
 #Casey 121126: Added the following lines for coupling to unstructured SWAN.
@@ -235,9 +243,11 @@ else
 endif
 
 ########################## Misc Commands ####################################
+install:
+	cp dgswem dgswem_serial /workspace/local/bin/
 
 clean:
-	 rm -f odir*/*.o  odir*/*.mod 
+	 rm -f odir*/*.o  odir*/*.mod
 clobber:
 	rm -r -f odir*
 	rm -f  graphchk adcprep adcprep2 adcpost dgswem_serial dgswem swemswan dgswemswan \
@@ -262,13 +272,13 @@ help:
 $(O_DIR)presize.o     :  presize.F
 $(O_DIR)pre_global.o  :  pre_global.F  $(PREP_MOBJ)
 
-#  adcprep & adcprep2 
+#  adcprep & adcprep2
 
 $(O_DIR)adcprep.o     :  adcprep.F  $(PGLO_MOBJ) $(PMSG_OBJ)
 $(O_DIR)decomp.o      :  decomp.F   $(PGLO_MOBJ)
 $(O_DIR)read_global.o :  read_global.F  $(PGLO_MOBJ)
 $(O_DIR)prep.o        :  prep.F   $(PGLO_MOBJ)
-$(O_DIR)interp.o      :  interp.F  
+$(O_DIR)interp.o      :  interp.F
 $(O_DIR)machdep.o     :  machdep.F
 $(O_DIR)metis.o       :  metis.F $(PGLO_MOBJ)
 $(O_DIR)metis2.o      :  metis2.F $(PGLO_MOBJ)
@@ -276,13 +286,13 @@ $(O_DIR)picomsg.o     :  picomsg.F
 
 #  adpost modules
 
-$(O_DIR)post_global.o :  post_global.F 
+$(O_DIR)post_global.o :  post_global.F
 
-#  adpost                
+#  adpost
 
 $(O_DIR)adcpost.o     :  adcpost.F $(POST_MOBJ)
 $(O_DIR)post.o        :  post.F  $(POST_MOBJ)
-$(O_DIR)compare.o     :  compare.F  
+$(O_DIR)compare.o     :  compare.F
 $(O_DIR)diffmerge.o   :  diffmerge.F
 
 #  adcirc & padcirc modules
@@ -295,7 +305,7 @@ $(O_DIR)messenger.o   			:  messenger.F  $(ADC_MOBJ)
 $(O_DIR)messenger_elem.o		:  messenger_elem.F  $(ADC_MOBJ)
 $(O_DIR)harm.o        			:  harm.F
 $(O_DIR)vortex.o                        :  vortex.F $(ADC_MOBJ)
-$(O_DIR)wind.o        			:  wind.F
+$(O_DIR)wind.o        			:  wind.F $(O_DIR)precipitation.o
 $(O_DIR)itpackv.o     			:  itpackv.F   $(ADC_MOBJ)
 $(O_DIR)dg.o          			:  dg.F sizes.F global.F
 $(O_DIR)diff45_41.o   			:  diff45_41.F
@@ -306,13 +316,15 @@ $(O_DIR)couple2swan.o                   :  couple2swan.F $(ADC_MOBJ)
 
 $(ODIR)read_fort_dg.o                   :  read_fort_dg.F90 $(O_DIR)sizes.o $(O_DIR)dg.o $(O_DIR)global.o
 
+$(O_DIR)precipitation.o                 :  precipitation.F $(ADC_MOBJ)
+$(O_DIR)owi_rain.o                      :  owi_rain.F $(ADC_MOBJ)
 #  adcirc & padcirc
 
 $(O_DIR)owiwind.o   			:  owiwind.F $(ADC_MOBJ)
 $(O_DIR)read_input.o  			:  read_input.F $(ADC_MOBJ) $(HARM_MOBJ) $(WIND_MOBJ)
 $(O_DIR)cstart.o      			:  cstart.F $(ADC_MOBJ)  $(HARM_MOBJ)  $(WIND_MOBJ)
 $(O_DIR)hstart.o      			:  hstart.F $(ADC_MOBJ)  $(HARM_MOBJ)  $(WIND_MOBJ)
-$(O_DIR)dgswem.o      			:  dgswem.F $(ADC_MOBJ)  $(HARM_MOBJ) $(WIND_MOBJ) 
+$(O_DIR)dgswem.o      			:  dgswem.F $(ADC_MOBJ)  $(HARM_MOBJ) $(WIND_MOBJ) $(OWIRAIN_MOBJ)
 $(O_DIR)calc_normal.o         	:  calc_normal.F $(ADC_MOBJ)
 $(O_DIR)create_edge_data.o    	:  create_edge_data.F $(ADC_MOBJ)
 $(O_DIR)detector.o	      	:  detector.F $(ADC_MOBJ)
@@ -349,8 +361,8 @@ $(O_DIR)write_output.o              :  write_output.F
 #Casey 121126: Added the previous lines for modal2nodal.F and write_output.F.
 
 debug:
-	@echo $(ADC_MSRC) 
-	@echo $(ADC_MOBJ) 
+	@echo $(ADC_MSRC)
+	@echo $(ADC_MOBJ)
 
 # graphchk
 
@@ -421,4 +433,3 @@ $(O_DIR)SwanMaxOverNodes.o      : SwanMaxOverNodes.f90
 $(O_DIR)ocpids.o                : ocpids.f
 $(O_DIR)ocpcre.o                : ocpcre.f
 $(O_DIR)ocpmix.o                : ocpmix.f
-

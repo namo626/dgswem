@@ -22,6 +22,7 @@ C**************************************************************************
 C
       USE SIZES
       USE GLOBAL
+      USE DG, only : rainfall
       USE HARM
       USE WIND
       USE OWIWIND, ONLY : NWS12INIT, NWS12GET
@@ -63,6 +64,13 @@ C              ENDIF
           ETAS(I)=0.D0
           CH1(I)=0.d0
         END DO
+
+         !...Younghun:
+         IF (RAINFALL.gt.0) THEN
+           OPEN(99,FILE=DIRNAME//'/'//'fort.99')
+           WRITE(99,3220) RUNDES,RUNID,AGRID
+           WRITE(99,3645) NDSETSW,NP,DTDP*NSPOOLGW,NSPOOLGW,1
+         ENDIF
 
 C...
 C....INITIALIZE THE ELEVATION SPECIFIED BOUNDARY CONDITION IF IT 

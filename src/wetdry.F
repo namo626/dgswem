@@ -518,8 +518,8 @@ C.......Setting the lower bound
          IF (ELEMENT_CHECK.EQ.1) THEN
 
 !Now test to see if the water column at the min vertex is wet
-            IF (MINVAL(ZE_HAT(:,pa)+DP_NODE(:,J,pa)).GT.H0 ) THEN  ! cem fix
-!            IF (ZE_HAT(HT_MAX_I,pa).GT.(-DPE_MIN(J)+H0)) THEN     ! Shintaro's criteria 
+            !IF (MINVAL(ZE_HAT(:,pa)+DP_NODE(:,J,pa)).GT.H0 ) THEN  ! cem fix
+            IF (ZE_HAT(HT_MAX_I,pa).GT.(-DPE_MIN(J)+H0)) THEN     ! Shintaro's criteria 
 
 C.........Make no adjustments and set element and node flags to wet
 

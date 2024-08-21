@@ -167,6 +167,7 @@ C..............linearly interpolate from the time-series of the harmonic forcing
                ZEFREQ = 0.5D0*( ZE_GPT(1) + ZE_GPT(2) ) +
      &              0.5D0*(ZE_GPT(2) - ZE_GPT(1))*XEGP(I,pa) ;
 
+
                ZE_EX = ZE_EX + ZEFREQ ;
             ENDDO
 
@@ -245,6 +246,11 @@ C.....Set the exterior value of the bathymetry equal to the interior
                ZE_EX = ZE_EX + .5*(GeoidOffset(N1)+GeoidOffset(N2))
             endif
 
+            ! Eirik's fix
+            if ((ZE_EX*IFNLFA + HB_EX).LE.0) then
+              ZE_EX =  ABS(HB_EX) + H0
+            endif
+            ! End fix
 
             !ZE_EX = ZE_IN !this was added
 

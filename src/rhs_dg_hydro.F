@@ -1,22 +1,22 @@
 C***********************************************************************
-C     
+C
 C     SUBROUTINE RHS_DG_HYDRO()
-C     
+C
 C     This subroutine computes the area integrals for the DG hydro and
 C     adds them into the RHS.
-C     
+C
 C     Written by Ethan Kubatko (06-11-2004)
-C     
+C
 C-----------------------------------------------------------------------
-C     
+C
 C     Feb 23, 2007, sb, Modified for better performance
 C     Jan 02, 2007, sb, Modified for LDG
 C     Aug xx, 2005, sb, Modified for wetting/drying
 C     01-10-2011 - cem - adapted for p_enrichment and multicomponent
-C     
+C
 C***********************************************************************
-      SUBROUTINE RHS_DG_HYDRO()
-      
+      SUBROUTINE RHS_DG_HYDRO(IT)
+
 C.....Use appropriate modules
 
       USE GLOBAL
@@ -25,11 +25,14 @@ C.....Use appropriate modules
      &     FGAMMA,LoadManningsN,ManningsN,CF
 
       USE sizes, ONLY: myproc,layers
+      USE PRECIPITATION, only : computeElemTRR, PREC3, PREC2
 
       IMPLICIT NONE
-      
-C.....Declare local variables
 
+C.....Declare local variables
+      ! for rain test
+      REAL(SZ) SR1, SR2, SR3, avg_rain
+      INTEGER IT
       INTEGER L,k,i,ll
       REAL(SZ) DPSIDX(3), DPSIDY(3)
       REAL(SZ) AREA, IMASS, TKX, TKY, Xpart, Ypart,H_0,C_1
@@ -43,7 +46,11 @@ C.....Declare local variables
 
       Real(SZ),allocatable :: XBCbt(:),YBCbt(:)
 
+      real(sz) source_max, source_r
       Allocate ( XBCbt(MNE),YBCbt(MNE) )
+
+      source_max = 0.0
+      !print *, "max prec2 = ", maxval(prec2)
 
       DTDPH = 1.D0/DTDP
       DO 1000 L = 1, NE
@@ -53,9 +60,9 @@ c     nd
          sourceqx(l)=0.0
          sourceqy(l)=0.0
 c     nd
-         
+
 C.......Adjust the p values for constants
-         
+
          pa = PDG_EL(L)
 
 #ifdef P0
@@ -63,13 +70,29 @@ C.......Adjust the p values for constants
             pa = 1
          endif
 #endif
-         
+C.......Compute rain source term if rain is enabled
+         ! for now, stop rain after 1 day (86400 s)
+
+         IF (rainfall > 0) THEN
+            IF (rainfall == 1 .OR. rainfall == 3) SOURCE_R = computeElemTRR(L)
+            IF (rainfall == 2) SOURCE_R =  7.0556e-6 ! 1 inch/hour
+
+            IF (SOURCE_R .GT. 0.D0) THEN
+              DO I = 1,NAGP(pa)
+                DO K = 1,DOFS(L)
+                  RHS_ZE(K,L,IRK) = RHS_ZE(K,L,IRK) +
+     &                 SRFAC(K,I,L,pa)*SOURCE_R
+                END DO
+              END DO
+            END IF
+         ENDIF
+
 C.......If element is dry then skip calculations
-         
+
          IF (WDFLG(L).EQ.0) then
             GOTO 1000
          endif
-         
+
 C.......Retrieve the global node numbers for the element
 
          N1 = NM(L,1)
@@ -84,9 +107,9 @@ C.......These will be used later when bottom friction is computed
          UX_C = QX(1,L,IRK)*FH_NL_C
          UY_C = QY(1,L,IRK)*FH_NL_C
          UMAG_C = SQRT(UX_C*UX_C + UY_C*UY_C)
-         
+
 C.......Compute derivatives of Lagrange basis functions at nodes
-         
+
          IF ((NWS.NE.0).OR.(NTIP.NE.0)) THEN
             DPSIDX(1) = DRPSI(1)*DRDX(L) + DSPSI(1)*DSDX(L)
             DPSIDX(2) = DRPSI(2)*DRDX(L) + DSPSI(2)*DSDX(L)
@@ -97,9 +120,9 @@ C.......Compute derivatives of Lagrange basis functions at nodes
          ENDIF
 
 C.......Compute ZE, QX, QY, and HB at each area Gauss quadrature point
-         
+
          DO I = 1,NAGP(pa)
-            
+
             ZE_IN = ZE(1,L,IRK)
             QX_IN = QX(1,L,IRK)
             QY_IN = QY(1,L,IRK)
@@ -116,7 +139,7 @@ C.......Compute ZE, QX, QY, and HB at each area Gauss quadrature point
 #ifdef DYNP
             dynP_IN = dynP(1,L,IRK)
 #endif
-            
+
             HB_IN = BATH(I,L,pa)
             DHB_X = DBATHDX(I,L,pa)
             DHB_Y = DBATHDY(I,L,pa)
@@ -150,11 +173,11 @@ C.......Compute ZE, QX, QY, and HB at each area Gauss quadrature point
             enddo
 #endif
 
-#ifdef WAVE_DIF 
+#ifdef WAVE_DIF
             HZ_X = HZ(1,1,1,L)
             HZ_Y = HZ(1,2,2,L)
 #endif
-            
+
             LZ_XX = LZ(1,1,1,L)
             LZ_XY = LZ(1,1,2,L)
             LZ_YX = LZ(1,2,1,L)
@@ -166,16 +189,16 @@ C.......Compute ZE, QX, QY, and HB at each area Gauss quadrature point
             TZ_Y = TZ(1,2,2,L)
 
 #endif
-            
+
             SFACQUAD = SFAC_ELEM(I,L,pa)
-            
+
             DO K = 2,DOFS(L)
-               
+
                ZE_IN = ZE_IN + ZE(K,L,IRK)*PHI_AREA(K,I,pa)
                QX_IN = QX_IN + QX(K,L,IRK)*PHI_AREA(K,I,pa)
                QY_IN = QY_IN + QY(K,L,IRK)*PHI_AREA(K,I,pa)
 
-#ifdef WAVE_DIF 
+#ifdef WAVE_DIF
                HZ_X = HZ_X + HZ(K,1,1,L)*PHI_AREA(K,I,pa)
                HZ_Y = HZ_Y + HZ(K,2,2,L)*PHI_AREA(K,I,pa)
 #endif
@@ -213,30 +236,30 @@ C.......Compute ZE, QX, QY, and HB at each area Gauss quadrature point
                enddo
                DEPTH = 0.D0
                DEPTH = ZE_IN + HB_IN
-C.........Compute sediment discharge model                                                                           
+C.........Compute sediment discharge model
 
                !Note that the choice of linearization can require this to be changed
           QMag_IN=(QX_IN*QX_IN/(DEPTH**2)+QY_IN*QY_IN/(DEPTH)**2)**(1/2)
             discharge_modelX_IN = porosity * DEPTH**(-1) * QMag_IN**(2)*
-     &         QX_IN*SFACQUAD                             
+     &         QX_IN*SFACQUAD
             discharge_modelY_IN = porosity * DEPTH**(-1) * QMag_IN**(2)*
-     &         QY_IN  
+     &         QY_IN
 
 #endif
-               
+
             ENDDO
- 
+
 C.........Compute continuity fluxes
 
             F1_NL = NLEQ + LEQ*HB_IN
 
-#ifdef WAVE_DIF 
+#ifdef WAVE_DIF
             FX_IN = (QX_IN+HZ_X)*F1_NL*SFACQUAD
 #else
             FX_IN = QX_IN*F1_NL*SFACQUAD
 #endif
 
-#ifdef WAVE_DIF 
+#ifdef WAVE_DIF
             FY_IN = (QY_IN+HZ_Y)*F1_NL
 #else
             FY_IN = QY_IN*F1_NL
@@ -254,7 +277,7 @@ C.........Compute momentum flux terms
             HVV = FV_NL*V_IN
             HUV = FU_NL*V_IN
             GH2 = FG_NL*(0.5D0*ZE_IN + HB_IN) + FG_L*ZE_IN
-           
+
 C.........Compute x momentum fluxes
 
             GX_IN = (HUU + GH2 + LZ_XX)*SFACQUAD
@@ -284,7 +307,7 @@ C     small. S.B. 9-Feb-2008
 
             IF (IFLINBF.EQ.0) THEN
                UMAG = SQRT( U_IN*U_IN + V_IN*V_IN )
-c     cnd modified 4/23/10 to test friction 
+c     cnd modified 4/23/10 to test friction
                TAU  = TAU*UMAG*FH_NL
                IF (IFHYBF.EQ.1) TAU = TAU*
      &              (1.D0  + (HBREAK*FH_NL_C)**FTHETA)**(FGAMMA/FTHETA)
@@ -304,7 +327,7 @@ C.........Compute the x momentum source/sink terms
 C.........1.) Friction term
 
      &           - TAU*QX_IN
-      
+
 C.........2.) Bathymetric slope term
 
      &           + FG_NL*DHB_X*SFACQUAD
@@ -323,13 +346,13 @@ C.........1.) Friction term
 
 C.........2) Bathymetric slope term
 
-      
+
      &           + FG_NL*DHB_Y
-     
+
 C.........3.) Coriolis force
 
      &           - CORI_EL(L)*QX_IN
-            
+
 C.........4.) Wind and pressure forcing (in x and y)
 
             IF (NWS.NE.0) THEN
@@ -350,10 +373,10 @@ C.........5) Tidal potential forcing (in x and y)
 
             IF (NTIP.NE.0) THEN
 
-               SOURCE_X = SOURCE_X + 
+               SOURCE_X = SOURCE_X +
      $              RAMPDG*G*DEPTH*SFACQUAD*( DPSIDX(1)*TIP2(N1)
      &              + DPSIDX(2)*TIP2(N2) + DPSIDX(3)*TIP2(N3) )
-               
+
                SOURCE_Y = SOURCE_Y + RAMPDG*G*DEPTH*( DPSIDY(1)*TIP2(N1)
      &              + DPSIDY(2)*TIP2(N2) + DPSIDY(3)*TIP2(N3) )
             ENDIF
@@ -361,14 +384,14 @@ C.........5) Tidal potential forcing (in x and y)
             sourceqx(l)=sourceqx(l)+source_x
             sourceqy(l)=sourceqy(l)+source_y
 
-C.........6) Chemical mass action  
+C.........6) Chemical mass action
 
-#ifdef CHEM     
+#ifdef CHEM
             MassAction1st = 0.D0
             MassAction2nd = 0.D0
 
             MassMax(L) = 0.D0
-            
+
             rate = reaction_rate*1.D0/86400.D0
 
             MassAction1st =  rate*(max(iota2_IN,0.D0)*max(iota_IN,0.D0))
@@ -378,20 +401,20 @@ C.........6) Chemical mass action
 
 C.........Build the rhs
 
-            RHS_iota(1,L,IRK) = RHS_iota(1,L,IRK) 
+            RHS_iota(1,L,IRK) = RHS_iota(1,L,IRK)
      &           + MassAction1st*SRFAC(1,I,L,pa)*FH_NL
-            RHS_iota2(1,L,IRK) = RHS_iota2(1,L,IRK) 
-     &           + MassAction2nd*SRFAC(1,I,L,pa)*FH_NL  
+            RHS_iota2(1,L,IRK) = RHS_iota2(1,L,IRK)
+     &           + MassAction2nd*SRFAC(1,I,L,pa)*FH_NL
 #endif
 
 
             RHS_QX(1,L,IRK) = RHS_QX(1,L,IRK) + SRFAC(1,I,L,pa)*SOURCE_X
             RHS_QY(1,L,IRK) = RHS_QY(1,L,IRK) + SRFAC(1,I,L,pa)*SOURCE_Y
-            
+
             DO K = 2,DOFS(L)
 
                RHS_ZE(K,L,IRK) = RHS_ZE(K,L,IRK) + XFAC(K,I,L,pa)*FX_IN
-     &              + YFAC(K,I,L,pa)*FY_IN 
+     &                + YFAC(K,I,L,pa)*FY_IN
                RHS_QX(K,L,IRK) = RHS_QX(K,L,IRK) + XFAC(K,I,L,pa)*GX_IN
      &              + YFAC(K,I,L,pa)*GY_IN + SRFAC(K,I,L,pa)*SOURCE_X
                RHS_QY(K,L,IRK) = RHS_QY(K,L,IRK) + XFAC(K,I,L,pa)*HX_IN
@@ -401,7 +424,7 @@ C.........Build the rhs
 
                do ll = 1,layers !only really makes sense for single layer
 
-                  RHS_bed(K,L,IRK,ll) = RHS_bed(K,L,IRK,ll) 
+                  RHS_bed(K,L,IRK,ll) = RHS_bed(K,L,IRK,ll)
      &                 + XFAC(K,I,L,pa)*(discharge_modelX_IN+MZ_X(ll)*
      &                 SFACQUAD) + YFAC(K,I,L,pa)*
      &                 (discharge_modelY_IN+MZ_Y(ll))
@@ -410,35 +433,36 @@ C.........Build the rhs
 #endif
 
 #ifdef TRACE
-               RHS_iota(K,L,IRK) = RHS_iota(K,L,IRK) 
-     &             + XFAC(K,I,L,pa)*(iota_IN*QX_IN*FH_NL+TZ_X*SFACQUAD) 
-     &             + YFAC(K,I,L,pa)*(iota_IN*QY_IN*FH_NL+TZ_Y) 
+               RHS_iota(K,L,IRK) = RHS_iota(K,L,IRK)
+     &             + XFAC(K,I,L,pa)*(iota_IN*QX_IN*FH_NL+TZ_X*SFACQUAD)
+     &             + YFAC(K,I,L,pa)*(iota_IN*QY_IN*FH_NL+TZ_Y)
 #endif
 
 #ifdef CHEM
-               RHS_iota(K,L,IRK) = RHS_iota(K,L,IRK) 
-     &              + XFAC(K,I,L,pa)*iota_IN*QX_IN*FH_NL 
-     &              + YFAC(K,I,L,pa)*iota_IN*QY_IN*FH_NL 
-     &              + MassAction1st*SRFAC(K,I,L,pa)*FH_NL 
-               
-               RHS_iota2(K,L,IRK) = RHS_iota2(K,L,IRK) 
-     &              + XFAC(K,I,L,pa)*iota2_IN*QX_IN*FH_NL      
-     &              + YFAC(K,I,L,pa)*iota2_IN*QY_IN*FH_NL 
-     &              + MassAction2nd*SRFAC(K,I,L,pa)*FH_NL 
+               RHS_iota(K,L,IRK) = RHS_iota(K,L,IRK)
+     &              + XFAC(K,I,L,pa)*iota_IN*QX_IN*FH_NL
+     &              + YFAC(K,I,L,pa)*iota_IN*QY_IN*FH_NL
+     &              + MassAction1st*SRFAC(K,I,L,pa)*FH_NL
+
+               RHS_iota2(K,L,IRK) = RHS_iota2(K,L,IRK)
+     &              + XFAC(K,I,L,pa)*iota2_IN*QX_IN*FH_NL
+     &              + YFAC(K,I,L,pa)*iota2_IN*QY_IN*FH_NL
+     &              + MassAction2nd*SRFAC(K,I,L,pa)*FH_NL
 #endif
 
 #ifdef DYNP
-               RHS_dynP(K,L,IRK) = RHS_dynP(K,L,IRK) 
-     &              + XFAC(K,I,L,pa)*dynP_IN*QX_IN*FH_NL 
+               RHS_dynP(K,L,IRK) = RHS_dynP(K,L,IRK)
+     &              + XFAC(K,I,L,pa)*dynP_IN*QX_IN*FH_NL
      &              + YFAC(K,I,L,pa)*dynP_IN*QY_IN*FH_NL
-     &              + subphi_IN*SRFAC(K,I,L,pa)*FH_NL 
+     &              + subphi_IN*SRFAC(K,I,L,pa)*FH_NL
 #endif
-               
-            ENDDO
-            
-         ENDDO  
 
-         
- 1000 CONTINUE      
+            ENDDO
+
+         ENDDO
+
+
+ 1000 CONTINUE
+      !print *, "max source = ", source_max
       RETURN
       END SUBROUTINE

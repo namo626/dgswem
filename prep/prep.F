@@ -1656,6 +1656,80 @@ C
       RETURN
       END
 
+      
+C---------------------------------------------------------------------------
+      SUBROUTINE PREP20()
+C---------------------------------------------------------------------------
+      USE PRE_GLOBAL
+      use memory_usage
+      IMPLICIT NONE
+      integer :: nbytes = 0
+      INTEGER IPROC
+      INTEGER INDEX14, I, FLUX_NUM
+      REAL(SZ)  FLUX_INC, FLUX_VAL
+      CHARACTER(80) :: FLUX_MSG
+      INTEGER SDU(NPROC)  ! subdomain unit numbers
+      LOGICAL Success     ! .true. if all files open without error
+      ! LOGICAL,optional :: sponge !.true. if want to prep fort.2001
+      INTEGER INDX ! full domain node number for a flow boundary node
+      INTEGER J     ! counter for subdomains that corrsp. to a single f.d. node
+      INTEGER IPROC2! PE of a subdomain that matches a single full domain node
+      INTEGER PROC_NO ! proc number is 20 unless specified 
+
+      proc_no = 20;
+      FLUX_NUM = NFLBN
+C     Open full domain and subdomain fort.20 files
+
+      CALL OpenPrepFiles(proc_no, 'aperiodic flux boundary       ',
+     &     nproc, SDU, Success)
+      IF (.not.Success) THEN
+         WRITE(*,*) 'WARNING: Unit 20 files not preprocessed.'
+         RETURN ! note early return
+      ENDIF
+c
+c     Write Increment into all flux files
+c
+      READ(proc_no,*) FLUX_INC
+      DO IPROC=1,NPROC
+         WRITE(SDU(IPROC),*) FLUX_INC
+      ENDDO
+C
+C     jgf45.12 Write each full domain nodal flux value into each of the
+C     subdomains that that full domain node maps to. The full domain
+C     node may map to more than one subdomain node if it falls on a
+C     boundary between subdomains (ghost nodes).
+C
+ 33   DO I = 1, FLUX_NUM             ! loop through full domain flow nodes
+!         READ(20,*,END=40) FLUX_VAL ! get a flo val for this f.d. flow node
+         READ(proc_no,'(A80)',END=40) FLUX_MSG ! get a flo val for this f.d. flow node
+         INDX = FLBN(I)      ! get full domain flow node number
+
+         DO J=1, ITOTPROC(INDX)    ! loop over subdomains for 1 f.d. node
+            IPROC2 = IMAP_NOD_GL2(2*(J-1)+1,INDX) ! find next subdomain
+            DO IPROC=1, NPROC
+               IF (IPROC.EQ.IPROC2) THEN ! full domain node maps to this s.d.
+                  !WRITE(SDU(IPROC),50) FLUX_VAL
+                  WRITE(SDU(IPROC),*) TRIM(FLUX_MSG)
+               ENDIF
+            END DO
+         END DO
+      END DO
+      GOTO 33
+ 40   CLOSE (proc_no)
+      DO IPROC=1, NPROC
+         CLOSE (SDU(IPROC))
+      ENDDO
+
+      return
+
+ 50   FORMAT (F16.8,1x,I6,1x,I6,1x,I6)
+c----------------------------------------------------------------------------
+      END SUBROUTINE PREP20
+c----------------------------------------------------------------------------
+
+
+
+
 
       SUBROUTINE PREP21()
       USE PRE_GLOBAL 
@@ -2874,6 +2948,7 @@ C     Open each of the subdomain files
             RETURN ! failed to open at least one subdomain file
          ENDIF
       ENDDO
+
 
  2    FORMAT(I2)
  30   FORMAT(A30)

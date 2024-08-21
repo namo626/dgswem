@@ -1,0 +1,21 @@
+#!/bin/bash
+#SBATCH --time=10:00:00
+#SBATCH --nodes=20
+#SBATCH --ntasks-per-node=40
+#SBATCH --constraint=40core
+##SBATCH --mem=10000mb
+
+#SBATCH --job-name=myjob
+#SBATCH --account=PAS0427
+#SBATCH --mail-type=ALL ##BEGIN,END,NONE,FAIL,ALL
+
+cd $SLURM_SUBMIT_DIR
+
+module load hdf5
+module load netcdf
+module load pnetcdf
+
+/usr/bin/time mpiexec $SLURM_SUBMIT_DIR/dgswem
+#/usr/bin/time mpiexec $SLURM_SUBMIT_DIR/padcswan
+#/usr/bin/time ./adcirc
+
