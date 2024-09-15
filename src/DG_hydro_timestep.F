@@ -24,10 +24,19 @@ C***********************************************************************
       SUBROUTINE DG_HYDRO_TIMESTEP(IT)
 
 C.....Use appropriate modules
-      
+
+      use cudafor
       USE GLOBAL
       USE DG
+      use slopelimiters, only : slopelimiter5
       USE precipitation, only : prec2
+      use rhs_dg, only : rhs_dg_hydro
+      use land_dg, only : land_edge_hydro
+      use internal_edge_dg, only : internal_edge_hydro
+      use ebarrier_dg, only : ebarrier_edge_hydro
+      use ibarrier_dg, only : ibarrier_edge_hydro
+      USE NodalAttributes, ONLY : TAU, IFLINBF, IFHYBF, HBREAK, FTHETA,
+     &     FGAMMA,LoadManningsN,ManningsN,CF
 
 #ifdef CMPI
       USE MESSENGER_ELEM 
@@ -44,6 +53,7 @@ Casey 101118: Add variables for coupling to SWAN.
 C.....Declare local variables
 
       real(sz) avg_rain
+      integer istat
 
       INTEGER IT,L,GED,NBOREL,NNBORS,NDRYNBORS,NQEDS,Istop,k,j,kk,i,mm
       INTEGER Detected,flagger,store
@@ -209,7 +219,9 @@ C.......Compute elevation specified edges
 
 C.......Compute no-normal flow edges
 
-         IF (NLEDS.GT.0)  CALL LAND_EDGE_HYDRO(IT)
+         IF (NLEDS.GT.0)  CALL LAND_EDGE_HYDRO<<<nleds/128+1, 128>>>(
+     &        IT, irk, nleds, g, nleq, leq, nleqg, fg_l, layers
+     &  )
 
 C.......Compute non-zero flow edges
 
@@ -220,25 +232,37 @@ C.......Compute radiation edges
 
 C.......Compute internal barrier edges
 
-         IF (NIBEDS.GT.0) CALL IBARRIER_EDGE_HYDRO(IT)
+         IF (NIBEDS.GT.0) CALL IBARRIER_EDGE_HYDRO<<<nibseg/128+1,128>>>(
+     &        IT, irk, nibseg, g, leq, nleq, nleqg, fg_l, rampdg
+     &  )
          
 C.......Compute external barrier edges
 
-         IF (NEBEDS.GT.0) CALL EBARRIER_EDGE_HYDRO(IT)
+         IF (NEBEDS.GT.0) CALL EBARRIER_EDGE_HYDRO<<<nebseg/128+1,128>>>(
+     &        IT, irk, nebseg, g, leq, nleq, nleqg, fg_l, rampdg
+     &    )
          
 C.......Compute internal edges
 
-         CALL INTERNAL_EDGE_HYDRO(IT)
+         call INTERNAL_EDGE_HYDRO<<<NIEDS/128+1,128>>>(
+     &        IT, IRK, NIEDS, G, DOFH, nleq, leq, nleqg, fg_l, layers
+     &   )
 
 C.......Compute elements to finish building the rhs
          
-         CALL RHS_DG_HYDRO(IT)
+         CALL RHS_DG_HYDRO<<<NE/128+1,128>>>(
+     &      IT, DTDP, IRK, NE,
+     &     NLEQ, LEQ, NLEQG, G, NWS, NTIP, rampdg, fg_l, cf, tau, iflinbf, ifhybf,
+     &        hbreak, ftheta, fgamma, layers, rainfall, loadManningsN
+     &   )
 
+         istat = cudaDeviceSynchronize()
 C.......SSP Runge-Kutta Time Scheme
 
          DO I = 1,IRK
             ARK = ATVD(IRK,I)
             BRK = BTVD(IRK,I)*DT
+            !$cuf kernel do(2) <<< *, (128,1) >>>
             DO J = 1,NE
                DO K = 1,DOFS(J)
 
@@ -287,6 +311,7 @@ C.......Compute the dynamic pressure if flagged
 
                ENDDO
             ENDDO
+         istat = cudaDeviceSynchronize()
          ENDDO
 
 #endif
@@ -520,7 +545,9 @@ C.......Apply the slopelimiter if appropriate
 #endif
 
 #ifdef SLOPE5
-         CALL SLOPELIMITER() 
+         !CALL SLOPELIMITER5<<<NE/128+1, 128>>>(irk, ne, np, maxel)
+         CALL SLOPELIMITER5(irk, ne, np, maxel)
+         istat = cudaDeviceSynchronize()
 #endif
 
 #ifdef STBLZR
@@ -677,8 +704,8 @@ C......Filter chemistry transported terms if flagged
 #endif
       
 
+      !$cuf kernel do(2) <<<*, (128,1) >>>
       DO J = 1,MNE
-         
          DO K = 1,DOFS(J)
             ZE(K,J,1) = ZE(K,J,NRK+1)
             QX(K,J,1) = QX(K,J,NRK+1)
@@ -701,16 +728,9 @@ C......Filter chemistry transported terms if flagged
             bed(K,J,1,:) = bed(K,J,NRK+1,:)
 #endif
          ENDDO
-         ! namo - 5/22 add rain to dry elements manually
-         !IF (WDFLG(J) .EQ. 0) THEN
-         !  N1 = NM(J,1)
-         !  N2 = NM(J,2)
-         !  N3 = NM(J,3)
-         !  avg_rain = DTDP*(1./3)*(PREC2(N1) + PREC2(N2) + PREC2(N3))
-         !  ZE(1,J,1) = ZE(1,J,1) + avg_rain
-         !END IF
       ENDDO
 
+      !$cuf kernel do(3) <<< *, 128 >>>
       DO KK = 2,NRK+1
          DO J = 1,MNE
             DO K = 1,DOFH
@@ -747,6 +767,8 @@ C......Filter chemistry transported terms if flagged
             ENDDO
          ENDDO
       ENDDO
+
+      istat = cudaDeviceSynchronize()
 
       RETURN
       END SUBROUTINE

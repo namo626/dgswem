@@ -23,27 +23,41 @@ C     06-02-2012 - cem - adapted for sediment
 C     
 C***********************************************************************
 
-      SUBROUTINE LAND_EDGE_HYDRO(IT)
+      module land_dg
+
+      Use SIZES, only: layers, sz
+      use flux_dg, only : llf_flux
+      use dg, only : cosnx, sinnx, negp, ze, qx, qy, rhs_ze, rhs_qx, rhs_qy, wdflg,
+     &   sfaced, bathed, dofs, phi_edge, xlen, wegp, m_inv, nedel, nedsd, nledn, lz
+      use global, only : pdg_el, areas
+
+      contains
+
+      attributes(global) SUBROUTINE LAND_EDGE_HYDRO(IT, irk, nleds, g, nleq, leq, nleqg, fg_l, layers)
 
 C.....Use appropriate modules
 
-      USE GLOBAL
-      USE DG
-      Use SIZES, only: layers
 
       IMPLICIT NONE
 
+      integer, value :: it, irk, nleds, layers
+      real(sz), value :: g, nleq, leq, nleqg, fg_l
+
 C.....Declare local variables
 
-      INTEGER L, LED, GED, i,k,jj,II,ll,IT,mm
+      INTEGER L, LED, GED, i,k,jj,II,ll,mm, pa, test_el, el_in
+      real(sz) :: nx, ny, ze_in, ze_ex, q_n_int, q_t_int, q_n_ext, q_t_ext
+      real(sz) :: qx_ex, qy_ex, hb_ex, sfac_ex, sfac_in, f_hat, g_hat, h_hat
+      real(sz) :: qx_in, qy_in, hb_in, tmp
       Real(SZ) DEN2,U_AVG,V_AVG,VEL_NORMAL,q_RoeX, q_RoeY, q_Roe
       REAL(SZ) TX, TY, DEN,ell_1,ell_2,ell_3,HZ_X_IN,HZ_Y_IN
       REAL(SZ) LZ_XX_IN, LZ_XY_IN, LZ_YX_IN, LZ_YY_IN,W_IN
       Real(SZ) MZ_X_IN(layers),MZ_Y_IN(layers),TZ_X_IN,TZ_Y_IN
 
       test_el = 0
-      DO 1000 L = 1,NLEDS
-         
+      L = (blockidx%x-1)*blockdim%x + threadidx%x
+      thread: if (L <= NLEDS) then
+
 C.....Retrieve the global and local edge number
 
          GED = NLEDN(L)
@@ -63,7 +77,7 @@ C.....Retrieve the elements which share the edge
          
 C.....If the element is dry then skip the edge calculation
 
-         IF (WDFLG(EL_IN).EQ.0) GOTO 1000
+         IF (WDFLG(EL_IN).EQ.0) return
 
          test_el = test_el+1
 
@@ -232,7 +246,11 @@ C.....Compute the x and y components of the external state flow
 
 C.....Compute the Roe flux
 
-            CALL NUMERICAL_FLUX(IT,test_el)
+            !CALL NUMERICAL_FLUX(IT,test_el)
+            call LLF_FLUX(ze_ex, ze_in, qx_ex, qx_in, qy_ex, qy_in,
+     &           hb_in, hb_ex, nx, ny, G, nleq, leq, nleqg, fg_l,
+     &           sfac_in, sfac_ex,
+     &           f_hat, g_hat, h_hat)
 
 C.....Add LDG terms for viscosity
 
@@ -264,9 +282,9 @@ C.....Compute the edge integral
                W_IN = 2.0d0*M_INV(K,pa)/AREAS(EL_IN)*XLEN(GED)*
      &              PHI_EDGE(K,I,LED,pa)*WEGP(I,pa)
 
-               RHS_ZE(K,EL_IN,IRK) = RHS_ZE(K,EL_IN,IRK) - W_IN*F_HAT
-               RHS_QX(K,EL_IN,IRK) = RHS_QX(K,EL_IN,IRK) - W_IN*G_HAT
-               RHS_QY(K,EL_IN,IRK) = RHS_QY(K,EL_IN,IRK) - W_IN*H_HAT
+               tmp = atomicAdd(RHS_ZE(K,EL_IN,IRK),-W_IN*F_HAT)
+               tmp = atomicAdd(RHS_QX(K,EL_IN,IRK),-W_IN*G_HAT)
+               tmp = atomicAdd(RHS_QY(K,EL_IN,IRK),-W_IN*H_HAT)
 
 #ifdef TRACE
                RHS_iota(K,EL_IN,IRK) = RHS_iota(K,EL_IN,IRK) - W_IN*I_HAT
@@ -292,7 +310,11 @@ C.....Compute the edge integral
 
          ENDDO
 
+      endif thread
+
  1000 CONTINUE
       
       RETURN
       END SUBROUTINE
+
+      end module

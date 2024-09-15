@@ -343,7 +343,7 @@ ifeq ($(compiler),nvhpc)   # NVIDIA
   PPFC	        :=  nvfortran
   FC	        :=  nvfortran
   PFC	        :=  mpif90
-  FFLAGS1	:=  -Mextend -traceback -g -O3
+  FFLAGS1	:=  -Mextend -traceback -g -O0 -cuda  -gpu=lineinfo -r8
   FFLAGS2	:=  $(FFLAGS1)
   FFLAGS3	:=  $(FFLAGS1)
   FFLAGS4	:=  $(FFLAGS1)

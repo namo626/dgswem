@@ -91,6 +91,9 @@ COUP_MSRC  =  couple2swan.F
 RAIN_MSRC = precipitation.F
 # namo
 OWIRAIN_MSRC = owi_rain.F
+SOLVE_MSRC = rhs_dg_hydro.F internal_edge_hydro.F land_edge_hydro.F ibarrier_edge_hydro.F ebarrier_edge_hydro.F
+FLUX_MSRC = numerical_flux.F
+SLOPE_MSRC = slopelimiter.F
 
 PREP_MOBJ:= $(patsubst %.F, $(O_DIR)%.o, $(PREP_MSRC) )
 PGLO_MOBJ:= $(patsubst %.F, $(O_DIR)%.o, $(PGLO_MSRC) )
@@ -105,6 +108,9 @@ COUP_MOBJ := $(patsubst %.F, $(O_DIR)%.o, $(COUP_MSRC)  )
 # namo
 RAIN_MOBJ := $(patsubst %.F, $(O_DIR)%.o, $(RAIN_MSRC)  )
 OWIRAIN_MOBJ := $(patsubst %.F, $(O_DIR)%.o, $(OWIRAIN_MSRC)  )
+SOLVE_MOBJ := $(patsubst %.F, $(O_DIR)%.o, $(SOLVE_MSRC))
+FLUX_MOBJ := $(patsubst %.F, $(O_DIR)%.o, $(FLUX_MSRC))
+SLOPE_MOBJ := $(patsubst %.F, $(O_DIR)%.o, $(SLOPE_MSRC))
 
 ############################# Source & Object Files ##############################
 
@@ -113,16 +119,15 @@ METIS2_SRC =  metis2.F
 PREP_SRC   =  adcprep.F  decomp.F   read_global.F   prep.F   interp.F  machdep.F
 POST_SRC   =  adcpost.F    post.F  compare.F  diffmerge.F
 ADC_SRC    =  dgswem.F owiwind.F read_input.F cstart.F hstart.F radiation_edge_hydro.F \
-	ibarrier_edge_hydro.F ebarrier_edge_hydro.F  \
 	calc_normal.F create_edge_data.F detector.F \
 	DG_timestep.F DG_hydro_timestep.F \
 	edge_int_hydro.F flow_edge_hydro.F \
-	internal_edge_hydro.F land_edge_hydro.F \
 	ocean_edge_hydro.F \
 	orthogonal_basis_v1.F p_enrichment.F prep_DG.F quadrature_v1.F \
-	radiation_edge_hydro.F read_input.F rhs_dg_hydro.F quad_rules_general.F \
-	numerical_flux.F tidal_potential.F write_results.F \
-	slopelimiter.F prep_slopelim.F \
+	radiation_edge_hydro.F read_input.F \
+	quad_rules_general.F \
+	tidal_potential.F write_results.F \
+	prep_slopelim.F \
 	wetdry.F LDG_hydro.F met_forcing.F sta_basis.F modal2nodal.F write_output.F
 #Casey 121126: Added modal2nodal.F and write_output.F to the previous line.
 
@@ -332,12 +337,12 @@ $(O_DIR)calc_normal.o         	:  calc_normal.F $(ADC_MOBJ)
 $(O_DIR)create_edge_data.o    	:  create_edge_data.F $(ADC_MOBJ)
 $(O_DIR)detector.o	      	:  detector.F $(ADC_MOBJ)
 $(O_DIR)DG_timestep.o         	:  DG_timestep.F $(ADC_MOBJ)
-$(O_DIR)DG_hydro_timestep.o   	:  DG_hydro_timestep.F $(ADC_MOBJ)
+$(O_DIR)DG_hydro_timestep.o   	:  DG_hydro_timestep.F  $(ADC_MOBJ) $(SOLVE_MOBJ) $(SLOPE_MOBJ)
 $(O_DIR)edge_int_hydro.o      	:  edge_int_hydro.F $(ADC_MOBJ)
-$(O_DIR)flow_edge_hydro.o     	:  flow_edge_hydro.F $(ADC_MOBJ)
-$(O_DIR)internal_edge_hydro.o 	:  internal_edge_hydro.F $(ADC_MOBJ)
-$(O_DIR)land_edge_hydro.o     	:  land_edge_hydro.F $(ADC_MOBJ)
-$(O_DIR)ocean_edge_hydro.o    	:  ocean_edge_hydro.F $(ADC_MOBJ)
+$(O_DIR)flow_edge_hydro.o     	:  flow_edge_hydro.F $(ADC_MOBJ) $(FLUX_MOBJ)
+$(O_DIR)internal_edge_hydro.o 	:  internal_edge_hydro.F $(ADC_MOBJ) $(FLUX_MOBJ)
+$(O_DIR)land_edge_hydro.o     	:  land_edge_hydro.F $(ADC_MOBJ) $(FLUX_MOBJ)
+$(O_DIR)ocean_edge_hydro.o    	:  ocean_edge_hydro.F $(ADC_MOBJ) $(FLUX_MOBJ)
 $(O_DIR)orthogonal_basis_v1.o   :  orthogonal_basis_v1.F $(ADC_MOBJ)
 $(O_DIR)p_enrichment.o     	:  p_enrichment.F $(ADC_MOBJ)
 $(O_DIR)prep_DG.o             	:  prep_DG.F $(ADC_MOBJ)
@@ -346,10 +351,10 @@ $(O_DIR)quad_rules_general.o     :  quad_rules_general.F $(ADC_MOBJ)
 $(O_DIR)read_input.o          	:  read_input.F $(ADC_MOBJ)
 $(O_DIR)rhs_dg_hydro.o        	:  rhs_dg_hydro.F $(ADC_MOBJ)
 $(O_DIR)numerical_flux.o      	:  numerical_flux.F $(ADC_MOBJ)
-$(O_DIR)radiation_edge_hydro.o	:  radiation_edge_hydro.F $(ADC_MOBJ)
+$(O_DIR)radiation_edge_hydro.o	:  radiation_edge_hydro.F $(ADC_MOBJ) $(FLUX_MOBJ)
 $(O_DIR)tidal_potential.o     	:  tidal_potential.F $(ADC_MOBJ)
-$(O_DIR)ibarrier_edge_hydro.o 	:  ibarrier_edge_hydro.F $(ADC_MOBJ)
-$(O_DIR)ebarrier_edge_hydro.o       :  ebarrier_edge_hydro.F $(ADC_MOBJ)
+$(O_DIR)ibarrier_edge_hydro.o 	:  ibarrier_edge_hydro.F $(ADC_MOBJ) $(FLUX_MOBJ)
+$(O_DIR)ebarrier_edge_hydro.o       :  ebarrier_edge_hydro.F $(ADC_MOBJ) $(FLUX_MOBJ)
 $(O_DIR)write_results.o             :  write_results.F $(ADC_MOBJ)
 $(O_DIR)pdg_debug.o                 :  pdg_debug.F  $(ADC_MOBJ) $(MSG_MOBJ)
 $(O_DIR)ghost_internal_edge_hydro.o :  ghost_internal_edge_hydro.F  $(ADC_MOBJ) $(MSG_MOBJ)

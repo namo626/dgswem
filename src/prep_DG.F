@@ -76,6 +76,8 @@ C.....Declare local variables
       C16 = 1.D0/6.D0
       R = 6378206.4d0
 
+      call alloc_managed()
+
 C     sb-PDG1 moved from other places
 
 C.....Obtain RK time scheme parameters

@@ -24,6 +24,7 @@ C.....Use appropriate modules
       USE GLOBAL
       USE DG
       USE sizes, ONLY: myproc,layers
+      use flux_dg, only : numerical_flux
       IMPLICIT NONE
 
 C.....Declare local variables

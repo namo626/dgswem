@@ -18,20 +18,33 @@ C                        transport sediment across weirs
 C     
 C***********************************************************************
 
-      SUBROUTINE IBARRIER_EDGE_HYDRO(IT)
-      
-C.....Use appropriate modules
+      module ibarrier_dg
 
-      USE GLOBAL
-      USE DG
-      USE SIZES, ONLY:  MYPROC, layers
+      USE SIZES, ONLY:  MYPROC, layers, sz
+      use flux_dg, only : llf_flux
+      use dg, only : rhs_ze, rhs_qx, rhs_qy, ze, qx, qy, nibsegn, nedel, nedsd,
+     &     wdflg, cosnx, sinnx, dofs, negp, bathed, phi_edge, sfaced, ibht, nedno,
+     &   ibcfsp, xlen, wegp, m_inv, ibcfsb
+      use global, only : pdg_el, barmin, areas
+
+      contains
+
+      attributes(global) SUBROUTINE IBARRIER_EDGE_HYDRO(IT, irk, nibseg, g, leq, nleq, nleqg, fg_l, rampdg)
+      
+
 
       IMPLICIT NONE
 
+      integer, value :: it, irk, nibseg
+      real(sz), value :: g, leq, nleq, nleqg, fg_l, rampdg
+
 C.....Declare local variables
 
+      real(sz) :: ze_in, ze_ex, qx_in, qx_ex, qy_in, qy_ex, hb_in, hb_ex, nx, ny
+      real(sz) :: sfac_in, sfac_ex, q_n_ext, f_hat, g_hat, h_hat, q_t_ext, tmp
+      integer :: test_el, el, pa
       INTEGER GEDB, GEDF, LEDB, LEDF, ELB, ELF, GPB, GPF, L, WEIR_FLOW
-      INTEGER IT, NB1, NB2, NF1, NF2,i,k,ll
+      INTEGER  NB1, NB2, NF1, NF2,i,k,ll
       REAL(SZ) ZEB, QXB, QYB, HBB, ZEF, QXF, QYF, HBF
       REAL(SZ) SFACB,SFACF
       Real(SZ) iotaB, iota2B, iotaF, iota2F, dynPB, dynPF
@@ -39,7 +52,6 @@ C.....Declare local variables
       REAL(SZ) ib_hat,if_hat,jb_hat,jf_hat, kf_hat, kb_hat
       REAL(SZ) ABOVEB, ABOVEF
       REAL(SZ) QNIB(2)
-      REAL(SZ) NLEQG_TMP, G_TMP
       REAL(SZ) SUBSUPB, SUBSUPF, WEGPB, WEGPF
       REAL(SZ) NXB, NYB, NXF, NYF, TXB, TYB, TXF, TYF
       REAL(SZ) QB_N_INT, QF_N_INT, QB_N_EXT, QF_N_EXT
@@ -49,14 +61,15 @@ C.....Loop over the internal barrier segments (note: an internal barrier
 C.....segment consists of two internal barrier edges -- a "front" edge &
 C.....a "back" edge.
       test_el = 0
-      DO 1000 L = 1,NIBSEG
-         
+      L = (blockidx%x-1)*blockdim%x + threadidx%x
+      thread: if (L <= nibseg) then
+
 C.......Obtain the global and local edges of the back and front sides
 
          GEDB = NIBSEGN(1,L)
          GEDF = NIBSEGN(2,L)
 
-         if (gedf.eq.0) go to 1000
+         if (gedf.eq.0) return
          
          LEDB = NEDSD(1,GEDB)
          LEDF = NEDSD(1,GEDF)
@@ -69,6 +82,7 @@ C.......Obtain the elements of the back and front sides
          if (DOFS(ELB).LT.DOFS(ELF)) then
             EL = ELF
          endif
+         EL = ELF
 
          pa = PDG_EL(EL)
 
@@ -83,7 +97,7 @@ C.......Obtain the elements of the back and front sides
          
          NF1 = NEDNO(1,GEDF)
          NF2 = NEDNO(2,GEDF)
-         IF((WDFLG(ELB).EQ.0).AND.(WDFLG(ELF).EQ.0)) GOTO 1000
+         IF((WDFLG(ELB).EQ.0).AND.(WDFLG(ELF).EQ.0)) return
 
          test_el = test_el+1
 
@@ -330,7 +344,10 @@ C...........Compute the x and y components of the external state flow
 
 C...........Compute the numerical flux
                
-               CALL NUMERICAL_FLUX(IT,test_el)
+            call LLF_FLUX(ze_ex, ze_in, qx_ex, qx_in, qy_ex, qy_in,
+     &           hb_in, hb_ex, nx, ny, G, nleq, leq, nleqg, fg_l,
+     &           sfac_in, sfac_ex,
+     &           f_hat, g_hat, h_hat)
                FB_HAT = F_HAT
                GB_HAT = G_HAT
                HB_HAT = H_HAT
@@ -381,15 +398,22 @@ C...........Compute the numerical flux
 #endif
 
                   IF (WDFLG(ELF).EQ.0) THEN
-                     NLEQG_TMP = NLEQG
-                     NLEQG = 0.D0
-                     G_TMP = G
-                     G = 0.D0
-                  ENDIF
-                  CALL NUMERICAL_FLUX(IT,test_el)
+                     call LLF_FLUX(ze_ex, ze_in, qx_ex, qx_in, qy_ex, qy_in,
+     &                    hb_in, hb_ex, nx, ny, 0., nleq, leq, 0., fg_l,
+     &                    sfac_in, sfac_ex,
+     &                    f_hat, g_hat, h_hat)
+                  else
+                     call LLF_FLUX(ze_ex, ze_in, qx_ex, qx_in, qy_ex, qy_in,
+     &                    hb_in, hb_ex, nx, ny, G, nleq, leq, nleqg, fg_l,
+     &                    sfac_in, sfac_ex,
+     &                    f_hat, g_hat, h_hat)
+                  endif
+
+
                   FF_HAT = F_HAT
                   GF_HAT = G_HAT
                   HF_HAT = H_HAT
+
 
 #ifdef TRACE
                   IF_HAT = I_HAT
@@ -404,10 +428,6 @@ C...........Compute the numerical flux
                   KF_HAT = K_HAT
 #endif
 
-                  IF (WDFLG(ELF).EQ.0) THEN
-                     NLEQG = NLEQG_TMP
-                     G = G_TMP
-                  ENDIF
                   GOTO 200
                ENDIF
             ENDIF
@@ -457,7 +477,10 @@ C...........Compute the x and y components of the external state flow
                QX_EX = ( TYF*Q_N_EXT - NYF*Q_T_EXT)/(NXF*TYF - NYF*TXF)
                QY_EX = (-TXF*Q_N_EXT + NXF*Q_T_EXT)/(NXF*TYF - NYF*TXF)
 
-               CALL NUMERICAL_FLUX(IT,test_el)
+               call LLF_FLUX(ze_ex, ze_in, qx_ex, qx_in, qy_ex, qy_in,
+     &              hb_in, hb_ex, nx, ny, G, nleq, leq, nleqg, fg_l,
+     &              sfac_in, sfac_ex,
+     &              f_hat, g_hat, h_hat)
                FF_HAT = F_HAT
                GF_HAT = G_HAT
                HF_HAT = H_HAT
@@ -506,12 +529,16 @@ C...........Compute the x and y components of the external state flow
                   NX = NXB
                   NY = NYB
                   IF (WDFLG(ELB).EQ.0) THEN
-                     NLEQG_TMP = NLEQG
-                     NLEQG = 0.D0
-                     G_TMP = G
-                     G = 0.D0
-                  ENDIF
-                  CALL NUMERICAL_FLUX(IT,test_el)
+                     call LLF_FLUX(ze_ex, ze_in, qx_ex, qx_in, qy_ex, qy_in,
+     &                    hb_in, hb_ex, nx, ny, 0., nleq, leq, 0., fg_l,
+     &                    sfac_in, sfac_ex,
+     &                    f_hat, g_hat, h_hat)
+                  else
+                     call LLF_FLUX(ze_ex, ze_in, qx_ex, qx_in, qy_ex, qy_in,
+     &                    hb_in, hb_ex, nx, ny, G, nleq, leq, nleqg, fg_l,
+     &                    sfac_in, sfac_ex,
+     &                    f_hat, g_hat, h_hat)
+                  endif
                   FB_HAT = F_HAT
                   GB_HAT = G_HAT
 
@@ -528,10 +555,6 @@ C...........Compute the x and y components of the external state flow
                   KB_HAT = K_HAT
 #endif
 
-                  IF (WDFLG(ELB).EQ.0) THEN
-                     NLEQG = NLEQG_TMP
-                     G = G_TMP
-                  ENDIF
                   HB_HAT = H_HAT
                   GOTO 200
                ENDIF
@@ -546,13 +569,13 @@ c
                WEGPF = 2.0d0*M_INV(K,pa)/AREAS(ELF)*XLEN(GEDF)
      &              *PHI_EDGE(K,GPF,LEDF,pa)*WEGP(GPF,pa)
 
-               RHS_ZE(K,ELB,IRK) = RHS_ZE(K,ELB,IRK) - WEGPB*FB_HAT
-               RHS_QX(K,ELB,IRK) = RHS_QX(K,ELB,IRK) - WEGPB*GB_HAT
-               RHS_QY(K,ELB,IRK) = RHS_QY(K,ELB,IRK) - WEGPB*HB_HAT
+               tmp = atomicAdd(RHS_ZE(K,ELB,IRK), -WEGPB*FB_HAT)
+               tmp = atomicAdd(RHS_QX(K,ELB,IRK), -WEGPB*GB_HAT)
+               tmp = atomicAdd(RHS_QY(K,ELB,IRK), -WEGPB*HB_HAT)
 
-               RHS_ZE(K,ELF,IRK) = RHS_ZE(K,ELF,IRK) - WEGPF*FF_HAT
-               RHS_QX(K,ELF,IRK) = RHS_QX(K,ELF,IRK) - WEGPF*GF_HAT
-               RHS_QY(K,ELF,IRK) = RHS_QY(K,ELF,IRK) - WEGPF*HF_HAT
+               tmp = atomicAdd(RHS_ZE(K,ELF,IRK), -WEGPF*FF_HAT)
+               tmp = atomicAdd(RHS_QX(K,ELF,IRK), -WEGPF*GF_HAT)
+               tmp = atomicAdd(RHS_QY(K,ELF,IRK), -WEGPF*HF_HAT)
 
 #ifdef TRACE
                RHS_iota(K,ELB,IRK) = RHS_iota(K,ELB,IRK) - WEGPB*IB_HAT
@@ -574,6 +597,9 @@ c
 
             ENDDO
          ENDDO
- 1000 CONTINUE
+      endif thread
+
       RETURN
       END SUBROUTINE IBARRIER_EDGE_HYDRO
+
+      end module

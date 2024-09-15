@@ -12,6 +12,10 @@ C     06-01-2012 - cem - New fluxes, sediment, etc.
 C     
 C***********************************************************************
 
+      module flux_dg
+
+      contains
+
       SUBROUTINE NUMERICAL_FLUX(IT,MM)
       
       USE DG,ONLY : FLUXTYPE
@@ -24,7 +28,7 @@ C***********************************************************************
       IF(FLUXTYPE.EQ.1) THEN
          CALL ROE_FLUX(IT,MM)
       ELSEIF(FLUXTYPE.EQ.2) THEN
-         CALL LLF_FLUX()
+         !CALL LLF_FLUX()
       ELSEIF (FLUXTYPE.EQ.3) THEN
          CALL HLLC_FLUX()
       ELSEIF (FLUXTYPE.EQ.4) THEN
@@ -748,16 +752,21 @@ C     Written by Ethan Kubatko (07-15-2005)
 C     
 C***********************************************************************
 
-      SUBROUTINE LLF_FLUX()
+      attributes(host,device) SUBROUTINE LLF_FLUX(ze_ex, ze_in, qx_ex, qx_in, qy_ex, qy_in,
+     &   hb_in, hb_ex, nx, ny, G, nleq, leq, nleqg, fg_l,
+     &   sfac_in, sfac_ex,
+     &   f_hat, g_hat, h_hat)
 
 C.....Use appropriate modules
 
-      USE GLOBAL
-      USE DG
-      use sizes, only: layers
+      use sizes, only: layers, sz
 
       IMPLICIT NONE
 
+      real(sz), intent(in) :: ze_ex, ze_in, qx_ex, qx_in, qy_ex, qy_in
+      real(sz), intent(in) :: hb_in, hb_ex, nx, ny, G, nleq, leq, nleqg, fg_l
+      real(sz), intent(in) :: sfac_in, sfac_ex
+      real(sz), intent(out) :: f_hat, g_hat, h_hat
 
 C.....Declare local variables
 
@@ -775,6 +784,7 @@ C.....Declare local variables
       Real(SZ) discharge_modelY_IN,discharge_modelY_EX
       Real(SZ) rVncU,rVncV,lambda1_IN,lambda1_EX,lambda2_IN,lambda2_EX
       Real(SZ) lambda3_IN,lambda3_EX,Select_IN,Select_EX
+      real(sz) :: jump(3), ht_in, ht_ex, u_in, u_ex, v_in, v_ex
 
 C.....Compute the jump in the variables
 
@@ -1764,3 +1774,5 @@ C.......Compute y momentum fluxes at exterior state
       END SUBROUTINE
       
       
+
+      end module flux_dg

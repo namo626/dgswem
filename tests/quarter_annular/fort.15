@@ -20,7 +20,7 @@
  50 !174.656                             ! DT - TIME STEP (IN SECONDS)
  0.00                                ! STATIM - STARTING TIME (IN DAYS)
  0.00                                ! REFTIM - REFERENCE TIME (IN DAYS)
- 5.0                                 ! RNDAY - TOTAL LENGTH OF SIMULATION (IN DAYS)
+ 2.0                                 ! RNDAY - TOTAL LENGTH OF SIMULATION (IN DAYS)
  2.0                                 ! DRAMP - DURATION OF RAMP FUNCTION (IN DAYS)
  0.35 0.30 0.35                      ! TIME WEIGHTING FACTORS FOR THE GWCE EQUATION
  1.0                                 ! H0 - MIMINMUM CUTOFF DEPTH

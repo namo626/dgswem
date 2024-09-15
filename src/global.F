@@ -102,7 +102,7 @@ C
       
       INTEGER ScreenUnit
       
-      REAL(SZ) AREA_SUM, CEN_SUM, NLEQ, LEQ, NLEQG
+      REAL(SZ) :: AREA_SUM, CEN_SUM, NLEQ, LEQ, NLEQG
       REAL(SZ), TARGET :: reaction_rate
       Character*100, TARGET :: sed_equationX,sed_equationY
       
@@ -118,9 +118,9 @@ C     jgf46.08 Fine grained ramp functions (jgf46.21 split flux b.c.s)
 
 C.....Create allocatable arrays
 
-      REAL(SZ),ALLOCATABLE :: ANGTAB(:,:),CENTAB(:,:),ELETAB(:,:)
+      REAL(SZ),ALLOCATABLE, managed :: ANGTAB(:,:),CENTAB(:,:),ELETAB(:,:)
       REAL(SZ),ALLOCATABLE :: DG_ANG(:),DP_DG(:)
-      INTEGER, ALLOCATABLE :: EL_COUNT(:)
+      INTEGER, ALLOCATABLE, managed :: EL_COUNT(:)
       INTEGER, ALLOCATABLE :: NNOEL(:,:)
 
 Csb...Table that maps nodes to elements
@@ -161,7 +161,7 @@ C...
       REAL(SZ),ALLOCATABLE ::   DGDUMY1(:,:,:),DGDUMY2(:,:,:)
 #endif
 
-      INTEGER, ALLOCATABLE ::   pdg_el(:)
+      INTEGER, ALLOCATABLE, managed ::   pdg_el(:)
       REAL(SZ),ALLOCATABLE ::   ETAS(:),ETA1(:),ETA2(:),ETAMAX(:)
       REAL(SZ),ALLOCATABLE ::   entrop(:,:)
       Real(SZ),Allocatable::tracer(:),tracer2(:),MassMax(:),bed_int(:,:)
@@ -192,7 +192,7 @@ C      REAL(SZ),ALLOCATABLE ::   TAU0VAR(:)
       REAL(SZ),ALLOCATABLE ::   STAIM1(:),STAIM2(:),STAIM3(:)
       REAL(SZ),ALLOCATABLE ::   CH1(:),QB(:),QA(:),SOURSIN(:)!,EVC(:)
       REAL(SZ),ALLOCATABLE ::   WSX1(:),WSY1(:),PR1(:)
-      REAL(SZ),ALLOCATABLE ::   WSX2(:),WSY2(:),PR2(:)
+      REAL(SZ),ALLOCATABLE, managed ::   WSX2(:),WSY2(:),PR2(:)
       REAL(SZ),ALLOCATABLE ::   WVNX1(:),WVNY1(:),PRN1(:)
       REAL(SZ),ALLOCATABLE ::   WVNX2(:),WVNY2(:),PRN2(:)
       REAL(SZ),ALLOCATABLE ::   RSNX1(:),RSNY1(:),RSNX2(:),RSNY2(:)
@@ -210,7 +210,7 @@ C.....Allocate additional variables for wave friction
       REAL(SZ),ALLOCATABLE ::    EMO(:,:),EFA(:,:)
       REAL(SZ),ALLOCATABLE ::    UMO(:,:),UFA(:,:),VMO(:,:),VFA(:,:)
       REAL(SZ),ALLOCATABLE ::    XEL(:),YEL(:),SLEL(:),SFEL(:)
-      REAL(SZ),ALLOCATABLE ::    AREAS(:),SFACDUB(:,:),YDUB(:,:,:)
+      REAL(SZ),ALLOCATABLE, managed ::    AREAS(:),SFACDUB(:,:),YDUB(:,:,:)
 
       !temp
       REAL(8) ,ALLOCATABLE ::   RTEMP2(:)
@@ -221,7 +221,7 @@ C.....Allocate additional variables for wave friction
       REAL(SZ),ALLOCATABLE ::   AUV11(:),AUV12(:),AUV13(:),AUV14(:)
       REAL(SZ),ALLOCATABLE ::   AUVXX(:), AUVYY(:), AUVXY(:), AUVYX(:)
       REAL(SZ),ALLOCATABLE ::   DUU1(:),DUV1(:),DVV1(:),BSX1(:),BSY1(:)
-      REAL(SZ),ALLOCATABLE ::   TIP1(:),TIP2(:)
+      REAL(SZ),ALLOCATABLE, managed ::   TIP1(:),TIP2(:)
       REAL(SZ),ALLOCATABLE ::   SALTAMP(:,:),SALTPHA(:,:)
       REAL(SZ),ALLOCATABLE ::   OBCCOEF(:,:),COEF(:,:)
       REAL(SZ),ALLOCATABLE ::   WKSP(:),RPARM(:)
@@ -232,7 +232,7 @@ C.....Allocate additional variables for wave friction
       INTEGER,ALLOCATABLE ::    NBV(:),LBCODEI(:)
       INTEGER,ALLOCATABLE ::    NNODECODE(:),NODECODE(:),NODEREP(:)
       INTEGER,ALLOCATABLE ::    NIBCNT(:)
-      INTEGER,ALLOCATABLE ::    NM(:,:)
+      INTEGER,ALLOCATABLE, managed ::    NM(:,:)
       INTEGER,ALLOCATABLE ::    NNEIGH(:),MJU(:),NODELE(:)
       INTEGER,ALLOCATABLE ::    NEITAB(:,:),NNEIGH_ELEM(:)
       INTEGER,ALLOCATABLE ::    NIBNODECODE(:),NEIGH_ELEM(:,:)
@@ -246,7 +246,7 @@ C.....Allocate additional variables for wave friction
       INTEGER,ALLOCATABLE ::    NBDV(:,:)
       INTEGER,ALLOCATABLE ::    NVELL(:)
       INTEGER,ALLOCATABLE ::    NBVV(:,:)
-      INTEGER,ALLOCATABLE ::    NELED(:,:)
+      INTEGER,ALLOCATABLE, managed ::    NELED(:,:)
       INTEGER,ALLOCATABLE ::    SEGTYPE(:)
       INTEGER,ALLOCATABLE ::    NOT_AN_EDGE(:)
       INTEGER,ALLOCATABLE ::    WEIR_BUDDY_NODE(:,:)
@@ -324,7 +324,7 @@ C...
       INTEGER  FRW,NODEDRYMIN,NODEWETMIN,IBTYPE,ICK
       INTEGER  IDR,IM,IPRBI,JGW,JKI,JME
       INTEGER  JNMM,KMIN,N3,NABOUT
-      INTEGER  NBFR,NBOU,NBVI,NBVJ,NCOR,NE,NE2,NP2
+      INTEGER  NBFR,NBOU,NBVI,NBVJ,NCOR,NE2,NP2, NE
       INTEGER  NEIMIN,NEIMAX,NETA,NFFR,NFLUXB,NFLUXF,NFLUXIB,NFLUXRBC
       INTEGER  NFLUXIBP,NPIPE
       INTEGER  NFOVER,NHG,NHY,NOLICAT,NOPE,NOUTC

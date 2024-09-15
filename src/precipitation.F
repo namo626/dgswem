@@ -13,11 +13,10 @@ C***********************************************************************
 
       MODULE PRECIPITATION
         use global, only : sz, NP, NM
-        use DG
+        !use DG
         implicit none
 
-        REAL(SZ), ALLOCATABLE :: PREC2(:), PREC3(:) ! Parametric rainfall
-        !real(sz) source_r
+        REAL(SZ), ALLOCATABLE, managed :: PREC2(:), PREC3(:) ! Parametric rainfall
 
         contains
 
@@ -27,10 +26,9 @@ C***********************************************************************
         prec3 = 0.0
       END SUBROUTINE
 
-      FUNCTION computeElemTRR(II) RESULT(SOURCE_R1)
-        use global, only : sz
+      attributes(device) pure FUNCTION computeElemTRR(II) RESULT(SOURCE_R1)
         implicit none
-        INTEGER, INTENT(IN) :: II ! global index of element
+        INTEGER, INTENT(IN), value :: II ! global index of element
         REAL(SZ) :: SOURCE_R1
         INTEGER :: N1, N2, N3
 

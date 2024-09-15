@@ -27,6 +27,7 @@ c
       USE NodalAttributes, ONLY: GeoidOffset, LoadGeoidOffset
       use fparser
       use fparser2
+      use flux_dg, only : llf_flux
 
       IMPLICIT NONE
 
@@ -279,7 +280,11 @@ C.....Set the exterior state flows equal to the interior state flows
 
 C.....Compute the Roe flux
 
-            CALL NUMERICAL_FLUX(IT,test_el)
+            !CALL NUMERICAL_FLUX(IT,test_el)
+            call LLF_FLUX(ze_ex, ze_in, qx_ex, qx_in, qy_ex, qy_in,
+     &           hb_in, hb_ex, nx, ny, G, nleq, leq, nleqg, fg_l,
+     &           sfac_in, sfac_ex,
+     &           f_hat, g_hat, h_hat)
 
 C.....Add LDG terms
             

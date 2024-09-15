@@ -21,20 +21,35 @@ C
 C     01-02-2007, sb, Modified for LDG
 C     C***********************************************************************
 
-      SUBROUTINE INTERNAL_EDGE_HYDRO(IT)
+      module internal_edge_dg
 
-C.....Use appropriate modules
-
-      USE GLOBAL
-      USE DG
+      USE GLOBAL, only : areas, pdg_el, neled
+      USE DG, only : rhs_ze, rhs_qx, rhs_qy, cosnx, sinnx, ze, wdflg, qx, qy, xlen,
+     &     hb, bathed, dofs, edgeq, negp, max_boa_dt, phi_edge, sfaced, lz, nedel, niedn,
+     &     nedsd
       USE NodalAttributes, ONLY :  ESLM
-      use sizes, only:  sz, myproc, layers
+      use sizes, only:  sz, myproc
+      use flux_dg, only : llf_flux
+
+      contains
+
+      attributes(global) SUBROUTINE INTERNAL_EDGE_HYDRO(IT, IRK, NIEDS,
+     &   G, DOFH, nleq, leq, nleqg, fg_l, layers )
+
 
       IMPLICIT NONE
 
-C.....Declare local variables
+      integer, value :: it, irk, nieds, dofh, layers
+      real(sz), value :: G, nleq, leq, nleqg, fg_l
 
-      INTEGER L, LED_IN, LED_EX, GED, GP_IN, GP_EX,k,i,ll,IT
+C.....Declare local variables
+      real(sz) :: tmp
+      logical :: is_large_flux
+      integer :: el_in, el_ex, pa, el, test_el
+      real(sz) :: nx, ny, ze_in, qx_in, qy_in, qx_ex, qy_ex, hb_ex, hb_in
+      real(sz) :: f_hat, g_hat, h_hat, q_n_ext, q_t_ext, q_n_int, q_t_int, ze_ex
+      real(sz) :: sfac_in, sfac_ex
+      INTEGER L, LED_IN, LED_EX, GED, GP_IN, GP_EX,k,i,ll
       REAL(SZ), PARAMETER :: ZERO = 1.D-12
       REAL(SZ) TX, TY, W_IN, W_EX
       REAL(SZ) LZ_XX_IN, LZ_XY_IN, LZ_YX_IN, LZ_YY_IN
@@ -60,7 +75,6 @@ C.....Declare local variables
 
       REAL(SZ) ARK, BRK
       REAL(SZ) MAX_BOA          ! Maximum of beta_il/alpha_il for all l
-      REAL(SZ) NLEQG_TMP, G_TMP
       REAL(SZ) F_HAT_O, G_HAT_O, H_HAT_O,i_hat_o,j_hat_o
       REAL(SZ) G_HAT_IN, H_HAT_IN
       REAL(SZ) G_HAT_EX, H_HAT_EX
@@ -84,8 +98,10 @@ c
       ENDIF
 
       test_el = 0
-      DO 1000 L = 1,NIEDS
+      L = (blockidx%x-1)*blockdim%x + threadidx%x
+      thread: if (L <= NIEDS) then
 
+        is_large_flux = .false.
 C.......Retrieve the global and local edge number
 
          GED = NIEDN(L)
@@ -113,7 +129,7 @@ C.......Retrieve the elements which share the edge
 
 C.......If both elements on either side of edge are dry then skip
 
-         IF((WDFLG(EL_IN).EQ.0).AND.(WDFLG(EL_EX).EQ.0)) GOTO 1000
+         IF((WDFLG(EL_IN).EQ.0).AND.(WDFLG(EL_EX).EQ.0)) return
 
          !test_el = test_el+1
 
@@ -197,7 +213,7 @@ C.....Set the components for the tangential vector to the edge
 
 C.....Compute ZE, QX, QY, and HB at each edge Gauss quadrature point
 
-         DO I = 1,NEGP(pa)
+         gauss_point_loop: DO I = 1,NEGP(pa)
 
             GP_IN = I
             GP_EX = NEGP(pa) - I + 1
@@ -372,7 +388,11 @@ C.....Compute ZE, QX, QY, and HB at each edge Gauss quadrature point
 
 C.....Compute the numerical flux
             
-            CALL NUMERICAL_FLUX(IT,test_el)
+            !CALL NUMERICAL_FLUX(IT,test_el)
+            call LLF_FLUX(ze_ex, ze_in, qx_ex, qx_in, qy_ex, qy_in,
+     &           hb_in, hb_ex, nx, ny, G, nleq, leq, nleqg, fg_l,
+     &           sfac_in, sfac_ex,
+     &           f_hat, g_hat, h_hat)
 
 C......... dummy
             F_HAT_O  = F_HAT
@@ -403,9 +423,11 @@ C......... dummy
 C.....Check if the flux is large enough to dry up the elements
 C.....1.01D0 is a safty factor.
 
-          IF ( (1.01d0*F_HAT*XLEN_EL_IN*MAX_BOA_DT(IRK).GE.MASS_EL_IN)
-     &          .OR.(1.01d0*F_HAT*XLEN_EL_EX*MAX_BOA_DT(IRK)*(-1.D0).GE.
+            large_flux: IF ( (1.01d0*F_HAT*XLEN_EL_IN*MAX_BOA_DT(IRK).GE.MASS_EL_IN)
+     &           .OR.(1.01d0*F_HAT*XLEN_EL_EX*MAX_BOA_DT(IRK)*(-1.D0).GE.
      &           MASS_EL_EX)) THEN
+
+               is_large_flux = .true.
 
 C......namo 5/22 - modify for rain (source term no longer zero)
 
@@ -446,12 +468,13 @@ C...........Put back the saved RHS
 
                ENDDO
 
-               GOTO 100
-            ENDIF
-            
+               EXIT gauss_point_loop
+
+            ELSE
+
 C........Check to make sure mass flux is not coming from a dry element
 
-            IF (abs(F_HAT).gt.1.d-12) THEN
+            dry_flux: IF (abs(F_HAT).gt.1.d-12) THEN
                !
                IF (WDFLG(EL_IN).EQ.0) THEN
                   ! EL_IN is dry !
@@ -486,7 +509,11 @@ C........Check to make sure mass flux is not coming from a dry element
 
                      HB_IN = HB_EX
                      SFAC_IN = SFAC_EX
-                     CALL NUMERICAL_FLUX(IT,test_el)
+                     !CALL NUMERICAL_FLUX(IT,test_el)
+            call LLF_FLUX(ze_ex, ze_in, qx_ex, qx_in, qy_ex, qy_in,
+     &           hb_in, hb_ex, nx, ny, G, nleq, leq, nleqg, fg_l,
+     &           sfac_in, sfac_ex,
+     &           f_hat, g_hat, h_hat)
 
                      F_HAT_O  = F_HAT
                      G_HAT_EX = G_HAT
@@ -518,13 +545,11 @@ C........Check to make sure mass flux is not coming from a dry element
                   ELSE
                      ! Flux coming from wet side (ex)
                      ! Leave fluxes on ex side intact and use zero gravity flux for dry side      
-                     NLEQG_TMP = NLEQG
-                     NLEQG = 0.D0
-                     G_TMP = G
-                     G = 0.D0
-                     CALL NUMERICAL_FLUX(IT,test_el)
-                     NLEQG = NLEQG_TMP
-                     G = G_TMP
+                     !CALL NUMERICAL_FLUX(IT,test_el)
+            call LLF_FLUX(ze_ex, ze_in, qx_ex, qx_in, qy_ex, qy_in,
+     &           hb_in, hb_ex, nx, ny, 0., nleq, leq, 0., fg_l,
+     &           sfac_in, sfac_ex,
+     &           f_hat, g_hat, h_hat)
                      G_HAT_IN = G_HAT
                      H_HAT_IN = H_HAT
 #ifdef SED_LAY
@@ -566,7 +591,11 @@ C........Check to make sure mass flux is not coming from a dry element
                      bed_EX(:) = bed_IN(:)
 #endif
 
-                     CALL NUMERICAL_FLUX(IT,test_el)
+                     !CALL NUMERICAL_FLUX(IT,test_el)
+            call LLF_FLUX(ze_ex, ze_in, qx_ex, qx_in, qy_ex, qy_in,
+     &           hb_in, hb_ex, nx, ny, G, nleq, leq, nleqg, fg_l,
+     &           sfac_in, sfac_ex,
+     &           f_hat, g_hat, h_hat)
                      F_HAT_O  = F_HAT
 
 #ifdef TRACE
@@ -596,13 +625,11 @@ C........Check to make sure mass flux is not coming from a dry element
                   ELSE
                      ! Flux comming from the wet side (in)
                      ! Leave fluxes on in side intact and use zero gravity for flux for dry (ex) side     
-                     NLEQG_TMP = NLEQG
-                     NLEQG = 0.D0
-                     G_TMP = G
-                     G = 0.D0
-                     CALL NUMERICAL_FLUX(IT,test_el)
-                     NLEQG = NLEQG_TMP
-                     G = G_TMP
+                     !CALL NUMERICAL_FLUX(IT,test_el)
+            call LLF_FLUX(ze_ex, ze_in, qx_ex, qx_in, qy_ex, qy_in,
+     &           hb_in, hb_ex, nx, ny, 0., nleq, leq, 0., fg_l,
+     &           sfac_in, sfac_ex,
+     &           f_hat, g_hat, h_hat)
                      G_HAT_EX = G_HAT
                      H_HAT_EX = H_HAT
 #ifdef TRACE
@@ -618,7 +645,7 @@ C........Check to make sure mass flux is not coming from a dry element
 #endif
                   ENDIF
                ENDIF
-            ENDIF
+            ENDIF dry_flux
 
                                 !Let us add some diffusive penalties
 #ifdef WAVE_DIF
@@ -675,50 +702,52 @@ C.....Compute the edge integral
                W_IN = EDFAC_IN*EDGEQ(K,GP_IN,LED_IN,pa)
                W_EX = EDFAC_EX*EDGEQ(K,GP_EX,LED_EX,pa)
 
-               RHS_ZE(K,EL_IN,IRK) = RHS_ZE(K,EL_IN,IRK) - W_IN*F_HAT_O
-               RHS_QX(K,EL_IN,IRK) = RHS_QX(K,EL_IN,IRK) - W_IN*G_HAT_IN
-               RHS_QY(K,EL_IN,IRK) = RHS_QY(K,EL_IN,IRK) - W_IN*H_HAT_IN
+               tmp = atomicAdd(RHS_ZE(K,EL_IN,IRK), -W_IN*F_HAT_O  )
+               tmp = atomicAdd(RHS_QX(K,EL_IN,IRK), -W_IN*G_HAT_IN)
+               tmp = atomicAdd(RHS_QY(K,EL_IN,IRK), -W_IN*H_HAT_IN)
 
-               RHS_ZE(K,EL_EX,IRK) = RHS_ZE(K,EL_EX,IRK) + W_EX*F_HAT_O
-               RHS_QX(K,EL_EX,IRK) = RHS_QX(K,EL_EX,IRK) + W_EX*G_HAT_EX
-               RHS_QY(K,EL_EX,IRK) = RHS_QY(K,EL_EX,IRK) + W_EX*H_HAT_EX
+               tmp = atomicAdd(RHS_ZE(K,EL_EX,IRK), W_EX*F_HAT_O)
+               tmp = atomicAdd(RHS_QX(K,EL_EX,IRK), W_EX*G_HAT_EX)
+               tmp = atomicAdd(RHS_QY(K,EL_EX,IRK), W_EX*H_HAT_EX)
 
 #ifdef TRACE
 
-            RHS_iota(K,EL_IN,IRK) = RHS_iota(K,EL_IN,IRK) - W_IN*I_HAT_O
-            RHS_iota(K,EL_EX,IRK) = RHS_iota(K,EL_EX,IRK) + W_EX*I_HAT_O
+               RHS_iota(K,EL_IN,IRK) = RHS_iota(K,EL_IN,IRK) - W_IN*I_HAT_O
+               RHS_iota(K,EL_EX,IRK) = RHS_iota(K,EL_EX,IRK) + W_EX*I_HAT_O
 #endif
 
 #ifdef CHEM
-          RHS_iota(K,EL_IN,IRK)  = RHS_iota(K,EL_IN,IRK)  - W_IN*I_HAT_O
-          RHS_iota2(K,EL_IN,IRK) = RHS_iota2(K,EL_IN,IRK) - W_IN*J_HAT_O
-          RHS_iota(K,EL_EX,IRK)  = RHS_iota(K,EL_EX,IRK)  + W_EX*I_HAT_O
-          RHS_iota2(K,EL_EX,IRK) = RHS_iota2(K,EL_EX,IRK) + W_EX*J_HAT_O
+               RHS_iota(K,EL_IN,IRK)  = RHS_iota(K,EL_IN,IRK)  - W_IN*I_HAT_O
+               RHS_iota2(K,EL_IN,IRK) = RHS_iota2(K,EL_IN,IRK) - W_IN*J_HAT_O
+               RHS_iota(K,EL_EX,IRK)  = RHS_iota(K,EL_EX,IRK)  + W_EX*I_HAT_O
+               RHS_iota2(K,EL_EX,IRK) = RHS_iota2(K,EL_EX,IRK) + W_EX*J_HAT_O
 #endif
 
 #ifdef DYNP
-           RHS_dynP(K,EL_IN,IRK) = RHS_dynP(K,EL_IN,IRK) - W_IN*K_HAT_O
-           RHS_dynP(K,EL_EX,IRK) = RHS_dynP(K,EL_EX,IRK) + W_EX*K_HAT_O
+               RHS_dynP(K,EL_IN,IRK) = RHS_dynP(K,EL_IN,IRK) - W_IN*K_HAT_O
+               RHS_dynP(K,EL_EX,IRK) = RHS_dynP(K,EL_EX,IRK) + W_EX*K_HAT_O
 #endif
 
 
 #ifdef SED_LAY
                do ll = 1,layers
                   RHS_bed(K,EL_IN,IRK,ll) = RHS_bed(K,EL_IN,IRK,ll) -
-     & W_IN*bed_HAT_IN(ll)
+     &                 W_IN*bed_HAT_IN(ll)
                   RHS_bed(K,EL_EX,IRK,ll) = RHS_bed(K,EL_EX,IRK,ll) +
-     & W_EX*bed_HAT_EX(ll)
+     &                 W_EX*bed_HAT_EX(ll)
                enddo
 #endif
 
             ENDDO
 
-         ENDDO
 
-         GOTO 1000
+      ENDIF large_flux
 
- 100     CONTINUE
+      ENDDO gauss_point_loop
 
+ !100     CONTINUE
+
+      if (is_large_flux) then
 C--------------------------------------------------------------------
 C     Compute reflection flux
 C--------------------------------------------------------------------
@@ -880,15 +909,17 @@ C.....Compute the x and y components of the external state flow
 C.....Compute the numerical flux
 
             IF(WDFLG(EL_IN).EQ.0) THEN
-               NLEQG_TMP = NLEQG
-               NLEQG = 0.D0
-               G_TMP = G
-               G = 0.D0
-               CALL NUMERICAL_FLUX(IT,test_el)
-               NLEQG = NLEQG_TMP
-               G = G_TMP
+               !CALL NUMERICAL_FLUX(IT,test_el)
+            call LLF_FLUX(ze_ex, ze_in, qx_ex, qx_in, qy_ex, qy_in,
+     &           hb_in, hb_ex, nx, ny, 0., nleq, leq, 0., fg_l,
+     &           sfac_in, sfac_ex,
+     &           f_hat, g_hat, h_hat)
             ELSE
-               CALL NUMERICAL_FLUX(IT,test_el)
+               !CALL NUMERICAL_FLUX(IT,test_el)
+            call LLF_FLUX(ze_ex, ze_in, qx_ex, qx_in, qy_ex, qy_in,
+     &           hb_in, hb_ex, nx, ny, G, nleq, leq, nleqg, fg_l,
+     &           sfac_in, sfac_ex,
+     &           f_hat, g_hat, h_hat)
             ENDIF
             F_HAT = 0.D0        ! Ensure zero mass flux
 
@@ -924,9 +955,9 @@ C.....Compute the edge integral
 
                W_IN = EDFAC_IN*EDGEQ(K,GP_IN,LED_IN,pa)
 
-               RHS_ZE(K,EL_IN,IRK) = RHS_ZE(K,EL_IN,IRK) - W_IN*F_HAT
-               RHS_QX(K,EL_IN,IRK) = RHS_QX(K,EL_IN,IRK) - W_IN*G_HAT
-               RHS_QY(K,EL_IN,IRK) = RHS_QY(K,EL_IN,IRK) - W_IN*H_HAT
+               tmp = atomicAdd(RHS_ZE(K,EL_IN,IRK) , -W_IN*F_HAT)
+               tmp = atomicAdd(RHS_QX(K,EL_IN,IRK) , -W_IN*G_HAT)
+               tmp = atomicAdd(RHS_QY(K,EL_IN,IRK) , -W_IN*H_HAT)
 
 #ifdef TRACE
              RHS_iota(K,EL_IN,IRK) = RHS_iota(K,EL_IN,IRK) - W_IN*I_HAT
@@ -1100,15 +1131,17 @@ C.....Compute the x and y components of the external state flow
 C.....Compute the numerical flux
 
             IF(WDFLG(EL_EX).EQ.0) THEN
-               NLEQG_TMP = NLEQG
-               NLEQG = 0.D0
-               G_TMP = G
-               G = 0.D0
-               CALL NUMERICAL_FLUX(IT,test_el)
-               NLEQG = NLEQG_TMP
-               G = G_TMP
+               !CALL NUMERICAL_FLUX(IT,test_el)
+            call LLF_FLUX(ze_ex, ze_in, qx_ex, qx_in, qy_ex, qy_in,
+     &           hb_in, hb_ex, nx, ny, 0., nleq, leq, 0., fg_l,
+     &           sfac_in, sfac_ex,
+     &           f_hat, g_hat, h_hat)
             ELSE
-               CALL NUMERICAL_FLUX(IT,test_el)
+               !CALL NUMERICAL_FLUX(IT,test_el)
+            call LLF_FLUX(ze_ex, ze_in, qx_ex, qx_in, qy_ex, qy_in,
+     &           hb_in, hb_ex, nx, ny, 0., nleq, leq, 0., fg_l,
+     &           sfac_in, sfac_ex,
+     &           f_hat, g_hat, h_hat)
             ENDIF
             F_HAT = 0.D0        ! Ensure zero mass flux
 
@@ -1143,9 +1176,9 @@ C.....Compute the edge integral
 
                W_EX = EDFAC_EX*EDGEQ(K,GP_EX,LED_EX,pa)
 
-               RHS_ZE(K,EL_EX,IRK) = RHS_ZE(K,EL_EX,IRK) + W_EX*F_HAT
-               RHS_QX(K,EL_EX,IRK) = RHS_QX(K,EL_EX,IRK) + W_EX*G_HAT
-               RHS_QY(K,EL_EX,IRK) = RHS_QY(K,EL_EX,IRK) + W_EX*H_HAT
+               tmp = atomicAdd(RHS_ZE(K,EL_EX,IRK), W_EX*F_HAT)
+               tmp = atomicAdd(RHS_QX(K,EL_EX,IRK), W_EX*G_HAT)
+               tmp = atomicAdd(RHS_QY(K,EL_EX,IRK), W_EX*H_HAT)
 
 #ifdef TRACE
               RHS_iota(K,EL_EX,IRK) = RHS_iota(K,EL_EX,IRK) + W_EX*I_HAT
@@ -1170,8 +1203,11 @@ C.....Compute the edge integral
             ENDDO
 
          ENDDO
-         
- 1000 CONTINUE
 
-      RETURN
+      endif
+         
+      endif thread
+
       END SUBROUTINE
+
+      end module internal_edge_dg

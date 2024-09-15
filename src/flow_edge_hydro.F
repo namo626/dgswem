@@ -26,6 +26,7 @@ C.....Use appropriate modules
       use SIZES, only: layers
       use fparser
       use fparser2
+      use flux_dg, only : numerical_flux
 
       IMPLICIT NONE
 

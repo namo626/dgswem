@@ -33,7 +33,8 @@ C.....Declare integer variables
       INTEGER, TARGET :: MNES,artdif,tune_by_hand
       INTEGER IRK
       INTEGER J1, J2, J3,negp_fixed,nagp_fixed
-      INTEGER NAGP(8),NCHECK(8), NEGP(8), NEDGES, NRK !42 hardwires for ph=7
+      INTEGER NCHECK(8),  NEDGES, NRK !42 hardwires for ph=7
+      integer, allocatable, managed :: nagp(:), negp(:)
       INTEGER NIEDS, NLEDS, NEEDS, NFEDS, NREDS, NEBEDS, NIBEDS
       INTEGER NIBSEG, NEBSEG
       INTEGER MNED, MNLED, MNSED, MNRAED, MNRIED
@@ -57,7 +58,7 @@ C.....Declare real variables
       Real(SZ), TARGET :: slimit,plimit,pflag2con1,pflag2con2
       REAL(SZ) EFA_GP, EMO_GP,slimit1,slimit2,slimit3
       REAL(SZ) EL_ANG,slimit4, bg_dif,trc_dif,slimit5
-      REAL(SZ) FG_L,l2er_global,temperg
+      REAL(SZ) :: FG_L,l2er_global,temperg
       REAL(SZ), TARGET :: slope_weight
       REAL(SZ) HB_IN, HB_EX, H_TRI
       REAL(SZ) MAG1, MAG2
@@ -78,7 +79,7 @@ C.....Declare real variables
       Real(SZ) iota_EX, iota_IN,iota2_EX, iota2_IN
 
 C     sb...Wetting and drying
-      INTEGER, ALLOCATABLE :: WDFLG(:) ! = 1 if wet, =0 if dry
+      INTEGER, ALLOCATABLE, managed :: WDFLG(:) ! = 1 if wet, =0 if dry
       INTEGER, ALLOCATABLE :: WDFLG_TMP(:)
       INTEGER, ALLOCATABLE :: DOFW(:)
       INTEGER, ALLOCATABLE :: EL_UPDATED(:)
@@ -99,18 +100,19 @@ C     sb...Wetting and drying
 
 C.....Declare real variable arrays
 
-      REAL(SZ) DRPSI(3), DSPSI(3)
+      !REAL(SZ) DRPSI(3), DSPSI(3)
+      real(sz), allocatable, managed :: drpsi(:), dspsi(:)
       REAL(SZ) VEC1(2), VEC2(2)
       
 C.....Declare allocatable integer arrays
 
-      INTEGER, ALLOCATABLE :: DOFS(:), PCOUNT(:), PDG(:)
+      INTEGER, ALLOCATABLE, managed :: DOFS(:), PCOUNT(:), PDG(:)
       INTEGER, ALLOCATABLE :: NCOUNT(:)
-      INTEGER, ALLOCATABLE :: NEDEL(:,:), NEDNO(:,:), NEDSD(:,:)
-      INTEGER, ALLOCATABLE :: NIEDN(:), NLEDN(:), NEEDN(:)
+      INTEGER, ALLOCATABLE, managed :: NEDEL(:,:), NEDNO(:,:), NEDSD(:,:)
+      INTEGER, ALLOCATABLE, managed :: NIEDN(:), NLEDN(:), NEEDN(:)
       INTEGER, ALLOCATABLE :: NFEDN(:), NREDN(:), NEBEDN(:), NIBEDN(:)
-      INTEGER, ALLOCATABLE :: NIBSEGN(:,:)
-      INTEGER, ALLOCATABLE :: NEBSEGN(:)
+      INTEGER, ALLOCATABLE, managed :: NIBSEGN(:,:)
+      INTEGER, ALLOCATABLE, managed :: NEBSEGN(:)
       INTEGER, ALLOCATABLE :: EL_NBORS(:,:)
       INTEGER, ALLOCATABLE :: BACKNODES(:,:)
       INTEGER, ALLOCATABLE :: MARK(:)
@@ -119,41 +121,46 @@ C.....Declare allocatable integer arrays
 C.....Declare allocatable real arrays
       
       REAL(SZ), ALLOCATABLE :: ATVD(:,:), BTVD(:,:), CTVD(:,:)
-      REAL(SZ), ALLOCATABLE :: DTVD(:), MAX_BOA_DT(:),e1(:),balance(:)
+      REAL(SZ), ALLOCATABLE, managed :: DTVD(:), MAX_BOA_DT(:),e1(:),balance(:)
       Real(SZ), Allocatable :: RKC_T(:),RKC_U(:),RKC_Tprime(:)
       Real(SZ), Allocatable :: RKC_Tdprime(:),RKC_a(:),RKC_b(:),RKC_c(:)
       Real(SZ), Allocatable :: RKC_mu(:),RKC_tildemu(:),RKC_nu(:),
      & RKC_gamma(:)
-      REAL(SZ), ALLOCATABLE :: BATH(:,:,:),DBATHDX(:,:,:),DBATHDY(:,:,:)
-      REAL(SZ), ALLOCATABLE :: SFAC_ELEM(:,:,:)
-      REAL(SZ), ALLOCATABLE :: BATHED(:,:,:,:),SFACED(:,:,:,:)
-      REAL(SZ), ALLOCATABLE :: COSNX(:), SINNX(:)
-      REAL(SZ), ALLOCATABLE :: DP_NODE(:,:,:)
-      REAL(SZ), ALLOCATABLE :: DP_VOL(:,:)
+      REAL(SZ), ALLOCATABLE, managed :: BATH(:,:,:),DBATHDX(:,:,:),DBATHDY(:,:,:)
+      REAL(SZ), ALLOCATABLE, managed :: SFAC_ELEM(:,:,:)
+      REAL(SZ), ALLOCATABLE, managed :: BATHED(:,:,:,:),SFACED(:,:,:,:)
+      REAL(SZ), ALLOCATABLE, managed :: COSNX(:), SINNX(:)
+      REAL(SZ), ALLOCATABLE, managed :: DP_NODE(:,:,:)
+      REAL(SZ), ALLOCATABLE, managed :: DP_VOL(:,:)
       REAL(SZ), ALLOCATABLE :: DRPHI(:,:,:), DSPHI(:,:,:)
-      REAL(SZ), ALLOCATABLE :: DRDX(:), DSDX(:), DRDY(:), DSDY(:)
+      REAL(SZ), ALLOCATABLE, managed :: DRDX(:), DSDX(:), DRDY(:), DSDY(:)
       REAL(SZ), ALLOCATABLE :: DXPHI2(:,:,:), DYPHI2(:,:,:), PHI2(:,:,:)
       REAL(SZ), ALLOCATABLE :: EFA_DG(:,:,:), EMO_DG(:,:,:)
       REAL(SZ), ALLOCATABLE :: UFA_DG(:,:,:), UMO_DG(:,:,:)
       REAL(SZ), ALLOCATABLE :: VFA_DG(:,:,:), VMO_DG(:,:,:)
-      REAL(SZ), ALLOCATABLE :: XLEN(:)
-      REAL(SZ), ALLOCATABLE :: HB(:,:,:)
+      REAL(SZ), ALLOCATABLE, managed :: XLEN(:)
+      REAL(SZ), ALLOCATABLE, managed :: HB(:,:,:)
       REAL(SZ), ALLOCATABLE :: MANN(:,:)
-      REAL(SZ), ALLOCATABLE :: IBHT(:), EBHT(:)
-      REAL(SZ), ALLOCATABLE :: EBCFSP(:), IBCFSP(:), IBCFSB(:)
+      REAL(SZ), ALLOCATABLE, managed :: IBHT(:), EBHT(:)
+      REAL(SZ), ALLOCATABLE, managed :: EBCFSP(:), IBCFSP(:), IBCFSB(:)
       REAL(SZ), ALLOCATABLE :: JACOBI(:,:,:,:)
-      REAL(SZ), ALLOCATABLE :: M_INV(:,:),phi_edge_fixed(:,:,:)
-      REAL(SZ), ALLOCATABLE :: PHI_AREA(:,:,:), PHI_EDGE(:,:,:,:)
-      REAL(SZ), ALLOCATABLE :: PHI_CENTER(:,:), PHI_CORNER(:,:,:)
+      REAL(SZ), ALLOCATABLE, managed :: M_INV(:,:),phi_edge_fixed(:,:,:)
+      REAL(SZ), ALLOCATABLE, managed :: PHI_AREA(:,:,:), PHI_EDGE(:,:,:,:)
+      REAL(SZ), ALLOCATABLE, managed :: PHI_CENTER(:,:), PHI_CORNER(:,:,:)
       REAL(SZ), ALLOCATABLE :: PHI_CHECK(:,:,:)
       REAL(SZ), ALLOCATABLE :: PHI_CORNER1(:,:,:,:)
       REAL(SZ), ALLOCATABLE :: PHI_MID(:,:,:)
       REAL(SZ), ALLOCATABLE :: PHI_INTEGRATED(:,:)
       REAL(SZ), ALLOCATABLE :: PSI_CHECK(:,:)
-      REAL(SZ), ALLOCATABLE :: PSI1(:,:), PSI2(:,:), PSI3(:,:)
+      REAL(SZ), ALLOCATABLE, managed :: PSI1(:,:), PSI2(:,:), PSI3(:,:)
       REAL(SZ), ALLOCATABLE :: Q_HAT(:)
       REAL(SZ), ALLOCATABLE :: QIB(:)
-      REAL(SZ), ALLOCATABLE :: QX(:,:,:), QY(:,:,:), ZE(:,:,:)
+      REAL(SZ), ALLOCATABLE, managed :: QX(:,:,:), QY(:,:,:), ZE(:,:,:)
+
+      ! For slope limiter
+      Real(SZ), Allocatable, managed :: ZE_MIN1(:),ZE_MAX1(:),QX_MIN1(:),QX_MAX1(:)
+      Real(SZ), Allocatable, managed :: QY_MIN1(:),QY_MAX1(:)
+
       Real(SZ), ALLOCATABLE, target:: bed(:,:,:,:)
       Real(SZ), Allocatable :: dynP(:,:,:),dynP_MAX(:), dynP_MIN(:)
       Real(SZ), Allocatable :: iota(:,:,:),iotaa(:,:,:),iota2(:,:,:)
@@ -161,30 +168,30 @@ C.....Declare allocatable real arrays
      & iotaa3(:,:,:)
       Real(SZ), Allocatable :: iota2_MAX(:),iota2_MIN(:)
       Real(SZ), pointer :: arrayfix(:,:,:)
-      REAL(SZ), ALLOCATABLE :: CORI_EL(:), FRIC_EL(:)
-      REAL(SZ), ALLOCATABLE :: ZE_MAX(:),ZE_MIN(:),DPE_MIN(:)
+      REAL(SZ), ALLOCATABLE, managed :: CORI_EL(:), FRIC_EL(:)
+      REAL(SZ), ALLOCATABLE, managed :: ZE_MAX(:),ZE_MIN(:),DPE_MIN(:)
       REAL(SZ), ALLOCATABLE :: WATER_DEPTH_OLD(:,:),WATER_DEPTH(:,:)
       REAL(SZ), ALLOCATABLE :: ADVECTQX(:),ADVECTQY(:)
       REAL(SZ), ALLOCATABLE :: SOURCEQX(:),SOURCEQY(:)
-      REAL(SZ), ALLOCATABLE :: LZ(:,:,:,:),MZ(:,:,:,:)
+      REAL(SZ), ALLOCATABLE, managed :: LZ(:,:,:,:),MZ(:,:,:,:)
       Real(SZ), Allocatable :: HZ(:,:,:,:),TZ(:,:,:,:)
       REAL(SZ), ALLOCATABLE :: QNAM_DG(:,:,:), QNPH_DG(:,:,:)
-      REAL(SZ), ALLOCATABLE :: RHS_ZE(:,:,:), RHS_bed(:,:,:,:)
-      REAL(SZ), ALLOCATABLE :: RHS_QX(:,:,:),RHS_QY(:,:,:)
+      REAL(SZ), ALLOCATABLE, managed :: RHS_ZE(:,:,:), RHS_bed(:,:,:,:)
+      REAL(SZ), ALLOCATABLE, managed :: RHS_QX(:,:,:),RHS_QY(:,:,:)
       Real(SZ), Allocatable :: RHS_iota(:,:,:),RHS_iota2(:,:,:),
      & RHS_dynP(:,:,:)
       Real(SZ), Allocatable :: RHS_bed_IN(:,:),RHS_bed_EX(:,:),
      & bed_HAT_O(:)
-      REAL(SZ), ALLOCATABLE :: XAGP(:,:), YAGP(:,:), WAGP(:,:)
-      REAL(SZ), ALLOCATABLE :: XEGP(:,:), YEGP(:,:), WEGP(:,:)
-      REAL(SZ), ALLOCATABLE :: SL3(:,:)
-      REAL(SZ), ALLOCATABLE :: XBC(:), YBC(:)
-      REAL(SZ), ALLOCATABLE :: XFAC(:,:,:,:), YFAC(:,:,:,:),
+      REAL(SZ), ALLOCATABLE, managed :: XAGP(:,:), YAGP(:,:), WAGP(:,:)
+      REAL(SZ), ALLOCATABLE, managed :: XEGP(:,:), YEGP(:,:), WEGP(:,:)
+      REAL(SZ), ALLOCATABLE, managed :: SL3(:,:)
+      REAL(SZ), ALLOCATABLE, managed :: XBC(:), YBC(:)
+      REAL(SZ), ALLOCATABLE, managed :: XFAC(:,:,:,:), YFAC(:,:,:,:),
      & SRFAC(:,:,:,:)
-      REAL(SZ), ALLOCATABLE :: EDGEQ(:,:,:,:)
-      REAL(SZ), ALLOCATABLE :: PHI(:), DPHIDZ1(:), DPHIDZ2(:)
-      REAL(SZ), ALLOCATABLE :: PHI_STAE(:,:), PHI_STAV(:,:)
-      Real(SZ), Allocatable :: bed_IN(:),bed_EX(:),bed_HAT(:)
+      REAL(SZ), ALLOCATABLE, managed :: EDGEQ(:,:,:,:)
+      REAL(SZ), ALLOCATABLE, managed :: PHI(:), DPHIDZ1(:), DPHIDZ2(:)
+      REAL(SZ), ALLOCATABLE, managed :: PHI_STAE(:,:), PHI_STAV(:,:)
+      Real(SZ), Allocatable, managed :: bed_IN(:),bed_EX(:),bed_HAT(:)
 
 C.....These (below) are defined in prep_slopelim.F
 
@@ -241,6 +248,12 @@ C.....These (below) are defined in slopelimiter.F
 C**********************END OF DATA DECLARATIONS ***********************
 
       CONTAINS
+
+! These were previously declared as constant arrays
+      subroutine alloc_managed()
+      allocate ( drpsi(3), dspsi(3) )
+      allocate ( nagp(8), negp(8) )
+      end subroutine
       
 C.....Set edge array sizes
 
@@ -292,6 +305,9 @@ Csb-20070228 NRK+1-->NRK+2 --- XX(:,:,NRK+2) will be used by slope limiter
       Allocate ( dynP(DOFH,MNE,NRK+2) ) 
       Allocate ( iotaa(DOFH,MNE,NRK+2),iotaa2(DOFH,MNE,NRK+2) )
       Allocate ( iotaa3(DOFH,MNE,NRK+2) )
+
+      Allocate ( ZE_MIN1(NP),ZE_MAX1(NP),QX_MIN1(NP) )
+      Allocate ( QY_MIN1(NP),QY_MAX1(NP),QX_MAX1(NP) )
 Csb-20060711 For wet/dry
       ALLOCATE ( ZE_MAX(MNE),ZE_MIN(MNE),DPE_MIN(MNE) )
       Allocate ( iota_MAX(MNE),iota_MIN(MNE),iota2_MAX(MNE),

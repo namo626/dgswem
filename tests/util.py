@@ -3,6 +3,19 @@ import pandas as pd
 import matplotlib.tri as tri
 import os
 
+def make_solution(case, exe, name):
+    try:
+        err = os.system("cd %s/ && %s > /dev/null && mv fort.63 fort.63.%s" % (case, exe, name))
+        if err != 0:
+            raise Exception("%s run error." % name)
+    except:
+        raise
+
+    f14 = case + '/fort.14'
+    tr, d = read_63_all('%s/fort.63.%s' % (case,name), f14)
+    total_nodes = len(tr.x)
+    sol = d[-total_nodes:]
+    return sol
 
 def read_triangulation(fname: str) -> (tri.Triangulation, np.ndarray):
     """ Read a fort.14 file and return its triangulation data as a

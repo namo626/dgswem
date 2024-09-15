@@ -98,7 +98,7 @@ C     required for the run, according to the unit 15 control file
       LOGICAL LoadQuadraticFric 
       LOGICAL LoadBridgePilings 
       LOGICAL LoadChezy     
-      LOGICAL LoadManningsN 
+      LOGICAL LoadManningsN
       LOGICAL LoadGeoidOffset
       LOGICAL LoadEVM
       LOGICAL LoadEVC
@@ -166,16 +166,16 @@ C     The following variables are inputs from the unit 15 model param. file
       INTEGER NWP     ! number of nodal attributes to read from file
       INTEGER NoLiBF  ! nonlinear bottom friction indicator
       REAL(SZ) Tau0   ! primitive continuity eqn. weight
-      REAL(SZ) Tau    ! linear friction coefficient (1/sec)
-      REAL(SZ) CF     ! 2DDI bottom fric. coef., effect varies based on NoLiBF
-      REAL(SZ) HBreak ! break depth for NOLIBF .eq. 2
-      REAL(SZ) FTheta ! dimless param. for NOLIBF .eq. 2
-      REAL(SZ) FGamma ! dimless param. for NOLIBF .eq.
+      REAL(SZ) :: Tau    ! linear friction coefficient (1/sec)
+      REAL(SZ) :: CF     ! 2DDI bottom fric. coef., effect varies based on NoLiBF
+      REAL(SZ) :: HBreak ! break depth for NOLIBF .eq. 2
+      REAL(SZ) :: FTheta ! dimless param. for NOLIBF .eq. 2
+      REAL(SZ) :: FGamma ! dimless param. for NOLIBF .eq.
       REAL(SZ) ESLM   ! horizontal eddy viscosity (length^2/time)
       REAL(SZ) ESLC   ! horizontal eddy diffusivity (length^2/time)
-      INTEGER  IFLINBF! flag to turn on linear bottom friction
-      INTEGER  IFNLBF ! flag to turn on nonlinear bottom friction
-      INTEGER  IFHYBF ! flag to turn on hybrid bottom friction
+      INTEGER ::  IFLINBF! flag to turn on linear bottom friction
+      INTEGER ::  IFNLBF ! flag to turn on nonlinear bottom friction
+      INTEGER ::  IFHYBF ! flag to turn on hybrid bottom friction
 C
 C     Nodal attributes.
       REAL(SZ), ALLOCATABLE :: STARTDRY(:) ! 1=nodes below geoid initially dry
@@ -190,7 +190,7 @@ C     Nodal attributes.
 C     The following attribute contains BK(I),BALPHA(I),BDELX(I), and POAN(I)
       REAL(SZ), ALLOCATABLE :: BridgePilings(:,:)
       REAL(SZ), ALLOCATABLE :: Chezy(:)
-      REAL(SZ), ALLOCATABLE :: ManningsN(:)
+      REAL(SZ), ALLOCATABLE, managed :: ManningsN(:)
       REAL(SZ), ALLOCATABLE :: GeoidOffset(:)
       REAL(SZ), ALLOCATABLE :: EVM(:)
       REAL(SZ), ALLOCATABLE :: EVC(:)

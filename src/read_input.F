@@ -1668,8 +1668,11 @@ C...
       HBREAK=1.
       FTHETA=1.
       FGAMMA=1.
-      IF(NOLIBF.EQ.0) READ(15,*) TAU
-      CF=TAU
+      IF(NOLIBF.EQ.0) THEN
+         READ(15,*) TAU
+         CF=TAU
+      ENDIF
+
       IF(NOLIBF.EQ.1) READ(15,*) CF
       IF(NOLIBF.EQ.2) READ(15,*) CF,HBREAK,FTHETA,FGAMMA
 

@@ -1,21 +1,33 @@
-      SUBROUTINE EBARRIER_EDGE_HYDRO(IT)
-      
-C.....Use appropriate modules
+      module ebarrier_dg
+      use sizes, only : sz
+      use global, only : pdg_el, areas, barmin
+      use dg, only : ze, negp, cosnx, sinnx, rhs_ze, rhs_qx, rhs_qy, wdflg,
+     &     qx, qy, bathed, sfaced, phi_edge, nedsd, xlen, wegp,  m_inv,
+     &     nedel, nedsd, nebsegn, dofs, ebht, ebcfsp
+      use flux_dg, only : llf_flux
 
-      USE GLOBAL
-      USE DG
+      contains
+
+      attributes(global) SUBROUTINE EBARRIER_EDGE_HYDRO(IT, irk, nebseg, g, leq, nleq, nleqg, fg_l, rampdg)
+      
 
       IMPLICIT NONE
 
+      integer, value :: it, irk, nebseg
+      real(sz), value :: g, leq, nleq, nleqg, fg_l, rampdg
+
 C.....Declare local variables
 
-      INTEGER GED, LED, L,i,k,ll,IT
-      REAL(SZ) ABOVE, SUBSUP, W_IN, TX, TY
+      INTEGER GED, LED, L,i,k,ll, el, pa
+      REAL(SZ) ABOVE, SUBSUP, W_IN, TX, TY, nx, ny, ze_in, q_n_ext, q_t_ext
+      real(sz) :: ze_ex, hb_ex, qx_in, qy_in, qx_ex, qy_ex, sfac_in, hb_in
+      real(sz) :: f_hat, g_hat, h_hat, sfac_ex
 
 C.....Loop over the external barrier segments
 
-      DO 1000 L = 1,NEBSEG
-         
+      L = (blockidx%x-1)*blockdim%x + threadidx%x
+      thread: if (L <= NEBSEG) then
+
 C.......Obtain the global and local edge numbers
 
          GED = NEBSEGN(L)
@@ -32,7 +44,7 @@ C.......Obtain the element
          endif
 #endif
          
-         IF (WDFLG(EL).EQ.0) GOTO 1000
+         IF (WDFLG(EL).EQ.0) return
 
 C.....Retrieve the components of the normal vector to the edge
 
@@ -162,7 +174,11 @@ C.........Compute the x and y components of the external state flow
             
 C.........Compute numerical flux
             
-            CALL NUMERICAL_FLUX(IT,test_el)
+            !CALL NUMERICAL_FLUX(IT,test_el)
+            call LLF_FLUX(ze_ex, ze_in, qx_ex, qx_in, qy_ex, qy_in,
+     &           hb_in, hb_ex, nx, ny, G, nleq, leq, nleqg, fg_l,
+     &           sfac_in, sfac_ex,
+     &           f_hat, g_hat, h_hat)
 
             DO K = 1,DOFS(EL)
 
@@ -199,7 +215,10 @@ C.........Compute numerical flux
 
             ENDDO
          ENDDO
- 1000 CONTINUE
+!1000 CONTINUE
+         endif thread
 
       RETURN
       END SUBROUTINE EBARRIER_EDGE_HYDRO
+
+      end module

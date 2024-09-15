@@ -11,11 +11,27 @@ C     -- cem, 2011
 C
 C***********************************************************************
 
-      SUBROUTINE SLOPELIMITER()
+      module slopelimiters
+
+
+      USE SIZES, ONLY : SZ,layers
+      use cudafor
+
+#ifdef CMPI
+      USE MESSENGER
+#endif
+      use dg, only : ze, qx, qy,  phi_corner, ze_min1,ze_max1,qx_min1,qx_max1,
+     &   qy_min1, qy_max1
+      use global, only : nm, el_count, eletab
+      contains
+
+      SUBROUTINE SLOPELIMITER(irk, ne, np, maxel)
 
       USE DG, ONLY : SLOPEFLAG
       
       IMPLICIT NONE
+
+      integer, value :: irk, ne, np, maxel
 
 #ifdef SLOPEALL
       IF (SLOPEFLAG.EQ.1) THEN
@@ -43,7 +59,7 @@ C***********************************************************************
 
 #ifdef SLOPE5 
       IF (SLOPEFLAG .NE. 0) THEN
-        CALL SLOPELIMITER5()
+        !CALL SLOPELIMITER5(irk, ne, np, maxel)
       ENDIF
 #endif
 
@@ -3256,47 +3272,43 @@ C
 C     
 C***********************************************************************
 
-      SUBROUTINE SLOPELIMITER5()
+      SUBROUTINE SLOPELIMITER5(irk, NE, NP, MAXEL)
 
 C.....Use appropriate modules
 
-      USE SIZES, ONLY : SZ,layers
-      USE GLOBAL
-      USE DG
-
-#ifdef CMPI
-      USE MESSENGER
-#endif
 
       IMPLICIT NONE
 
+      integer, value :: ne, np, maxel, irk
+
 C.....Declare local variables
 
+      integer :: no_nbors, n1, n2, n3, nbor_el, istat
+      real(sz), managed :: ze_dg(maxel), qx_dg(maxel), qy_dg(maxel)
       INTEGER L, LL, INC1,INC2,INC3,KDP,NN,IVAR,I,J,kk,k,varnum,bb,varnum_prev
-      REAL(SZ) ZEC(3),ZEVERTEX(3),DIF(3),SUMLOC,SUMDIF,SIGNDIF,
+      REAL(SZ), managed :: ZEC(3),ZEVERTEX(3),DIF(3)
+      real(sz) :: SUMLOC,SUMDIF,SIGNDIF,
      $     DIV,REDFAC,REDMAX,tmp1,tmp2,tmp3,bound
-      Real(SZ) ZEMIN1(3),ZEMAX1(3),QXMIN1(3),QXMAX1(3)
-      Real(SZ) QYMIN1(3),QYMAX1(3)
-      Real(SZ) iotaMIN1(3),iotaMAX1(3)
-      Real(SZ) iota2MIN1(3),iota2MAX1(3)
-      Real(SZ), Allocatable :: ZE_MIN1(:),ZE_MAX1(:),QX_MIN1(:),QX_MAX1(:)
-      Real(SZ), Allocatable :: QY_MIN1(:),QY_MAX1(:)
-      Real(SZ), Allocatable :: iota_MIN1(:),iota_MAX1(:)
-      Real(SZ), Allocatable :: iota2_MIN1(:),iota2_MAX1(:)
-      Real(SZ), Allocatable, target :: bed_min1(:,:), bed_max1(:,:)
-      Real(SZ), pointer:: arraymin(:),arraymax(:)
+      Real(SZ), managed :: ZEMIN1(3),ZEMAX1(3),QXMIN1(3),QXMAX1(3)
+      Real(SZ), managed :: QYMIN1(3),QYMAX1(3)
+      Real(SZ), managed :: iotaMIN1(3),iotaMAX1(3)
+      Real(SZ), managed :: iota2MIN1(3),iota2MAX1(3)
+c$$$      Real(SZ), Allocatable :: iota_MIN1(:),iota_MAX1(:)
+c$$$      Real(SZ), Allocatable :: iota2_MIN1(:),iota2_MAX1(:)
+c$$$      Real(SZ), Allocatable, target :: bed_min1(:,:), bed_max1(:,:)
+c$$$      Real(SZ), pointer:: arraymin(:),arraymax(:)
 
-      Allocate ( ZE_MIN1(NP),ZE_MAX1(NP),QX_MIN1(NP) )
-      Allocate ( QY_MIN1(NP),QY_MAX1(NP),QX_MAX1(NP) )
-      Allocate ( iota_MIN1(NP),iota_MAX1(NP) )
-      Allocate ( iota2_MIN1(NP),iota2_MAX1(NP) )
-      Allocate ( bed_MIN1(NP,layers),bed_MAX1(NP,layers) )
+c$$$      Allocate ( iota_MIN1(NP),iota_MAX1(NP) )
+c$$$      Allocate ( iota2_MIN1(NP),iota2_MAX1(NP) )
+c$$$      Allocate ( bed_MIN1(NP,layers),bed_MAX1(NP,layers) )
 
 C     FIND THE MAXIMUM AND MINIMUM OF EACH VARIABLE OVER ALL ELEMENTS 
 C     SHARING A NODE
 
       bound = 0.0D0
 
+      !I = (blockidx%x-1)*blockdim%x + threadidx%x
+      !$cuf kernel do <<< *, 128 >>>
       DO I = 1,NP
          ZE_MIN1(I)=99999.
          ZE_MAX1(I)=-99999.
@@ -3413,6 +3425,7 @@ C
 
          ENDDO
       ENDDO
+
 #ifdef CMPI
 
       CALL UPDATER(ZE_MIN1,ZE_MAX1,QX_MIN1,3)
@@ -3440,9 +3453,11 @@ C
 C     LOOP OVER ELEMENTS TO CALCULATE NEW VERTEX VALUES
 C     
 
+         istat = cudaDeviceSynchronize()
       bb = 1
 
-      DO I=1,NE 
+      !$cuf kernel do <<<*, 128>>>
+      DO I=1,NE
          !IF(WDFLG(I).EQ.0) CYCLE ! DON'T COUNT DRY ELEMENTS  sb 02/26/07
          N1=NM(I,1)
          N2=NM(I,2)
@@ -3782,7 +3797,7 @@ c$$$               endif
                                 !endif
 
       ENDDO
-      RETURN
+
       END SUBROUTINE 
 
 #endif
@@ -10420,3 +10435,5 @@ C.....cem
       end subroutine Inv2
 
 #endif
+
+      end module slopelimiters

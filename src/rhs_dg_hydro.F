@@ -15,25 +15,42 @@ C     Aug xx, 2005, sb, Modified for wetting/drying
 C     01-10-2011 - cem - adapted for p_enrichment and multicomponent
 C
 C***********************************************************************
-      SUBROUTINE RHS_DG_HYDRO(IT)
+      module rhs_dg
 
-C.....Use appropriate modules
+      USE GLOBAL, only : pdg_el, NM,
+     &   wsx2, wsy2, pr2, tip2
+      USE DG, only : rhs_ze, rhs_qx, rhs_qy,  dofs, nagp,
+     &     srfac, wdflg, hb, qx, qy, fric_el, ze, bath, dbathdx, dbathdy,
+     &     phi_area, xfac,  dsdx, psi1, psi2, psi3, yfac, drdx,
+     &     sfac_elem, cori_el, drpsi, drdy, dsdy, dspsi, lz
+c$$$      USE NodalAttributes, ONLY : TAU, IFLINBF, IFHYBF, HBREAK, FTHETA,
+c$$$     &     FGAMMA,LoadManningsN,ManningsN,CF
 
-      USE GLOBAL
-      USE DG
-      USE NodalAttributes, ONLY : TAU, IFLINBF, IFHYBF, HBREAK, FTHETA,
-     &     FGAMMA,LoadManningsN,ManningsN,CF
-
-      USE sizes, ONLY: myproc,layers
+      use nodalattributes, only : ManningsN
+      USE sizes, ONLY: myproc, sz
       USE PRECIPITATION, only : computeElemTRR, PREC3, PREC2
+
+      contains
+
+      attributes(global) SUBROUTINE RHS_DG_HYDRO(IT, DTDP, IRK, NE,
+     &     NLEQ, LEQ, NLEQG, G, NWS, NTIP, rampdg, fg_l, cf, tau, iflinbf, ifhybf,
+     &     hbreak, ftheta, fgamma, layers, rainfall, loadmanningsn)
+
 
       IMPLICIT NONE
 
+      INTEGER, value :: IT, IRK, NE, NWS, NTIP, iflinbf, ifhybf, layers, rainfall
+      real(sz), value :: nleq, leq, nleqg, G, dtdp, rampdg, fg_l, hbreak, cf, tau
+      real(sz), value :: ftheta, fgamma
+      logical, value :: loadmanningsn
 C.....Declare local variables
       ! for rain test
       REAL(SZ) SR1, SR2, SR3, avg_rain
-      INTEGER IT
-      INTEGER L,k,i,ll
+      INTEGER L,k,i,ll, pa
+      INTEGER :: n1, n2, n3
+      real(sz) :: fx_in, fy_in, u_in, v_in, gx_in, gy_in, hx_in, hy_in
+      real(sz) :: ze_in, qx_in, qy_in, hb_in, source_x, source_y
+      real(sz) :: dhb_x, dhb_y, umag
       REAL(SZ) DPSIDX(3), DPSIDY(3)
       REAL(SZ) AREA, IMASS, TKX, TKY, Xpart, Ypart,H_0,C_1
       REAL(SZ) PHI_AREA_KI,MN_IN, MassAction1st,MassAction2nd,fx,fy
@@ -44,21 +61,21 @@ C.....Declare local variables
       Real(SZ) discharge_modelX_IN,discharge_modelY_IN
       Real(SZ) DH_X,DH_Y,phi_tot,C_0,HZ_X,HZ_Y,TZ_X,TZ_Y
 
-      Real(SZ),allocatable :: XBCbt(:),YBCbt(:)
+      !Real(SZ),allocatable :: XBCbt(:),YBCbt(:)
 
       real(sz) source_max, source_r
-      Allocate ( XBCbt(MNE),YBCbt(MNE) )
+      !Allocate ( XBCbt(MNE),YBCbt(MNE) )
 
-      source_max = 0.0
-      !print *, "max prec2 = ", maxval(prec2)
-
+      L = (blockidx%x-1)*blockdim%x + threadidx%x
       DTDPH = 1.D0/DTDP
-      DO 1000 L = 1, NE
+
+      thread: if (L <= NE) then
+      !DO L = 1, NE
 c     nd
-         advectqx(l)=0.0
-         advectqx(l)=0.0
-         sourceqx(l)=0.0
-         sourceqy(l)=0.0
+c$$$         advectqx(l)=0.0
+c$$$         advectqx(l)=0.0
+c$$$         sourceqx(l)=0.0
+c$$$         sourceqy(l)=0.0
 c     nd
 
 C.......Adjust the p values for constants
@@ -90,7 +107,8 @@ C.......Compute rain source term if rain is enabled
 C.......If element is dry then skip calculations
 
          IF (WDFLG(L).EQ.0) then
-            GOTO 1000
+            !GOTO 1000
+            return
          endif
 
 C.......Retrieve the global node numbers for the element
@@ -283,14 +301,14 @@ C.........Compute x momentum fluxes
             GX_IN = (HUU + GH2 + LZ_XX)*SFACQUAD
             GY_IN = HUV + LZ_XY
 
-            advectqx(l)=advectqx(l)+gx_in+gy_in
+            !advectqx(l)=advectqx(l)+gx_in+gy_in
 
 C.........Compute y momentum fluxes
 
             HX_IN = (HUV + LZ_YX)*SFACQUAD
             HY_IN = HVV + GH2 + LZ_YY
 
-            advectqy(l)=advectqy(l)+hx_in+hy_in
+            !advectqy(l)=advectqy(l)+hx_in+hy_in
 
 C.........Compute the friction factor
             if (LoadManningsN) then
@@ -381,8 +399,8 @@ C.........5) Tidal potential forcing (in x and y)
      &              + DPSIDY(2)*TIP2(N2) + DPSIDY(3)*TIP2(N3) )
             ENDIF
 
-            sourceqx(l)=sourceqx(l)+source_x
-            sourceqy(l)=sourceqy(l)+source_y
+            !sourceqx(l)=sourceqx(l)+source_x
+            !sourceqy(l)=sourceqy(l)+source_y
 
 C.........6) Chemical mass action
 
@@ -462,7 +480,8 @@ C.........Build the rhs
          ENDDO
 
 
- 1000 CONTINUE
-      !print *, "max source = ", source_max
-      RETURN
+      endif thread
+
       END SUBROUTINE
+
+      end module rhs_dg
