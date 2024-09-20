@@ -16,24 +16,35 @@ C
 C     01-10-2011 - cem - adapted for p_enrichment and multicomponent  
 C     
 C***********************************************************************
-      SUBROUTINE OCEAN_EDGE_HYDRO(IT)
+      module ocean_edge_dg
+
+      Use SIZES, only: sz
+      use dg, only : ze, qx, qy, rhs_ze, rhs_qx, rhs_qy, negp, cosnx, sinnx,
+     &     sfaced, lz, bathed, efa_dg, emo_dg, xegp, dofs, nedel, nedsd, needn, wdflg,
+     &   phi_edge, xlen, wegp, m_inv, nedno
+c
+      USE NodalAttributes, ONLY: GeoidOffset
+      use global, only : amig, face, eta2, pdg_el, areas, per, ff
+      use flux_dg, only : llf_flux
+
+      contains
+
+      attributes(global) SUBROUTINE OCEAN_EDGE_HYDRO(IT,irk,needs,nbfr,timedg,rampdg,g,nleq,leq,nleqg,fg_l,
+     &   nope, h0, ifnlfa, layers, loadgeoidoffset)
 
 C.....Use appropriate modules
 
-      USE GLOBAL
-      USE DG
-      Use SIZES, only: layers
-c     
-      USE NodalAttributes, ONLY: GeoidOffset, LoadGeoidOffset
-      use fparser
-      use fparser2
-      use flux_dg, only : llf_flux
-
       IMPLICIT NONE
+
+      logical, value :: loadgeoidoffset
+      integer, value :: it, irk, needs, nope, ifnlfa,nbfr, layers
+      real(sz), value :: timedg, rampdg, g, nleq, leq, nleqg, fg_l, h0
 
 C.....Declare local variables
       
-      INTEGER L, LED, GED, i,k,jj,II,ll,IT,w
+      INTEGER L, LED, GED, i,k,jj,II,ll,w, pa, test_el, n1, n2, n3, el_in, ncyc
+      real(sz) :: nx, ny, ze_in, qx_in, qy_in, ze_ex, qx_ex, qy_ex, u_ex, v_ex, hb_in, rff
+      real(sz) :: sfac_in, sfac_ex, hb_ex, f_hat, g_hat, h_hat, argj, tmp
       Real(SZ) DEN2,U_AVG,V_AVG,VEL_NORMAL,q_RoeX, q_RoeY, q_Roe
       REAL(SZ) TX, TY, HUU, HUV, GH2,FH_NL_IN,F1_NL,FX1_IN,FY1_IN
       REAL(SZ) LZ_XX_IN, LZ_XY_IN, LZ_YX_IN, LZ_YY_IN,W_IN,FX3_IN
@@ -45,8 +56,10 @@ C.....Declare local variables
       REAL(SZ), dimension(2):: EFA_GPT, EMO_GPT, ARG_GPT, ZE_GPT
 
       test_el = 0
-      DO 1000 L = 1, needs
-         
+
+      L = (blockidx%x-1)*blockdim%x + threadidx%x
+      thread: if (L <= needs) then
+
 C.....Retrieve the global and local edge number
 
          GED = NEEDN(L)
@@ -66,7 +79,7 @@ C.....Retrieve the elements which share the edge
          
 C.....If the element is dry then skip the edge calculation
 
-         IF (WDFLG(EL_IN).EQ.0) GOTO 1000
+         IF (WDFLG(EL_IN).EQ.0) return
          
          test_el = test_el+1
          
@@ -312,9 +325,9 @@ C.....Compute the edge integral
                W_IN = 2.0d0*M_INV(K,pa)/AREAS(EL_IN)*XLEN(GED)*
      &              PHI_EDGE(K,I,LED,pa)*WEGP(I,pa)
 
-               RHS_ZE(K,EL_IN,IRK) = RHS_ZE(K,EL_IN,IRK) - W_IN*F_HAT
-               RHS_QX(K,EL_IN,IRK) = RHS_QX(K,EL_IN,IRK) - W_IN*G_HAT
-               RHS_QY(K,EL_IN,IRK) = RHS_QY(K,EL_IN,IRK) - W_IN*H_HAT
+               tmp = atomicAdd(RHS_ZE(K,EL_IN,IRK), -W_IN*F_HAT)
+               tmp = atomicAdd(RHS_QX(K,EL_IN,IRK), -W_IN*G_HAT)
+               tmp = atomicAdd(RHS_QY(K,EL_IN,IRK), -W_IN*H_HAT)
 
 #ifdef TRACE
               RHS_iota(K,EL_IN,IRK) = RHS_iota(K,EL_IN,IRK) - W_IN*I_HAT
@@ -340,7 +353,9 @@ C.....Compute the edge integral
             ENDDO
          ENDDO
 
- 1000 CONTINUE
-      
+      endif thread
+
       RETURN
       END SUBROUTINE
+
+      end module

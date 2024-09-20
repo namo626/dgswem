@@ -162,7 +162,7 @@ C...
 #endif
 
       INTEGER, ALLOCATABLE, managed ::   pdg_el(:)
-      REAL(SZ),ALLOCATABLE ::   ETAS(:),ETA1(:),ETA2(:),ETAMAX(:)
+      REAL(SZ),ALLOCATABLE, managed ::   ETAS(:),ETA1(:),ETA2(:),ETAMAX(:)
       REAL(SZ),ALLOCATABLE ::   entrop(:,:)
       Real(SZ),Allocatable::tracer(:),tracer2(:),MassMax(:),bed_int(:,:)
       REAL(SZ),ALLOCATABLE ::   UU1(:),UU2(:),VV1(:),VV2(:), dyn_P(:)
@@ -303,9 +303,9 @@ C...
       REAL(8) WREFTIM,WTIMED,WTIME2,WTIME1,WTIMINC,QTIME1,QTIME2
       REAL(8) FTIMINC,ETIMINC,RSTIME1,RSTIME2,RSTIMINC
       REAL(8) DELX,DELY,DIST,DELDIST,DELETA
-      REAL(8),ALLOCATABLE :: AMIG(:),AMIGT(:),FAMIG(:)
-      REAL(8),ALLOCATABLE :: PER(:),PERT(:),FPER(:)
-      REAL(8),ALLOCATABLE :: FREQ(:),FF(:),FACE(:)
+      REAL(8),ALLOCATABLE, managed :: AMIG(:),AMIGT(:),FAMIG(:)
+      REAL(8),ALLOCATABLE, managed :: PER(:),PERT(:),FPER(:)
+      REAL(8),ALLOCATABLE, managed :: FREQ(:),FF(:),FACE(:)
       REAL(8),ALLOCATABLE :: SLAM(:),SFEA(:),X(:),Y(:)
 
 

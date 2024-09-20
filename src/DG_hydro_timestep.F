@@ -30,13 +30,14 @@ C.....Use appropriate modules
       USE DG
       use slopelimiters, only : slopelimiter5
       USE precipitation, only : prec2
+      use ocean_edge_dg, only : ocean_edge_hydro
       use rhs_dg, only : rhs_dg_hydro
       use land_dg, only : land_edge_hydro
       use internal_edge_dg, only : internal_edge_hydro
       use ebarrier_dg, only : ebarrier_edge_hydro
       use ibarrier_dg, only : ibarrier_edge_hydro
       USE NodalAttributes, ONLY : TAU, IFLINBF, IFHYBF, HBREAK, FTHETA,
-     &     FGAMMA,LoadManningsN,ManningsN,CF
+     &     FGAMMA,LoadManningsN,ManningsN,CF, loadgeoidoffset
 
 #ifdef CMPI
       USE MESSENGER_ELEM 
@@ -215,7 +216,10 @@ C.......Compute LDG auxiliary equations
          
 C.......Compute elevation specified edges
 
-         IF (NEEDS.GT.0)  CALL OCEAN_EDGE_HYDRO(IT)
+         IF (NEEDS.GT.0)  CALL OCEAN_EDGE_HYDRO<<<needs/128+1,128>>>(
+     &    IT,irk,needs,nbfr,timedg,rampdg,g,nleq,leq,nleqg,fg_l,
+     &        nope, h0, ifnlfa, layers, loadgeoidoffset
+     &  )
 
 C.......Compute no-normal flow edges
 

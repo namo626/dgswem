@@ -191,7 +191,7 @@ C     The following attribute contains BK(I),BALPHA(I),BDELX(I), and POAN(I)
       REAL(SZ), ALLOCATABLE :: BridgePilings(:,:)
       REAL(SZ), ALLOCATABLE :: Chezy(:)
       REAL(SZ), ALLOCATABLE, managed :: ManningsN(:)
-      REAL(SZ), ALLOCATABLE :: GeoidOffset(:)
+      REAL(SZ), ALLOCATABLE, managed :: GeoidOffset(:)
       REAL(SZ), ALLOCATABLE :: EVM(:)
       REAL(SZ), ALLOCATABLE :: EVC(:)
 C

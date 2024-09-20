@@ -135,7 +135,7 @@ C.....Declare allocatable real arrays
       REAL(SZ), ALLOCATABLE :: DRPHI(:,:,:), DSPHI(:,:,:)
       REAL(SZ), ALLOCATABLE, managed :: DRDX(:), DSDX(:), DRDY(:), DSDY(:)
       REAL(SZ), ALLOCATABLE :: DXPHI2(:,:,:), DYPHI2(:,:,:), PHI2(:,:,:)
-      REAL(SZ), ALLOCATABLE :: EFA_DG(:,:,:), EMO_DG(:,:,:)
+      REAL(SZ), ALLOCATABLE, managed :: EFA_DG(:,:,:), EMO_DG(:,:,:)
       REAL(SZ), ALLOCATABLE :: UFA_DG(:,:,:), UMO_DG(:,:,:)
       REAL(SZ), ALLOCATABLE :: VFA_DG(:,:,:), VMO_DG(:,:,:)
       REAL(SZ), ALLOCATABLE, managed :: XLEN(:)
