@@ -306,8 +306,8 @@ Csb-20070228 NRK+1-->NRK+2 --- XX(:,:,NRK+2) will be used by slope limiter
       Allocate ( iotaa(DOFH,MNE,NRK+2),iotaa2(DOFH,MNE,NRK+2) )
       Allocate ( iotaa3(DOFH,MNE,NRK+2) )
 
-      Allocate ( ZE_MIN1(NP),ZE_MAX1(NP),QX_MIN1(NP) )
-      Allocate ( QY_MIN1(NP),QY_MAX1(NP),QX_MAX1(NP) )
+      Allocate ( ZE_MIN1(MNP),ZE_MAX1(MNP),QX_MIN1(MNP) )
+      Allocate ( QY_MIN1(MNP),QY_MAX1(MNP),QX_MAX1(MNP) )
 Csb-20060711 For wet/dry
       ALLOCATE ( ZE_MAX(MNE),ZE_MIN(MNE),DPE_MIN(MNE) )
       Allocate ( iota_MAX(MNE),iota_MIN(MNE),iota2_MAX(MNE),
