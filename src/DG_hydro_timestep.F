@@ -28,6 +28,7 @@ C.....Use appropriate modules
       use cudafor
       USE GLOBAL
       USE DG
+      use wetdry_dg, only : wetdry
       use slopelimiters, only : slopelimiter5
       USE precipitation, only : prec2
       use ocean_edge_dg, only : ocean_edge_hydro
@@ -565,7 +566,8 @@ C.......Apply the slopelimiter if appropriate
 C.......Apply the wet-dry algorithm if appropriate
 
       IF (NOLIFA .GE. 2) THEN
-         CALL WETDRY()
+         CALL WETDRY<<<NE/128+1,128>>>(irk, dofh, np, ne, h0, c13, c16, ph)
+         istat = cudaDeviceSynchronize()
       ENDIF
 
 c$$$C...Apply the slopelimiter again if auxiliary variable is being used

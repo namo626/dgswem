@@ -230,7 +230,7 @@ C.....Allocate additional variables for wave friction
 
       INTEGER,ALLOCATABLE ::    ME2GW(:)
       INTEGER,ALLOCATABLE ::    NBV(:),LBCODEI(:)
-      INTEGER,ALLOCATABLE ::    NNODECODE(:),NODECODE(:),NODEREP(:)
+      INTEGER,ALLOCATABLE, managed ::    NNODECODE(:),NODECODE(:),NODEREP(:)
       INTEGER,ALLOCATABLE ::    NIBCNT(:)
       INTEGER,ALLOCATABLE, managed ::    NM(:,:)
       INTEGER,ALLOCATABLE ::    NNEIGH(:),MJU(:),NODELE(:)

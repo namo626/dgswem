@@ -33,8 +33,8 @@ C.....Declare integer variables
       INTEGER, TARGET :: MNES,artdif,tune_by_hand
       INTEGER IRK
       INTEGER J1, J2, J3,negp_fixed,nagp_fixed
-      INTEGER NCHECK(8),  NEDGES, NRK !42 hardwires for ph=7
-      integer, allocatable, managed :: nagp(:), negp(:)
+      INTEGER NEDGES, NRK !42 hardwires for ph=7
+      integer, allocatable, managed :: nagp(:), negp(:), ncheck(:)
       INTEGER NIEDS, NLEDS, NEEDS, NFEDS, NREDS, NEBEDS, NIBEDS
       INTEGER NIBSEG, NEBSEG
       INTEGER MNED, MNLED, MNSED, MNRAED, MNRIED
@@ -147,10 +147,10 @@ C.....Declare allocatable real arrays
       REAL(SZ), ALLOCATABLE, managed :: M_INV(:,:),phi_edge_fixed(:,:,:)
       REAL(SZ), ALLOCATABLE, managed :: PHI_AREA(:,:,:), PHI_EDGE(:,:,:,:)
       REAL(SZ), ALLOCATABLE, managed :: PHI_CENTER(:,:), PHI_CORNER(:,:,:)
-      REAL(SZ), ALLOCATABLE :: PHI_CHECK(:,:,:)
+      REAL(SZ), ALLOCATABLE, managed :: PHI_CHECK(:,:,:)
       REAL(SZ), ALLOCATABLE :: PHI_CORNER1(:,:,:,:)
       REAL(SZ), ALLOCATABLE :: PHI_MID(:,:,:)
-      REAL(SZ), ALLOCATABLE :: PHI_INTEGRATED(:,:)
+      REAL(SZ), ALLOCATABLE, managed :: PHI_INTEGRATED(:,:)
       REAL(SZ), ALLOCATABLE :: PSI_CHECK(:,:)
       REAL(SZ), ALLOCATABLE, managed :: PSI1(:,:), PSI2(:,:), PSI3(:,:)
       REAL(SZ), ALLOCATABLE :: Q_HAT(:)
@@ -252,7 +252,7 @@ C**********************END OF DATA DECLARATIONS ***********************
 ! These were previously declared as constant arrays
       subroutine alloc_managed()
       allocate ( drpsi(3), dspsi(3) )
-      allocate ( nagp(8), negp(8) )
+      allocate ( nagp(8), negp(8), ncheck(8) )
       end subroutine
       
 C.....Set edge array sizes

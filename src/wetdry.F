@@ -14,15 +14,24 @@ C
 C     
 C***********************************************************************
 
-      SUBROUTINE WETDRY()
+      module wetdry_dg
+
+      USE SIZES, only : sz
+      use dg, only : ze, qx, qy, dp_node, dp_vol, wdflg, dofs,
+     &   phi_integrated, phi_corner, hb, dpe_min, phi_check, ncheck
+      use global, only : nodecode, nm, areas, pdg_el
+
+      contains
+
+      attributes(global) SUBROUTINE WETDRY(irk, dofh, np, ne, h0, c13, c16, ph)
       
 C.....Use appropriate modules
       
-      USE SIZES
-      USE GLOBAL
-      USE DG
-      
+
       IMPLICIT NONE
+
+      integer, value :: ph, irk, np, ne, dofh
+      real(sz), value :: c13, c16, h0
 
 C.....Declare local variables
 
@@ -49,15 +58,19 @@ C.....Declare local variables
 
       REAL(SZ), PARAMETER:: HUGEVEL = 1.D+5  
       REAL(SZ):: HS0, U_HAT(3), V_HAT(3)
+      integer :: pa
 C.....Initialize node codes to dry
 
-      DO I = 1,NP
-         NODECODE(I) = 0
-      ENDDO
-      
+      J = (blockidx%x-1)*blockdim%x + threadidx%x
+
+c$$$      DO I = 1,NP
+c$$$         NODECODE(I) = 0
+c$$$      ENDDO
+      if (J <= NP) NODECODE(J) = 0
 C.....Loop over the elements
 
-      DO 100 J = 1,NE
+      thread: if (J <= NE) then
+
 
          pa = pdg_el(j)
          
@@ -540,7 +553,11 @@ C...........Make adjustments and set element node codes to dry
             ENDIF
          ENDIF
 
- 100  CONTINUE
+      endif thread
+
+
 
       RETURN
       END SUBROUTINE WETDRY
+
+      end module
