@@ -344,7 +344,7 @@ ifeq ($(compiler),nvhpc)   # NVIDIA
   FC	        :=  nvfortran
   PFC	        :=  mpif90
   OLEVEL     := -O0
-  FFLAGS1	:=  -Mextend -traceback -g $(OLEVEL) -cuda  -gpu=lineinfo -r8
+  FFLAGS1	:=  -Mextend -Mpreprocess -Minfo=all -traceback -g $(OLEVEL) -cuda  -gpu=lineinfo -r8
   FFLAGS2	:=  $(FFLAGS1)
   FFLAGS3	:=  $(FFLAGS1)
   FFLAGS4	:=  $(FFLAGS1)

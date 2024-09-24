@@ -267,9 +267,9 @@ C.......SSP Runge-Kutta Time Scheme
          DO I = 1,IRK
             ARK = ATVD(IRK,I)
             BRK = BTVD(IRK,I)*DT
-            !$cuf kernel do(2) <<< *, (128,1) >>>
+!$cuf kernel do(2) <<< *, (128,1) >>>
             DO J = 1,NE
-               DO K = 1,DOFS(J)
+               DO K = 1,DOFH
 
 #ifdef SED_LAY
 
@@ -288,7 +288,7 @@ C.......SSP Runge-Kutta Time Scheme
      &                 + BRK*RHS_ZE(K,J,I) 
                   QX(K,J,IRK+1) = QX(K,J,irk+1) + ARK*QX(K,J,I)
      &                 + BRK*RHS_QX(K,J,I)
-                  QY(K,J,IRK+1) = QY(K,J,irk+1) + ATVD(IRK,I)*QY(K,J,I)
+                  QY(K,J,IRK+1) = QY(K,J,irk+1) + ARK*QY(K,J,I)
      &                 + BRK*RHS_QY(K,J,I)
 C.......Compute the transported tracer term if flagged
 
@@ -316,7 +316,7 @@ C.......Compute the dynamic pressure if flagged
 
                ENDDO
             ENDDO
-         istat = cudaDeviceSynchronize()
+         !istat = cudaDeviceSynchronize()
          ENDDO
 
 #endif
@@ -710,9 +710,9 @@ C......Filter chemistry transported terms if flagged
 #endif
       
 
-      !$cuf kernel do(2) <<<*, (128,1) >>>
+!$cuf kernel do(2) <<<*, (128,1) >>>
       DO J = 1,MNE
-         DO K = 1,DOFS(J)
+         DO K = 1,DOFH
             ZE(K,J,1) = ZE(K,J,NRK+1)
             QX(K,J,1) = QX(K,J,NRK+1)
             QY(K,J,1) = QY(K,J,NRK+1)
@@ -736,7 +736,7 @@ C......Filter chemistry transported terms if flagged
          ENDDO
       ENDDO
 
-      !$cuf kernel do(3) <<< *, 128 >>>
+!$cuf kernel do(3) <<< *, 128 >>>
       DO KK = 2,NRK+1
          DO J = 1,MNE
             DO K = 1,DOFH
