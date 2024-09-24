@@ -13,7 +13,10 @@ C***********************************************************************
 C.....Use appropriate modules
       
       USE SIZES, ONLY : SZ,layers
-      USE GLOBAL, ONLY : SEDFLAG
+      USE GLOBAL, ONLY : SEDFLAG, MNP, nleq, leq, modetonode, maxel
+      use dg, only : dofh, ph
+      use output_dg, only : write_results, modal2nodal
+      use nvtx
 
 #ifdef CMPI
       USE MESSENGER_ELEM
@@ -27,7 +30,9 @@ C.....Declare local variables
       
 C.....Hydrodynamics
 
+      call nvtxStartRange("DG_HYDRO_TIMESTEP", 1)
       CALL DG_HYDRO_TIMESTEP(IT)
+      call nvtxEndRange()
 
 C.....Write out results
 
@@ -36,14 +41,20 @@ C.....Write out results
       CALL MSG_BLOCKSYNC_START()
 #endif
 #endif
+      call modal2nodal<<<MNP/128+1,128>>>(MNP,IT,maxel,nleq,leq, dofh, ph, sedflag)
+      call nvtxStartRange("WRITE_RESULTS", 1)
+      !call modal2nodal(NE,IT,maxel,nleq,leq,modetonode, dofh, ph, sedflag)
       CALL WRITE_RESULTS(IT,.FALSE.)
+      call nvtxEndRange
 #ifdef CMPI
 #ifdef BLKOUT
       CALL MSG_BLOCKSYNC_FINISH()
 #endif
 #endif
 
+      call nvtxStartRange("SCRUTINIZE", 1)
       CALL SCRUTINIZE_SOLUTION()
+      call nvtxEndRange
 
       RETURN
       END SUBROUTINE

@@ -16,6 +16,7 @@ C     sb-disabled for Linux&Intel compiler
       USE GLOBAL
       USE HARM
       USE DG
+      use output_dg
       USE NodalAttributes, ONLY :
      &     NoLiBF, NWP, Tau0, HBreak, FTheta, FGamma, Tau, CF, IFNLBF,
      &     InitNAModule, ReadNodalAttr, InitNodalAttr, ESLM, ESLC,
@@ -197,6 +198,8 @@ c     write(200+myproc,*) 'back from prep_dg'
 
       ! namo - test DG hotstart
       ITHS = 0
+      !CALL WRITE_RESULTS(0,.FALSE.)
+      call modal2nodal<<<MNP/128+1,128>>>(MNP,0,maxel,nleq,leq, dofh, ph, sedflag)
       CALL WRITE_RESULTS(0,.FALSE.)
 
                                !cnd...for tecplot output

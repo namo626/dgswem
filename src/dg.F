@@ -120,7 +120,7 @@ C.....Declare allocatable integer arrays
 
 C.....Declare allocatable real arrays
       
-      REAL(SZ), ALLOCATABLE :: ATVD(:,:), BTVD(:,:), CTVD(:,:)
+      REAL(SZ), ALLOCATABLE, managed :: ATVD(:,:), BTVD(:,:), CTVD(:,:)
       REAL(SZ), ALLOCATABLE, managed :: DTVD(:), MAX_BOA_DT(:),e1(:),balance(:)
       Real(SZ), Allocatable :: RKC_T(:),RKC_U(:),RKC_Tprime(:)
       Real(SZ), Allocatable :: RKC_Tdprime(:),RKC_a(:),RKC_b(:),RKC_c(:)

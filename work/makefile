@@ -95,6 +95,7 @@ SOLVE_MSRC = rhs_dg_hydro.F internal_edge_hydro.F land_edge_hydro.F ibarrier_edg
 FLUX_MSRC = numerical_flux.F
 SLOPE_MSRC = slopelimiter.F
 WETDRY_MSRC = wetdry.F
+OUTPUT_MSRC = write_results.F
 
 PREP_MOBJ:= $(patsubst %.F, $(O_DIR)%.o, $(PREP_MSRC) )
 PGLO_MOBJ:= $(patsubst %.F, $(O_DIR)%.o, $(PGLO_MSRC) )
@@ -113,6 +114,7 @@ SOLVE_MOBJ := $(patsubst %.F, $(O_DIR)%.o, $(SOLVE_MSRC))
 FLUX_MOBJ := $(patsubst %.F, $(O_DIR)%.o, $(FLUX_MSRC))
 SLOPE_MOBJ := $(patsubst %.F, $(O_DIR)%.o, $(SLOPE_MSRC))
 WETDRY_MOBJ := $(patsubst %.F, $(O_DIR)%.o, $(WETDRY_MSRC))
+OUTPUT_MOBJ := $(patsubst %.F, $(O_DIR)%.o, $(OUTPUT_MSRC))
 
 ############################# Source & Object Files ##############################
 
@@ -127,7 +129,7 @@ ADC_SRC    =  dgswem.F owiwind.F read_input.F cstart.F hstart.F radiation_edge_h
 	orthogonal_basis_v1.F p_enrichment.F prep_DG.F quadrature_v1.F \
 	radiation_edge_hydro.F read_input.F \
 	quad_rules_general.F \
-	tidal_potential.F write_results.F \
+	tidal_potential.F \
 	prep_slopelim.F \
 	LDG_hydro.F met_forcing.F sta_basis.F modal2nodal.F write_output.F
 #Casey 121126: Added modal2nodal.F and write_output.F to the previous line.
@@ -333,11 +335,11 @@ $(O_DIR)owiwind.o   			:  owiwind.F $(ADC_MOBJ)
 $(O_DIR)read_input.o  			:  read_input.F $(ADC_MOBJ) $(HARM_MOBJ) $(WIND_MOBJ)
 $(O_DIR)cstart.o      			:  cstart.F $(ADC_MOBJ)  $(HARM_MOBJ)  $(WIND_MOBJ)
 $(O_DIR)hstart.o      			:  hstart.F $(ADC_MOBJ)  $(HARM_MOBJ)  $(WIND_MOBJ)
-$(O_DIR)dgswem.o      			:  dgswem.F $(ADC_MOBJ)  $(HARM_MOBJ) $(WIND_MOBJ) $(OWIRAIN_MOBJ)
+$(O_DIR)dgswem.o      			:  dgswem.F $(ADC_MOBJ)  $(HARM_MOBJ) $(WIND_MOBJ) $(OWIRAIN_MOBJ) $(OUTPUT_MOBJ)
 $(O_DIR)calc_normal.o         	:  calc_normal.F $(ADC_MOBJ)
 $(O_DIR)create_edge_data.o    	:  create_edge_data.F $(ADC_MOBJ)
 $(O_DIR)detector.o	      	:  detector.F $(ADC_MOBJ)
-$(O_DIR)DG_timestep.o         	:  DG_timestep.F $(ADC_MOBJ)
+$(O_DIR)DG_timestep.o         	:  DG_timestep.F $(ADC_MOBJ) $(OUTPUT_MOBJ)
 $(O_DIR)DG_hydro_timestep.o   	:  DG_hydro_timestep.F  $(ADC_MOBJ) $(SOLVE_MOBJ) $(SLOPE_MOBJ) $(WETDRY_MOBJ)
 $(O_DIR)edge_int_hydro.o      	:  edge_int_hydro.F $(ADC_MOBJ)
 $(O_DIR)flow_edge_hydro.o     	:  flow_edge_hydro.F $(ADC_MOBJ) $(FLUX_MOBJ)

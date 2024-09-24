@@ -11,134 +11,155 @@ C     Jan 01, 2007, sb, Files are forced to be written if FORCE_WRITE = .TRUE.
 C
 C***********************************************************************
 
-      SUBROUTINE WRITE_RESULTS(IT,FORCE_WRITE)
-
-C.....Use appropriate modules
+      module output_dg
 
       USE precipitation, only: prec3
-      USE GLOBAL
-      USE DG
+      use global, only :  eta2, uu2, vv2, dp, nm, areas,
+     &  dpe, el_count, pdg_el, eletab, etamax
+      use dg, only : ze, wdflg, qx, qy, hb, phi_corner, nagp, wagp, phi_area, dofs
       USE HARM
-      use sizes, only:  myproc,layers
+      use sizes, only:  myproc,layers, sz
 #ifdef CMPI
       USE MESSENGER_ELEM
       USE MESSENGER
 #endif
-      
-C.....Declare local variables
 
-      INTEGER IT,Minp(0:8)
-      REAL(SZ) AREA, DEPTH, ANGLE_SUM, FH_NL, DP1, DP2, DP3, DP00, ZE00
-      LOGICAL FORCE_WRITE
-      real(sz) qmaxe,elmaxe
-      integer :: imaxze,imaxq,ErrorElevExceeded
+      contains
+
+      attributes(global) SUBROUTINE modal2nodal(MNP,IT,maxel,nleq,leq, dofh, ph, sedflag)
+
+C.....Use appropriate modules
+
+
+      implicit none
+
+      integer, value :: it, sedflag, MNP, ph, dofh, maxel
+      real(sz), value :: nleq, leq
+
+
+C.....Declare local variables
+      INTEGER  pa
+      real(sz) :: area_sum, ze_dg, qx_dg, qy_dg, hb_dg
+      REAL(SZ) :: AREA, DEPTH, ANGLE_SUM, FH_NL, DP1, DP2, DP3, DP00, ZE00, cen_sum
+      real(sz) :: qmaxe,elmaxe
+      integer :: imaxze,imaxq,ErrorElevExceeded, k,j , i, no_nbors, kk, nbor_el
       
 C.....Transform from modal coordinates to nodal coordinates and average
 C.....to single nodal values
 
-      if (ModetoNode.eq.1) then
-        DO I = 1,MNP
-        
+      I = (blockidx%x-1)*blockdim%x + threadidx%x
+      thread: if (I <= MNP) then
+
           NO_NBORS = EL_COUNT(I)
-        
+
+
           AREA_SUM = 0
           ANGLE_SUM = 0
           CEN_SUM = 0
-          DO 333 J = 1,NO_NBORS
+
+          nbor_loop1: DO J = 1,NO_NBORS
             NBOR_EL = ELETAB(I,1+J)
         
             IF(WDFLG(NBOR_EL).EQ.0) CYCLE  ! DON'T COUNT DRY ELEMENTS  sb 02/26/07
-        
-            DO K = 1,3
-              N1 = NM(NBOR_EL,K)
-              IF (N1.EQ.I) THEN
-                ZE_DG(J) = ZE(1,NBOR_EL,1)
-                QX_DG(J) = QX(1,NBOR_EL,1)
-                QY_DG(J) = QY(1,NBOR_EL,1)
-                HB_DG(J) = HB(1,NBOR_EL,1)
-#ifdef TRACE
-                iota_DG(J) = iota(1,NBOR_EL,1)
-                iotaa_DG(J) = iotaa(1,NBOR_EL,1)
-#endif
 
-#ifdef CHEM
-                iota_DG(J) = iota(1,NBOR_EL,1)
-                iota2_DG(J) = iota2(1,NBOR_EL,1)
-#endif
+            AREA = 0.5*AREAS(NBOR_EL)
+            AREA_SUM = AREA_SUM + AREA
 
-#ifdef DYNP
-                dynP_DG(J) = dynP(1,NBOR_EL,1)
-#endif
+         enddo nbor_loop1
 
-#ifdef SED_LAY
-                HB_DG(J) = 0.d0
-                bed_DG(J,:) = bed(1,NBOR_EL,1,:)
-                HB_DG(J) = sum(bed_DG(J,:))
-#endif
-            
-                DO KK = 2,DOFH
-                  ZE_DG(J) = ZE_DG(J)+PHI_CORNER(KK,K,ph)*ZE(KK,NBOR_EL,1)
-                  QX_DG(J) = QX_DG(J)+PHI_CORNER(KK,K,ph)*QX(KK,NBOR_EL,1)
-                  QY_DG(J) = QY_DG(J)+PHI_CORNER(KK,K,ph)*QY(KK,NBOR_EL,1)
-              
-#ifdef TRACE
-                  iota_DG(J) = iota_DG(J) 
-     &                         + PHI_CORNER(KK,K,ph)*iota(KK,NBOR_EL,1)
-                  iotaa_DG(J) = iotaa_DG(J) 
-     &                         + PHI_CORNER(KK,K,ph)*iotaa(KK,NBOR_EL,1)
-#endif
-
-#ifdef CHEM
-                  iota_DG(J) = iota_DG(J) 
-     &                         + PHI_CORNER(KK,K,ph)*iota(KK,NBOR_EL,1)
-                  iota2_DG(J) = iota2_DG(J) 
-     &                         + PHI_CORNER(KK,K,ph)*iota2(KK,NBOR_EL,1)
-#endif
-
-#ifdef DYNP
-                  dynP_DG(J) = dynP_DG(J) 
-     &                         + PHI_CORNER(KK,K,ph)*dynP(KK,NBOR_EL,1)
-#endif
-
-#ifdef SED_LAY
-                  do l=1,layers
-                     bed_DG(J,l) = bed_DG(J,l) 
-     &                           + PHI_CORNER(KK,K,ph)*bed(KK,NBOR_EL,1,l)
-                     HB_DG(J) = HB_DG(J) 
-     &                        + PHI_CORNER(KK,K,ph)*bed(KK,NBOR_EL,1,l)
-                     iotaa_DG(J) = iotaa(1,NBOR_EL,1)
-                  enddo
-#else
-
-                  HB_DG(J) = HB_DG(J) 
-     &                     + PHI_CORNER(KK,K,ph)*HB(KK,NBOR_EL,1)
-#endif
-                ENDDO
-                AREA = 0.5*AREAS(NBOR_EL)
-                AREA_SUM = AREA_SUM + AREA
-                GOTO 333
-              ENDIF
-            ENDDO
-333       CONTINUE
 
           ETA2(I) = 0.D0
+#ifdef TRACE
           tracer(I) = 0.D0
           tracer2(I) = 0.D0
+#endif
+
          
           UU2(I)  = 0.D0
           VV2(I)  = 0.D0
          
           IF(SEDFLAG.GE.2) DP(I) = 0.D0
 
-          DO J = 1,NO_NBORS
+          nbor_loop2: DO J = 1,NO_NBORS
             NBOR_EL = ELETAB(I,1+J)
          
             IF(WDFLG(NBOR_EL).EQ.0) CYCLE  ! DON'T COUNT DRY ELEMENTS  sb 02/26/07
-         
+
+            ! Find the corner of element J coresponding to node I
+            !K = findloc(NM(NBOR_EL,:), value=I, dim=1)
+            do K = 1,3
+               if (NM(NBOR_EL,K) .eq. I) exit
+            end do
+
+            ZE_DG = ZE(1,NBOR_EL,1)
+            QX_DG = QX(1,NBOR_EL,1)
+            QY_DG = QY(1,NBOR_EL,1)
+            HB_DG = HB(1,NBOR_EL,1)
+#ifdef TRACE
+            iota_DG(J) = iota(1,NBOR_EL,1)
+            iotaa_DG(J) = iotaa(1,NBOR_EL,1)
+#endif
+
+#ifdef CHEM
+            iota_DG(J) = iota(1,NBOR_EL,1)
+            iota2_DG(J) = iota2(1,NBOR_EL,1)
+#endif
+
+#ifdef DYNP
+            dynP_DG(J) = dynP(1,NBOR_EL,1)
+#endif
+
+#ifdef SED_LAY
+            HB_DG(J) = 0.d0
+            bed_DG(J,:) = bed(1,NBOR_EL,1,:)
+            HB_DG(J) = sum(bed_DG(J,:))
+#endif
+
+
+            DO KK = 2,DOFH
+               ZE_DG = ZE_DG+PHI_CORNER(KK,K,ph)*ZE(KK,NBOR_EL,1)
+               QX_DG = QX_DG+PHI_CORNER(KK,K,ph)*QX(KK,NBOR_EL,1)
+               QY_DG = QY_DG+PHI_CORNER(KK,K,ph)*QY(KK,NBOR_EL,1)
+
+#ifdef TRACE
+               iota_DG(J) = iota_DG(J)
+     &              + PHI_CORNER(KK,K,ph)*iota(KK,NBOR_EL,1)
+               iotaa_DG(J) = iotaa_DG(J)
+     &              + PHI_CORNER(KK,K,ph)*iotaa(KK,NBOR_EL,1)
+#endif
+
+#ifdef CHEM
+               iota_DG(J) = iota_DG(J)
+     &              + PHI_CORNER(KK,K,ph)*iota(KK,NBOR_EL,1)
+               iota2_DG(J) = iota2_DG(J)
+     &              + PHI_CORNER(KK,K,ph)*iota2(KK,NBOR_EL,1)
+#endif
+
+#ifdef DYNP
+               dynP_DG(J) = dynP_DG(J)
+     &              + PHI_CORNER(KK,K,ph)*dynP(KK,NBOR_EL,1)
+#endif
+
+#ifdef SED_LAY
+               do l=1,layers
+                  bed_DG(J,l) = bed_DG(J,l)
+     &                 + PHI_CORNER(KK,K,ph)*bed(KK,NBOR_EL,1,l)
+                  HB_DG(J) = HB_DG(J)
+     &                 + PHI_CORNER(KK,K,ph)*bed(KK,NBOR_EL,1,l)
+                  iotaa_DG(J) = iotaa(1,NBOR_EL,1)
+               enddo
+#else
+
+               HB_DG = HB_DG
+     &              + PHI_CORNER(KK,K,ph)*HB(KK,NBOR_EL,1)
+#endif
+            ENDDO
+
+
             AREA = 0.5d0*AREAS(NBOR_EL)/AREA_SUM
-            DEPTH = ZE_DG(J) + HB_DG(J)
+            DEPTH = ZE_DG + HB_DG
             FH_NL = 1.D0/(NLEQ*DEPTH + LEQ)
-            ETA2(I) = ETA2(I) + AREA*ZE_DG(J)
+            ETA2(I) = ETA2(I) + AREA*ZE_DG
 #ifdef TRACE
             tracer(I)  = tracer(I)  + AREA*iota_DG(J)*FH_NL
             tracer2(I) = tracer2(I) + AREA*iotaa_DG(J)*FH_NL
@@ -153,115 +174,31 @@ C.....to single nodal values
             dyn_P(I) = dyn_P(I) + AREA*dynP_DG(J)*FH_NL
 #endif    
             if (etamax(i).lt.eta2(i)) etamax(i)=eta2(i)
-            UU2(I)  = UU2(I)  + AREA*QX_DG(J)*FH_NL
-            VV2(I)  = VV2(I)  + AREA*QY_DG(J)*FH_NL
-            IF(SEDFLAG.GE.2) DP(I) = DP(I) + (AREA/AREA_SUM)*HB_DG(J)
-          ENDDO
-        ENDDO
-      else
+            UU2(I)  = UU2(I)  + AREA*QX_DG*FH_NL
+            VV2(I)  = VV2(I)  + AREA*QY_DG*FH_NL
+            IF(SEDFLAG.GE.2) DP(I) = DP(I) + (AREA/AREA_SUM)*HB_DG
 
-         ETA2 = 0.D0
-         tracer = 0.D0
-         tracer2 = 0.D0
-         UU2  = 0.D0
-         VV2  = 0.D0
-         DPe = 0.D0
+          ENDDO nbor_loop2
 
-         do j=1,ne
-
-            pa = pdg_el(j)
-            
-            if (pa.eq.0) then
-
-               pa = 1
-
-            endif
-
-            do I = 1,NAGP(pa)
-
-               do k = 1,dofs(j)
-
-                  eta2(j) = eta2(j)+ WAGP(I,pa) * PHI_AREA(K,I,pa) 
-     &                             * ZE(K,j,1) * 0.5D0 *AREAS(j)
-                  UU2(j)  = UU2(j) + WAGP(I,pa) * PHI_AREA(K,I,pa) 
-     &                             * QX(K,j,1) * 0.5D0 *AREAS(j)
-                  VV2(j)  = VV2(j) + WAGP(I,pa) * PHI_AREA(K,I,pa) 
-     &                             * QY(K,j,1) * 0.5D0 *AREAS(j)
+       endif thread
 
 
-#ifdef TRACE
-                  tracer(J)  = tracer(J)  +  WAGP(I,pa) 
-     &                * PHI_AREA(K,I,pa) * iota(K,j,1)  * 0.5D0*AREAS(j)
-                  tracer2(J) = tracer2(J) +  WAGP(I,pa) 
-     &                * PHI_AREA(K,I,pa) * iotaa(K,j,1) * 0.5D0*AREAS(j) 
-#endif
+      end subroutine modal2nodal
 
-#ifdef CHEM
-                  tracer(J)  = tracer(J)  +  WAGP(I,pa) 
-     &                 * PHI_AREA(K,I,pa) * iota(K,j,1) * 0.5D0*AREAS(j)
-                  tracer2(J) = tracer2(J) +  WAGP(I,pa) 
-     &                * PHI_AREA(K,I,pa) * iota2(K,j,1) * 0.5D0*AREAS(j)
-#endif
+      SUBROUTINE write_results(IT,FORCE_WRITE)
+      !use global, only : et00, uu00, vv00, bt00, cc00, rmp00, rmu00, rmv00
+      use global
+      use DG
 
-#ifdef DYNP
-                  dyn_P(J)  = dyn_P(J)  +  WAGP(I,pa) * PHI_AREA(K,I,pa) 
-     &                                  * dynP(K,j,1) * 0.5D0*AREAS(j)
-#endif
+      implicit none
+      integer, value :: it
+      logical, value :: force_write
 
-#ifdef SED_LAY
-                  do l=1,layers
 
-                     bed_int(J,l) = bed_int(J,l) + WAGP(I,pa) 
-     &                    *PHI_AREA(K,I,pa)*bed(K,J,1,l)*0.5D0*AREAS(j)
-
-                     DPe(j)  = DPe(j) + WAGP(I,pa)*PHI_AREA(K,I,pa)
-     &                                *bed(K,J,1,l) * 0.5D0 *AREAS(j)
-                     
-                  enddo
-
-                  tracer2(J) = tracer2(J) +  WAGP(I,pa) 
-     &               * PHI_AREA(K,I,pa) * iotaa2(K,j,1) * 0.5D0*AREAS(j)
-#else
-
-                  DPe(j)  = DPe(j) + WAGP(I,pa) * PHI_AREA(K,I,pa) 
-     &                             * HB(K,j,1) * 0.5D0 *AREAS(j)
-                  tracer2(J) = tracer2(J) +  WAGP(I,pa) 
-     &               * PHI_AREA(K,I,pa) * iotaa2(K,j,1) * 0.5D0*AREAS(j)
-
-#endif
-               enddo
-            enddo
-
-            DEPTH =  (eta2(j) + dpe(j)) 
-            FH_NL = 1.D0/(NLEQ*DEPTH + LEQ)
-            eta2(j) = eta2(j)/(AREAS(J))
-            UU2(j)  = UU2(j) *FH_NL
-            VV2(j)  = VV2(j) *FH_NL
-            dpe(j)  = dpe(j)/(AREAS(J))
-
-#ifdef SED_LAY
-            do l=1,layers
-               bed_int(j,l) = bed_int(j,l)/(AREAS(J))
-            enddo
-#endif
-
-#ifdef TRACE            
-            tracer(J)  = tracer(J)  * FH_NL
-            tracer2(J) = tracer2(J) * FH_NL  
-#endif
-
-#ifdef CHEM
-            tracer(J)  = tracer(J)  * FH_NL
-            tracer2(J) = tracer2(J) * FH_NL
-#endif
-
-#ifdef DYNP            
-            dyn_P(J)  = dyn_P(J)  * FH_NL
-#endif
-            
-         enddo
-
-      endif
+      INTEGER Minp(0:8)
+      REAL(SZ) AREA, DEPTH, ANGLE_SUM, FH_NL, DP1, DP2, DP3, DP00, ZE00
+      real(sz) qmaxe,elmaxe, iota_int, iota_error
+      integer :: imaxze,imaxq,ErrorElevExceeded, k,j , i, kk
 
       iota_int = 0.D0
       
@@ -1453,3 +1390,5 @@ C      ENDIF
         
       RETURN
       END
+
+      end module output_dg

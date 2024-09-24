@@ -65,6 +65,7 @@ C.....Declare local variables
       Real(sz) tempx,tempy,rev,Ox,Oy,time_at,C_0,C_1,sig,sigma
 
       Real(SZ),allocatable :: XB(:),YB(:),radial(:)
+      real(sz), ze_next, qx_next, qy_next
 
       Allocate ( XB(MNE),YB(MNE),radial(MNE) )
 
@@ -261,15 +262,17 @@ C.......Compute elements to finish building the rhs
      &        hbreak, ftheta, fgamma, layers, rainfall, loadManningsN
      &   )
 
-         istat = cudaDeviceSynchronize()
 C.......SSP Runge-Kutta Time Scheme
 
-         DO I = 1,IRK
-            ARK = ATVD(IRK,I)
-            BRK = BTVD(IRK,I)*DT
-!$cuf kernel do(2) <<< *, (128,1) >>>
-            DO J = 1,NE
-               DO K = 1,DOFH
+!$cuf kernel do <<< *, (128,1) >>>
+         DO J = 1,NE
+            DO K = 1,DOFH
+                  ze_next = 0.
+                  qx_next = 0.
+                  qy_next = 0.
+                  DO I = 1,IRK
+                     ARK = ATVD(IRK,I)
+                     BRK = BTVD(IRK,I)*DT
 
 #ifdef SED_LAY
 
@@ -284,11 +287,17 @@ C.......SSP Runge-Kutta Time Scheme
                   enddo
 #endif
 
-                  ZE(K,J,IRK+1) = ZE(K,J,irk+1) + ARK*ZE(K,J,I)
-     &                 + BRK*RHS_ZE(K,J,I) 
-                  QX(K,J,IRK+1) = QX(K,J,irk+1) + ARK*QX(K,J,I)
+c$$$                  ZE(K,J,IRK+1) = ZE(K,J,irk+1) + ARK*ZE(K,J,I)
+c$$$     &                 + BRK*RHS_ZE(K,J,I)
+c$$$                  QX(K,J,IRK+1) = QX(K,J,irk+1) + ARK*QX(K,J,I)
+c$$$     &                 + BRK*RHS_QX(K,J,I)
+c$$$                  QY(K,J,IRK+1) = QY(K,J,irk+1) + ARK*QY(K,J,I)
+c$$$     &                 + BRK*RHS_QY(K,J,I)
+                  ze_next = ze_next + ARK*ZE(K,J,I)
+     &                 + BRK*RHS_ZE(K,J,I)
+                  qx_next = qx_next + ARK*QX(K,J,I)
      &                 + BRK*RHS_QX(K,J,I)
-                  QY(K,J,IRK+1) = QY(K,J,irk+1) + ARK*QY(K,J,I)
+                  qy_next = qy_next + ARK*QY(K,J,I)
      &                 + BRK*RHS_QY(K,J,I)
 C.......Compute the transported tracer term if flagged
 
@@ -315,8 +324,10 @@ C.......Compute the dynamic pressure if flagged
 
 
                ENDDO
+               ze(k,j,irk+1) = ze_next
+               qx(k,j,irk+1) = qx_next
+               qy(k,j,irk+1) = qy_next
             ENDDO
-         !istat = cudaDeviceSynchronize()
          ENDDO
 
 #endif
@@ -552,7 +563,6 @@ C.......Apply the slopelimiter if appropriate
 #ifdef SLOPE5
          !CALL SLOPELIMITER5<<<NE/128+1, 128>>>(irk, ne, np, maxel)
          CALL SLOPELIMITER5(irk, ne, np, maxel)
-         istat = cudaDeviceSynchronize()
 #endif
 
 #ifdef STBLZR
@@ -567,7 +577,6 @@ C.......Apply the wet-dry algorithm if appropriate
 
       IF (NOLIFA .GE. 2) THEN
          CALL WETDRY<<<NE/128+1,128>>>(irk, dofh, np, ne, h0, c13, c16, ph)
-         istat = cudaDeviceSynchronize()
       ENDIF
 
 c$$$C...Apply the slopelimiter again if auxiliary variable is being used
@@ -710,7 +719,7 @@ C......Filter chemistry transported terms if flagged
 #endif
       
 
-!$cuf kernel do(2) <<<*, (128,1) >>>
+!$cuf kernel do <<<*, (128,1) >>>
       DO J = 1,MNE
          DO K = 1,DOFH
             ZE(K,J,1) = ZE(K,J,NRK+1)
@@ -736,10 +745,10 @@ C......Filter chemistry transported terms if flagged
          ENDDO
       ENDDO
 
-!$cuf kernel do(3) <<< *, 128 >>>
-      DO KK = 2,NRK+1
-         DO J = 1,MNE
-            DO K = 1,DOFH
+!$cuf kernel do <<< *, 128 >>>
+      DO J = 1,MNE
+         DO K = 1,DOFH
+            DO KK = 2,NRK+1
                ZE(K,J,KK) = 0.D0
                QX(K,J,KK) = 0.D0
                QY(K,J,KK) = 0.D0

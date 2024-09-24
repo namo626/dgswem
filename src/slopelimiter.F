@@ -3285,13 +3285,15 @@ C.....Declare local variables
 
       integer :: no_nbors, n1, n2, n3, nbor_el, istat
       !real(sz), managed :: ze_dg(maxel), qx_dg(maxel), qy_dg(maxel)
-      real(sz) :: ze_dg, qx_dg, qy_dg
+      real(sz) :: ze_dg, qx_dg, qy_dg, zec1, zec2, zec3
+      real(sz) :: zemax11, zemin11, zemax12, zemin12, zemax13, zemin13
+      real(sz) :: zevertex1, zevertex2, zevertex3, dif1, dif2, dif3
       INTEGER L, LL, INC1,INC2,INC3,KDP,NN,IVAR,I,J,kk,k,varnum,bb,varnum_prev
-      REAL(SZ), managed :: ZEC(NE,3),ZEVERTEX(NE,3),DIF(NE,3)
+c$$$      REAL(SZ), managed :: ZEC(NE,3),ZEVERTEX(NE,3),DIF(NE,3)
       real(sz) :: SUMLOC,SUMDIF,SIGNDIF,
      $     DIV,REDFAC,REDMAX,tmp1,tmp2,tmp3,bound
-      Real(SZ), managed :: ZEMIN1(NE,3),ZEMAX1(NE,3),QXMIN1(NE,3),QXMAX1(NE,3)
-      Real(SZ), managed :: QYMIN1(NE,3),QYMAX1(NE,3)
+c$$$      Real(SZ), managed :: ZEMIN1(NE,3),ZEMAX1(NE,3),QXMIN1(NE,3),QXMAX1(NE,3)
+c$$$      Real(SZ), managed :: QYMIN1(NE,3),QYMAX1(NE,3)
       Real(SZ), managed :: iotaMIN1(3),iotaMAX1(3)
       Real(SZ), managed :: iota2MIN1(3),iota2MAX1(3)
 c$$$      Real(SZ), Allocatable :: iota_MIN1(:),iota_MAX1(:)
@@ -3481,39 +3483,39 @@ C
          DO IVAR=1,varnum
 
             IF (IVAR.EQ.1) THEN
-               ZEC(I,1)=ZE(1,I,IRK+1)
-               ZEC(I,2)=ZE(2,I,IRK+1)
-               ZEC(I,3)=ZE(3,I,IRK+1)
-               ZEMAX1(I,1)=ZE_MAX1(N1)
-               ZEMIN1(I,1)=ZE_MIN1(N1)
-               ZEMAX1(I,2)=ZE_MAX1(N2)
-               ZEMIN1(I,2)=ZE_MIN1(N2)
-               ZEMAX1(I,3)=ZE_MAX1(N3)
-               ZEMIN1(I,3)=ZE_MIN1(N3)
+               ZEC1=ZE(1,I,IRK+1)
+               ZEC2=ZE(2,I,IRK+1)
+               ZEC3=ZE(3,I,IRK+1)
+               ZEMAX11=ZE_MAX1(N1)
+               ZEMIN11=ZE_MIN1(N1)
+               ZEMAX12=ZE_MAX1(N2)
+               ZEMIN12=ZE_MIN1(N2)
+               ZEMAX13=ZE_MAX1(N3)
+               ZEMIN13=ZE_MIN1(N3)
             ENDIF
 
             IF (IVAR.EQ.2) THEN
-               ZEC(I,1)=QX(1,I,IRK+1)
-               ZEC(I,2)=QX(2,I,IRK+1)
-               ZEC(I,3)=QX(3,I,IRK+1)
-               ZEMAX1(I,1)=QX_MAX1(N1)
-               ZEMIN1(I,1)=QX_MIN1(N1)
-               ZEMAX1(I,2)=QX_MAX1(N2)
-               ZEMIN1(I,2)=QX_MIN1(N2)
-               ZEMAX1(I,3)=QX_MAX1(N3)
-               ZEMIN1(I,3)=QX_MIN1(N3)
+               ZEC1=QX(1,I,IRK+1)
+               ZEC2=QX(2,I,IRK+1)
+               ZEC3=QX(3,I,IRK+1)
+               ZEMAX11=QX_MAX1(N1)
+               ZEMIN11=QX_MIN1(N1)
+               ZEMAX12=QX_MAX1(N2)
+               ZEMIN12=QX_MIN1(N2)
+               ZEMAX13=QX_MAX1(N3)
+               ZEMIN13=QX_MIN1(N3)
             ENDIF
 
             IF (IVAR.EQ.3) THEN
-               ZEC(I,1)=QY(1,I,IRK+1)
-               ZEC(I,2)=QY(2,I,IRK+1)
-               ZEC(I,3)=QY(3,I,IRK+1)
-               ZEMAX1(I,1)=QY_MAX1(N1)
-               ZEMIN1(I,1)=QY_MIN1(N1)
-               ZEMAX1(I,2)=QY_MAX1(N2)
-               ZEMIN1(I,2)=QY_MIN1(N2)
-               ZEMAX1(I,3)=QY_MAX1(N3)
-               ZEMIN1(I,3)=QY_MIN1(N3)
+               ZEC1=QY(1,I,IRK+1)
+               ZEC2=QY(2,I,IRK+1)
+               ZEC3=QY(3,I,IRK+1)
+               ZEMAX11=QY_MAX1(N1)
+               ZEMIN11=QY_MIN1(N1)
+               ZEMAX12=QY_MAX1(N2)
+               ZEMIN12=QY_MIN1(N2)
+               ZEMAX13=QY_MAX1(N3)
+               ZEMIN13=QY_MIN1(N3)
             ENDIF
 
 #ifdef TRACE
@@ -3577,26 +3579,30 @@ C
 
 C     COMPUTE THE VERTEX VALUES
 
-            ZEVERTEX(I,1)=ZEC(I,1)
-            ZEVERTEX(I,2)=ZEC(I,1)
-            ZEVERTEX(I,3)=ZEC(I,1)
-            DO KK=2,3
-               ZEVERTEX(I,1)=ZEVERTEX(I,1)+ PHI_CORNER(KK,1,1)*ZEC(I,KK)
-               ZEVERTEX(I,2)=ZEVERTEX(I,2)+ PHI_CORNER(KK,2,1)*ZEC(I,KK)
-               ZEVERTEX(I,3)=ZEVERTEX(I,3)+ PHI_CORNER(KK,3,1)*ZEC(I,KK)
-            ENDDO
+            ZEVERTEX1=ZEC1
+            ZEVERTEX2=ZEC1
+            ZEVERTEX3=ZEC1
 
+c$$$            DO KK=2,3
+c$$$               ZEVERTEX1=ZEVERTEX1+ PHI_CORNER(KK,1,1)*ZEC(I,KK)
+c$$$               ZEVERTEX2=ZEVERTEX2+ PHI_CORNER(KK,2,1)*ZEC(I,KK)
+c$$$               ZEVERTEX3=ZEVERTEX3+ PHI_CORNER(KK,3,1)*ZEC(I,KK)
+c$$$            ENDDO
+
+            ZEVERTEX1=ZEVERTEX1+ PHI_CORNER(2,1,1)*ZEC2 + PHI_CORNER(3,1,1)*ZEC3
+            ZEVERTEX2=ZEVERTEX2+ PHI_CORNER(2,2,1)*ZEC2 + PHI_CORNER(3,2,1)*ZEC3
+            ZEVERTEX3=ZEVERTEX3+ PHI_CORNER(2,3,1)*ZEC2 + PHI_CORNER(3,3,1)*ZEC3
             
 C     RESET THE VERTEX VALUE TO BE LESS THAN OR EQUAL TO THE MAX AND
 C     GREATER THAN OR EQUAL TO THE MIN AT THAT VERTEX
 C     
-            ZEVERTEX(I,1)=DMAX1(DMIN1(ZEVERTEX(I,1),ZEMAX1(I,1)),ZEMIN1(I,1))
-            ZEVERTEX(I,2)=DMAX1(DMIN1(ZEVERTEX(I,2),ZEMAX1(I,2)),ZEMIN1(I,2))
-            ZEVERTEX(I,3)=DMAX1(DMIN1(ZEVERTEX(I,3),ZEMAX1(I,3)),ZEMIN1(I,3))
+            ZEVERTEX1=DMAX1(DMIN1(ZEVERTEX1,ZEMAX11),ZEMIN11)
+            ZEVERTEX2=DMAX1(DMIN1(ZEVERTEX2,ZEMAX12),ZEMIN12)
+            ZEVERTEX3=DMAX1(DMIN1(ZEVERTEX3,ZEMAX13),ZEMIN13)
 
-            tmp1 = ZEVERTEX(I,1)
-            tmp2 = ZEVERTEX(I,2)
-            tmp3 = ZEVERTEX(I,3)
+            tmp1 = ZEVERTEX1
+            tmp2 = ZEVERTEX2
+            tmp3 = ZEVERTEX3
 
 
 C     LOOP OVER THE VERTICES 3 TIMES
@@ -3605,38 +3611,72 @@ C     VERTEX THEN SUBTRACT OFF THE DIFFERENCE AND ADD IT TO THE OTHER
 C     VERTICES
 C     
             DO LL=1,3
-               SUMLOC=(ZEVERTEX(I,1)+ZEVERTEX(I,2)+ZEVERTEX(I,3))/3.0D0
-               SUMDIF=(SUMLOC-ZEC(I,1))*3.0D0
+               SUMLOC=(ZEVERTEX1+ZEVERTEX2+ZEVERTEX3)/3.0D0
+               SUMDIF=(SUMLOC-ZEC1)*3.0D0
                SIGNDIF=DSIGN(1.D0,SUMDIF)
-               DIF(I,1)=(ZEVERTEX(I,1)-ZEC(I,1))*SIGNDIF
-               DIF(I,2)=(ZEVERTEX(I,2)-ZEC(I,1))*SIGNDIF
-               DIF(I,3)=(ZEVERTEX(I,3)-ZEC(I,1))*SIGNDIF
+               DIF1=(ZEVERTEX1-ZEC1)*SIGNDIF
+               DIF2=(ZEVERTEX2-ZEC1)*SIGNDIF
+               DIF3=(ZEVERTEX3-ZEC1)*SIGNDIF
                INC1=0
-               IF (DIF(I,1).GT.0) INC1=1
+               IF (DIF1.GT.0) INC1=1
                INC2=0
-               IF (DIF(I,2).GT.0) INC2=1
+               IF (DIF2.GT.0) INC2=1
                INC3=0
-               IF (DIF(I,3).GT.0) INC3=1
+               IF (DIF3.GT.0) INC3=1
                KDP=INC1+INC2+INC3
 C     
-               DO K=1,3
+
+               ! k = 1
                   DIV=DMAX1(1.D0,DFLOAT(KDP))
-                  IF (DIF(I,K).GT.0) THEN
+                  IF (DIF1.GT.0) THEN
                      REDFAC=SUMDIF*SIGNDIF/DIV
                      KDP=KDP-1
                   ELSE
                      REDFAC=0
                   ENDIF
                   IF (SIGNDIF.GT.0) THEN
-                     REDMAX=ZEVERTEX(I,K)-ZEMIN1(I,K)
+                     REDMAX=ZEVERTEX1-ZEMIN11
                   ELSE
-                     REDMAX=ZEMAX1(I,K)-ZEVERTEX(I,K)
+                     REDMAX=ZEMAX11-ZEVERTEX1
                   ENDIF
                   REDFAC=DMIN1(REDFAC,REDMAX)
                   SUMDIF=SUMDIF-REDFAC*SIGNDIF
-                  ZEVERTEX(I,K)=ZEVERTEX(I,K)-REDFAC*SIGNDIF
-               ENDDO
+                  ZEVERTEX1=ZEVERTEX1-REDFAC*SIGNDIF
+
+                  DIV=DMAX1(1.D0,DFLOAT(KDP))
+                  IF (DIF2.GT.0) THEN
+                     REDFAC=SUMDIF*SIGNDIF/DIV
+                     KDP=KDP-1
+                  ELSE
+                     REDFAC=0
+                  ENDIF
+                  IF (SIGNDIF.GT.0) THEN
+                     REDMAX=ZEVERTEX2-ZEMIN12
+                  ELSE
+                     REDMAX=ZEMAX12-ZEVERTEX2
+                  ENDIF
+                  REDFAC=DMIN1(REDFAC,REDMAX)
+                  SUMDIF=SUMDIF-REDFAC*SIGNDIF
+                  ZEVERTEX2=ZEVERTEX2-REDFAC*SIGNDIF
+
+                  !k = 3
+                  DIV=DMAX1(1.D0,DFLOAT(KDP))
+                  IF (DIF3.GT.0) THEN
+                     REDFAC=SUMDIF*SIGNDIF/DIV
+                     KDP=KDP-1
+                  ELSE
+                     REDFAC=0
+                  ENDIF
+                  IF (SIGNDIF.GT.0) THEN
+                     REDMAX=ZEVERTEX3-ZEMIN13
+                  ELSE
+                     REDMAX=ZEMAX13-ZEVERTEX3
+                  ENDIF
+                  REDFAC=DMIN1(REDFAC,REDMAX)
+                  SUMDIF=SUMDIF-REDFAC*SIGNDIF
+                  ZEVERTEX3=ZEVERTEX3-REDFAC*SIGNDIF
             ENDDO
+
             IF (IVAR.EQ.1) THEN
 
 c$$$               if( (abs(tmp1-ZEVERTEX(1)).ge.bound).or.
@@ -3652,9 +3692,9 @@ c$$$                  endif
 c$$$
 c$$$               endif
 
-               ZE(2,I,IRK+1)=-1.d0/6.d0*(zevertex(I,1)+zevertex(I,2))
-     $              +1.d0/3.d0*zevertex(I,3)
-               ZE(3,I,IRK+1)=-.5d0*zevertex(I,1)+.5d0*zevertex(I,2)
+               ZE(2,I,IRK+1)=-1.d0/6.d0*(zevertex1+zevertex2)
+     $              +1.d0/3.d0*zevertex3
+               ZE(3,I,IRK+1)=-.5d0*zevertex1+.5d0*zevertex2
             ENDIF
             IF (IVAR.EQ.2) THEN
 
@@ -3672,9 +3712,9 @@ c$$$                  endif
 c$$$
 c$$$               endif
 
-               QX(2,I,IRK+1)=-1.d0/6.d0*(zevertex(I,1)+zevertex(I,2))
-     $              +1.d0/3.d0*zevertex(I,3)
-               QX(3,I,IRK+1)=-.5d0*zevertex(I,1)+.5d0*zevertex(I,2)
+               QX(2,I,IRK+1)=-1.d0/6.d0*(zevertex1+zevertex2)
+     $              +1.d0/3.d0*zevertex3
+               QX(3,I,IRK+1)=-.5d0*zevertex1+.5d0*zevertex2
             ENDIF
             IF (IVAR.EQ.3) THEN
 
@@ -3691,9 +3731,9 @@ c$$$                  endif
 c$$$
 c$$$               endif
 
-               QY(2,I,IRK+1)=-1.d0/6.d0*(zevertex(I,1)+zevertex(I,2))
-     $              +1.d0/3.d0*zevertex(I,3)
-               QY(3,I,IRK+1)=-.5d0*zevertex(I,1)+.5d0*zevertex(I,2)
+               QY(2,I,IRK+1)=-1.d0/6.d0*(zevertex1+zevertex2)
+     $              +1.d0/3.d0*zevertex3
+               QY(3,I,IRK+1)=-.5d0*zevertex1+.5d0*zevertex2
             ENDIF
 
 #ifdef TRACE
