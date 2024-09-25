@@ -576,6 +576,7 @@ C.......Apply the slopelimiter if appropriate
 C.......Apply the wet-dry algorithm if appropriate
 
       IF (NOLIFA .GE. 2) THEN
+         NODECODE = 0.
          CALL WETDRY<<<NE/128+1,128>>>(irk, dofh, np, ne, h0, c13, c16, ph)
       ENDIF
 

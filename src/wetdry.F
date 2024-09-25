@@ -66,7 +66,6 @@ C.....Initialize node codes to dry
 c$$$      DO I = 1,NP
 c$$$         NODECODE(I) = 0
 c$$$      ENDDO
-      if (J <= NP) NODECODE(J) = 0
 C.....Loop over the elements
 
       thread: if (J <= NE) then
