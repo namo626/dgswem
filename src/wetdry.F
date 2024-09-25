@@ -23,17 +23,23 @@ C***********************************************************************
 
       contains
 
-      attributes(global) SUBROUTINE WETDRY(irk, dofh, np, ne, h0, c13, c16, ph)
+      attributes(global) SUBROUTINE WETDRY(irk, dofh, np, ne, h0, c13, c16)
       
 C.....Use appropriate modules
       
 
+
       IMPLICIT NONE
 
-      integer, value :: ph, irk, np, ne, dofh
+      integer, value :: irk, np, ne, dofh
       real(sz), value :: c13, c16, h0
 
 C.....Declare local variables
+! Need to declare ph and ncheck_ph as constants, otherwise the
+! array access will be too slow
+
+      integer, parameter :: ph = 1
+      integer, parameter :: ncheck_ph = 3
 
       REAL(SZ), PARAMETER :: ZERO = 1.D-6
       REAL(SZ), PARAMETER :: HUGE = 1.D+6
@@ -51,10 +57,10 @@ C.....Declare local variables
       REAL(SZ) ZE_VOL
 
       REAL(SZ) DH_HAT(3)
-      REAL(SZ) HT_HAT(NCHECK(ph)), HT_MODE(42)
-      REAL(SZ) HT_NODE(NCHECK(ph))
+      REAL(SZ) HT_HAT(NCHECK_PH), HT_MODE(42)
+      REAL(SZ) HT_NODE(NCHECK_PH)
       REAL(SZ) QX_HAT(3), QX_NODE(3), QY_HAT(3), QY_NODE(3)
-      REAL(SZ) ZE_HAT(NCHECK(ph),ph), ZE_NODE(NCHECK(ph),ph)
+      REAL(SZ) ZE_HAT(NCHECK_PH,ph), ZE_NODE(NCHECK_PH,ph)
 
       REAL(SZ), PARAMETER:: HUGEVEL = 1.D+5  
       REAL(SZ):: HS0, U_HAT(3), V_HAT(3)
