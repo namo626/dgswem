@@ -32,6 +32,7 @@ C.....Use appropriate modules
       use slopelimiters, only : slopelimiter5
       USE precipitation, only : prec2
       use ocean_edge_dg, only : ocean_edge_hydro
+      use flow_edge_dg, only : flow_edge_hydro
       use rhs_dg, only : rhs_dg_hydro
       use land_dg, only : land_edge_hydro
       use internal_edge_dg, only : internal_edge_hydro
@@ -231,7 +232,14 @@ C.......Compute no-normal flow edges
 
 C.......Compute non-zero flow edges
 
-         IF (NFEDS.GT.0)  CALL FLOW_EDGE_HYDRO(IT)    
+         IF (NFEDS.GT.0)  then
+            !istat = cudaDeviceSynchronize()
+           CALL FLOW_EDGE_HYDRO<<<nfeds/128+1, 128>>>(
+     &    IT, IRK, nfeds, mnffr, nffr, rampdg, timedg,
+     &        g, nleq, leq, nleqg, fg_l, layers
+     &  )
+        ENDIF
+
 C.......Compute radiation edges
 
          IF (NREDS.GT.0)  CALL RADIATION_EDGE_HYDRO(IT)

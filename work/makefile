@@ -91,7 +91,7 @@ COUP_MSRC  =  couple2swan.F
 RAIN_MSRC = precipitation.F
 # namo
 OWIRAIN_MSRC = owi_rain.F
-SOLVE_MSRC = rhs_dg_hydro.F internal_edge_hydro.F land_edge_hydro.F ibarrier_edge_hydro.F ocean_edge_hydro.F ebarrier_edge_hydro.F
+SOLVE_MSRC = rhs_dg_hydro.F internal_edge_hydro.F land_edge_hydro.F ibarrier_edge_hydro.F flow_edge_hydro.F ocean_edge_hydro.F ebarrier_edge_hydro.F
 FLUX_MSRC = numerical_flux.F
 SLOPE_MSRC = slopelimiter.F
 WETDRY_MSRC = wetdry.F
@@ -125,7 +125,7 @@ POST_SRC   =  adcpost.F    post.F  compare.F  diffmerge.F
 ADC_SRC    =  dgswem.F owiwind.F read_input.F cstart.F hstart.F radiation_edge_hydro.F \
 	calc_normal.F create_edge_data.F detector.F \
 	DG_timestep.F DG_hydro_timestep.F \
-	edge_int_hydro.F flow_edge_hydro.F \
+	edge_int_hydro.F \
 	orthogonal_basis_v1.F p_enrichment.F prep_DG.F quadrature_v1.F \
 	radiation_edge_hydro.F read_input.F \
 	quad_rules_general.F \

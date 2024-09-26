@@ -17,29 +17,48 @@ C     01-10-2011 - cem - adapted for p_enrichment and multicomponent
 C     
 C***********************************************************************
 
-      SUBROUTINE FLOW_EDGE_HYDRO(IT)
+      module flow_edge_dg
+
+
+      use dg, only : ze, sinnx, cosnx, wdflg, nedel, negp, sfaced, xegp, dofs,
+     &     qx, qy, hb, phi_edge, m_inv, nfedn, nedsd, xlen, wegp, rhs_ze, rhs_qx, rhs_qy,
+     &    qnam_dg, qnph_dg
+      use global, only : pdg_el, fper, fface, areas, famig, fff
+      use SIZES, only: sz
+      use flux_dg, only : llf_flux
+
+      contains
+
+      attributes(global) SUBROUTINE FLOW_EDGE_HYDRO(IT, IRK, nfeds, mnffr, nffr, rampdg, timedg,
+     &   g, nleq, leq, nleqg, fg_l, layers)
 
 C.....Use appropriate modules
 
-      USE GLOBAL
-      USE DG
-      use SIZES, only: layers
-      use fparser
-      use fparser2
-      use flux_dg, only : numerical_flux
 
       IMPLICIT NONE
 
+      integer, value :: it, nfeds, mnffr, nffr, irk, layers
+      real(sz), value :: rampdg, timedg, g, nleq, leq, nleqg, fg_l
+
 C.....Declare local variables
 
-      INTEGER L, LED, GED, i,k,jj,II,ll,IT,w
+      integer :: pa, el_in, test_el
+      real(sz) :: nx, ny, ze_in, qx_in, qy_in, ze_ex, qx_ex, qy_ex, hb_in
+      real(sz) :: ncyc, sfac_in, qnam_gp, argj, rff, arg
+      real(sz) :: q_n_ext, q_t_ext, hb_ex, sfac_ex, f_hat, g_hat, h_hat
+      real(sz) :: qnph_gp, tmp
+      INTEGER L, LED, GED, i,k,jj,II,ll,w
       Real(SZ) DEN2,U_AVG,V_AVG,VEL_NORMAL,q_RoeX, q_RoeY, q_Roe
       REAL(SZ) TX, TY,HZ_X_IN,HZ_Y_IN,TZ_X_IN,TZ_Y_IN
       REAL(SZ) LZ_XX_IN, LZ_XY_IN, LZ_YX_IN, LZ_YY_IN,W_IN
       Real(SZ) VEI(3,3),chi_pref,C_char,MZ_X_IN(layers),MZ_Y_IN(layers)
 
+
       test_el = 0
-      DO 1000 L = 1,NFEDS
+
+      L = (blockidx%x-1)*blockdim%x + threadidx%x
+      thread: if (L <= NFEDS) then
+      !DO 1000 L = 1,NFEDS
          
 C.....Retrieve the global and local edge number
 
@@ -62,7 +81,7 @@ C.....Organize the dofs for the p_adaptivity
 
 C.....If the element is dry then skip the edge calculation
 
-         IF (WDFLG(EL_IN).EQ.0) GOTO 1000
+         IF (WDFLG(EL_IN).EQ.0) return
          
 C.....Retrieve the components of the normal vector to the edge
          
@@ -255,7 +274,10 @@ C.....Set the exterior bed and surface elevation equal to the interior
 
 #endif
 
-            CALL NUMERICAL_FLUX(IT,L)
+            call LLF_FLUX(ze_ex, ze_in, qx_ex, qx_in, qy_ex, qy_in,
+     &           hb_in, hb_ex, nx, ny, G, nleq, leq, nleqg, fg_l,
+     &           sfac_in, sfac_ex,
+     &           f_hat, g_hat, h_hat)
 
 C.....Add LDG terms
 #ifdef WAVE_DIF
@@ -281,9 +303,9 @@ C.....Compute the edge integral
                W_IN = 2.0d0*M_INV(K,pa)/AREAS(EL_IN)*XLEN(GED)*
      &              PHI_EDGE(K,I,LED,pa)*WEGP(I,pa)
 
-               RHS_ZE(K,EL_IN,IRK) = RHS_ZE(K,EL_IN,IRK) - W_IN*F_HAT
-               RHS_QX(K,EL_IN,IRK) = RHS_QX(K,EL_IN,IRK) - W_IN*G_HAT
-               RHS_QY(K,EL_IN,IRK) = RHS_QY(K,EL_IN,IRK) - W_IN*H_HAT
+               tmp = atomicAdd(RHS_ZE(K,EL_IN,IRK), -W_IN*F_HAT)
+               tmp = atomicAdd(RHS_QX(K,EL_IN,IRK), -W_IN*G_HAT)
+               tmp = atomicAdd(RHS_QY(K,EL_IN,IRK), -W_IN*H_HAT)
 
 #ifdef TRACE
               RHS_iota(K,EL_IN,IRK) = RHS_iota(K,EL_IN,IRK) - W_IN*I_HAT
@@ -314,7 +336,10 @@ c$$$  ENDDO
             
          ENDDO
 
- 1000 CONTINUE
-      
+ !1000 CONTINUE
+      endif thread
+
       RETURN
       END SUBROUTINE
+
+      end module

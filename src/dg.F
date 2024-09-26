@@ -110,7 +110,7 @@ C.....Declare allocatable integer arrays
       INTEGER, ALLOCATABLE :: NCOUNT(:)
       INTEGER, ALLOCATABLE, managed :: NEDEL(:,:), NEDNO(:,:), NEDSD(:,:)
       INTEGER, ALLOCATABLE, managed :: NIEDN(:), NLEDN(:), NEEDN(:)
-      INTEGER, ALLOCATABLE :: NFEDN(:), NREDN(:), NEBEDN(:), NIBEDN(:)
+      INTEGER, ALLOCATABLE, managed :: NFEDN(:), NREDN(:), NEBEDN(:), NIBEDN(:)
       INTEGER, ALLOCATABLE, managed :: NIBSEGN(:,:)
       INTEGER, ALLOCATABLE, managed :: NEBSEGN(:)
       INTEGER, ALLOCATABLE :: EL_NBORS(:,:)
@@ -175,7 +175,7 @@ C.....Declare allocatable real arrays
       REAL(SZ), ALLOCATABLE :: SOURCEQX(:),SOURCEQY(:)
       REAL(SZ), ALLOCATABLE, managed :: LZ(:,:,:,:),MZ(:,:,:,:)
       Real(SZ), Allocatable :: HZ(:,:,:,:),TZ(:,:,:,:)
-      REAL(SZ), ALLOCATABLE :: QNAM_DG(:,:,:), QNPH_DG(:,:,:)
+      REAL(SZ), ALLOCATABLE, managed :: QNAM_DG(:,:,:), QNPH_DG(:,:,:)
       REAL(SZ), ALLOCATABLE, managed :: RHS_ZE(:,:,:), RHS_bed(:,:,:,:)
       REAL(SZ), ALLOCATABLE, managed :: RHS_QX(:,:,:),RHS_QY(:,:,:)
       Real(SZ), Allocatable :: RHS_iota(:,:,:),RHS_iota2(:,:,:),

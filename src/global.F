@@ -258,7 +258,7 @@ C.....for internal barrier boundaries with flowthrough pipes
       REAL(SZ),ALLOCATABLE ::   BARINHTR(:),BARINCFSBR(:),BARINCFSPR(:)
       REAL(SZ),ALLOCATABLE ::   PIPEHTR(:),PIPECOEFR(:),PIPEDIAMR(:)
       REAL(SZ),ALLOCATABLE ::   BARLANHT(:),BARLANCFSP(:)
-      REAL(SZ),ALLOCATABLE ::   FFF(:),FFACE(:)
+      REAL(SZ),ALLOCATABLE, managed ::   FFF(:),FFACE(:)
       REAL(SZ),ALLOCATABLE ::   BTRAN3(:),BTRAN4(:),BTRAN5(:)
       REAL(SZ),ALLOCATABLE ::   BTRAN6(:),BTRAN7(:),BTRAN8(:)
       REAL(SZ),ALLOCATABLE ::   BARINHT(:),BARINCFSB(:),BARINCFSP(:)
