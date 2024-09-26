@@ -532,6 +532,7 @@ C.......Compute the dynamic pressure if flagged
 #endif
 
 #ifdef CMPI
+         istat = cudaDeviceSynchronize()
          CALL UPDATER_ELEM_MOD(ZE,QX,QY,IRK+1,3)
 #ifdef TRACE
          CALL UPDATER_ELEM_MOD(iota,iota2,QY,IRK+1,2 )
@@ -601,6 +602,7 @@ C...drying is being used
 
 #ifdef CMPI
          if (SLOPEFLAG.NE.0.OR.NOLIFA.GE.2) THEN
+            istat = cudaDeviceSynchronize()
             CALL UPDATER_ELEM_MOD(ZE,QX,QY,IRK+1,3)
             
 #ifdef TRACE
