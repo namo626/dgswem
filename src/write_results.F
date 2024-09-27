@@ -26,6 +26,22 @@ C***********************************************************************
 
       contains
 
+      attributes(global) subroutine check_nan(mnp, result)
+
+      implicit none
+
+      integer, value :: mnp
+      logical, intent(out) :: result
+
+      integer :: i
+
+      I = (blockidx%x-1)*blockdim%x + threadidx%x
+      if (I <= MNP) then
+         if (ETA2(I) .ne. ETA2(I)) result = .false.
+      endif
+
+      end subroutine
+
       attributes(global) SUBROUTINE modal2nodal(MNP,IT,maxel,nleq,leq, dofh, ph, sedflag)
 
 C.....Use appropriate modules

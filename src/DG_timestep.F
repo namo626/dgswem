@@ -27,6 +27,8 @@ C.....Use appropriate modules
 C.....Declare local variables
 
       INTEGER IT
+      logical :: result
+      logical, device :: result_d
       
 C.....Hydrodynamics
 
@@ -52,9 +54,15 @@ C.....Write out results
 #endif
 #endif
 
-      call nvtxStartRange("SCRUTINIZE", 1)
-      CALL SCRUTINIZE_SOLUTION()
-      call nvtxEndRange
+      result = .true.
+      call check_nan<<<MNP/128+1,128>>>(MNP,result_d)
+      result = result_d
+
+      if (result) STOP
+
+c$$$      call nvtxStartRange("SCRUTINIZE", 1)
+c$$$      CALL SCRUTINIZE_SOLUTION()
+c$$$      call nvtxEndRange
 
       RETURN
       END SUBROUTINE
