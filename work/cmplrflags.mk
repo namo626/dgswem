@@ -353,8 +353,9 @@ ifeq ($(compiler),nvhpc)   # NVIDIA
   DPRE2         :=  -DREAL8 -DLINUX -DCMPI
   IMODS 	:=  -I
   CC            :=  nvc
+  CXX    := nvc++
+  CXXFLAGS := -O3 -g
   CFLAGS        :=  -O3 -I. -fastsse -DLINUX
-  CLIBS         :=
   LIBS  	:=  -L ../metis  -lmetis
   MSGLIBS	:=
 endif
