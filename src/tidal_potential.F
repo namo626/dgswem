@@ -12,16 +12,24 @@ C     Comments and general clean-up by Ethan Kubatko (06-02-2005)
 C
 C***********************************************************************
 
-      SUBROUTINE TIDAL_POTENTIAL()
+      module tidal_dg
 
-C.....Use appropriate modules
+      use sizes, only : sz
+      use global, only : tip2, facet, sfea, slam, fft, saltpha, etrf, pert, amigt,
+     &  saltamp, tpk
+      use dg, only : dtvd
 
-      USE GLOBAL
-      USE DG
-      
+      contains
+
+      SUBROUTINE TIDAL_POTENTIAL(irk, np, dtdp, timeh, ntif, rampdg)
+
       IMPLICIT NONE
 
-      INTEGER j,i
+      integer, value :: irk, np, ntif
+      real(sz), value :: dtdp, timeh, rampdg
+
+      INTEGER :: j,i, ncyc, argt, na
+      real(sz) :: argsalt, saltmul, tpmul, argtp, ccsfea, s2sfea, timeh_dg
       
       TIMEH_DG = TIMEH - DTDP + DTVD(IRK)*DTDP
       
@@ -79,3 +87,5 @@ C.....Diurnal species
       RETURN
       END SUBROUTINE
 
+
+      end module

@@ -28,6 +28,7 @@ C.....Use appropriate modules
       use cudafor
       USE GLOBAL
       USE DG
+      use tidal_dg, only : tidal_potential
       use wetdry_dg, only : wetdry
       use slopelimiters, only : slopelimiter5
       USE precipitation, only : prec2
@@ -160,7 +161,7 @@ Casey 090302: Added these lines for output to the rads.64 file.
  
 C.......Compute tidal potential terms
 
-         IF (NTIP.NE.0) CALL TIDAL_POTENTIAL()
+         IF (NTIP.NE.0) CALL TIDAL_POTENTIAL(irk, np, dtdp, timeh, ntif, rampdg)
 
 C.......For non-periodic elevation bcs
 

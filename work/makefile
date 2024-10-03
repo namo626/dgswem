@@ -95,7 +95,7 @@ COUP_MSRC  =  couple2swan.F
 RAIN_MSRC = precipitation.F
 # namo
 OWIRAIN_MSRC = owi_rain.F
-SOLVE_MSRC = rhs_dg_hydro.F internal_edge_hydro.F land_edge_hydro.F ibarrier_edge_hydro.F flow_edge_hydro.F ocean_edge_hydro.F ebarrier_edge_hydro.F
+SOLVE_MSRC = rhs_dg_hydro.F internal_edge_hydro.F land_edge_hydro.F ibarrier_edge_hydro.F flow_edge_hydro.F ocean_edge_hydro.F ebarrier_edge_hydro.F tidal_potential.F
 FLUX_MSRC = numerical_flux.F
 SLOPE_MSRC = slopelimiter.F
 WETDRY_MSRC = wetdry.F
@@ -135,7 +135,6 @@ ADC_SRC    =  dgswem.F owiwind.F read_input.F cstart.F hstart.F radiation_edge_h
 	orthogonal_basis_v1.F p_enrichment.F prep_DG.F quadrature_v1.F \
 	radiation_edge_hydro.F read_input.F \
 	quad_rules_general.F \
-	tidal_potential.F \
 	prep_slopelim.F \
 	LDG_hydro.F met_forcing.F sta_basis.F modal2nodal.F write_output.F
 #Casey 121126: Added modal2nodal.F and write_output.F to the previous line.
