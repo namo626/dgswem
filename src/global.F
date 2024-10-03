@@ -169,8 +169,8 @@ C...
       REAL(SZ),ALLOCATABLE, managed ::   DP(:),DP0(:),DPe(:),SFAC(:) !,STARTDRY(:)
       REAL(SZ),ALLOCATABLE ::   QU(:),QV(:),QW(:)
       REAL(SZ),ALLOCATABLE ::   CORIF(:) !,EVM(:)
-      REAL(SZ),ALLOCATABLE ::   TPK(:),FFT(:)
-      REAL(SZ),ALLOCATABLE ::   FACET(:),ETRF(:)
+      REAL(SZ),ALLOCATABLE, managed ::   TPK(:),FFT(:)
+      REAL(SZ),ALLOCATABLE, managed ::   FACET(:),ETRF(:)
       REAL(SZ),ALLOCATABLE ::   ESBIN1(:),ESBIN2(:)
       REAL(SZ),ALLOCATABLE ::   QTEMA(:,:),QTEMB(:,:),QN2(:)
       REAL(SZ),ALLOCATABLE ::   BNDLEN2O3(:)
@@ -222,7 +222,7 @@ C.....Allocate additional variables for wave friction
       REAL(SZ),ALLOCATABLE ::   AUVXX(:), AUVYY(:), AUVXY(:), AUVYX(:)
       REAL(SZ),ALLOCATABLE ::   DUU1(:),DUV1(:),DVV1(:),BSX1(:),BSY1(:)
       REAL(SZ),ALLOCATABLE, managed ::   TIP1(:),TIP2(:)
-      REAL(SZ),ALLOCATABLE ::   SALTAMP(:,:),SALTPHA(:,:)
+      REAL(SZ),ALLOCATABLE, managed ::   SALTAMP(:,:),SALTPHA(:,:)
       REAL(SZ),ALLOCATABLE ::   OBCCOEF(:,:),COEF(:,:)
       REAL(SZ),ALLOCATABLE ::   WKSP(:),RPARM(:)
       REAL(SZ),ALLOCATABLE ::   ABD(:,:),ZX(:)
@@ -306,7 +306,7 @@ C...
       REAL(8),ALLOCATABLE, managed :: AMIG(:),AMIGT(:),FAMIG(:)
       REAL(8),ALLOCATABLE, managed :: PER(:),PERT(:),FPER(:)
       REAL(8),ALLOCATABLE, managed :: FREQ(:),FF(:),FACE(:)
-      REAL(8),ALLOCATABLE :: SLAM(:),SFEA(:),X(:),Y(:)
+      REAL(8),ALLOCATABLE, managed :: SLAM(:),SFEA(:),X(:),Y(:)
 
 
       CHARACTER*32 RUNDES

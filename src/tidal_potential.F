@@ -35,6 +35,7 @@ C***********************************************************************
       
 C.....Loop over the nodes
 
+!$cuf kernel do <<< *, 128 >>>
       DO I = 1,NP
       
 C.....Initialize tidal potential terms
