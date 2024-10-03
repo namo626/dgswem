@@ -108,7 +108,7 @@ C.....Declare allocatable integer arrays
 
       INTEGER, ALLOCATABLE, managed :: DOFS(:), PCOUNT(:), PDG(:)
       INTEGER, ALLOCATABLE :: NCOUNT(:)
-      INTEGER, ALLOCATABLE, managed :: NEDEL(:,:), NEDNO(:,:), NEDSD(:,:)
+      INTEGER, ALLOCATABLE, managed :: NEDEL(:,:), NEDNO(:,:), NEDSD(:,:), NEDNO1(:), NEDNO2(:)
       INTEGER, ALLOCATABLE, managed :: NIEDN(:), NLEDN(:), NEEDN(:)
       INTEGER, ALLOCATABLE, managed :: NFEDN(:), NREDN(:), NEBEDN(:), NIBEDN(:)
       INTEGER, ALLOCATABLE, managed :: NIBSEGN(:,:)
@@ -265,7 +265,7 @@ C.....Set edge array sizes
       END SUBROUTINE
 
       SUBROUTINE ALLOC_EDGES1()
-      ALLOCATE ( NEDNO(2,MNED), NEDEL(2,MNED), NEDSD(2,MNED) )
+      ALLOCATE ( NEDNO(2,MNED), NEDEL(2,MNED), NEDSD(2,MNED), NEDNO1(MNED), NEDNO2(MNED) )
       ALLOCATE ( NIBSEGN(2,MNED) )
       ALLOCATE ( NEBSEGN(MNED) )
       ALLOCATE ( NIEDN(MNED), NLEDN(MNED), NEEDN(MNED) )
@@ -408,9 +408,7 @@ C.....These are defined in prep_slopelim.F
       Allocate ( xtransform(MNE,NAGP(ph)),ytransform(MNE,NAGP(ph)) )
       Allocate ( xi1BCb(MNE),xi2BCb(MNE),xi1vert(MNE,3) )
       Allocate ( xi2vert(MNE,3),xtransformv(MNE,3),ytransformv(MNE,3) )
-      Allocate ( XBCv(MNE,MNE),YBCv(MNE,MNE) )
-      Allocate ( xi1BCv(MNE,MNE),xi2BCv(MNE,MNE),
-     & Area_integral(MNE,0:ph,0:ph) )
+      Allocate ( Area_integral(MNE,0:ph,0:ph) )
       Allocate ( f(MNE,NAGP(ph),0:ph,0:ph),g0(MNE,NAGP(ph),0:ph,0:ph) )
       Allocate ( fv(MNE,3,0:ph,0:ph),g0v(MNE,3,0:ph,0:ph) )
       Allocate ( varsigma0(MNE,NAGP(ph),0:ph,0:ph) ) 
@@ -428,6 +426,8 @@ C.....These (below) are defined in slopelimiter.F (slopelimiter4)
       Allocate ( iota2min(MNP,dofh),iota2max(MNP,dofh) )
 
 #ifdef SLOPEALL
+      Allocate ( XBCv(MNE,MNE),YBCv(MNE,MNE) )
+      Allocate ( xi1BCv(MNE,MNE),xi2BCv(MNE,MNE))
       Allocate ( ZEtaylor(MNE,dofh,1),QXtaylor(MNE,dofh,1) )
       Allocate ( iotataylor(MNE,dofh,1),iota2taylor(MNE,dofh,1) 
       Allocate ( ZEtaylorvert(MNE,dofh,3),QXtaylorvert(MNE,dofh,3) )

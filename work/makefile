@@ -11,6 +11,10 @@ LIST     := $(subst -, ,$(NAME))
 MACHINE  := $(word 1, $(LIST))
 VENDOR   := $(word 2, $(LIST))
 OS       := $(subst  $(MACHINE)-$(VENDOR)-,,$(strip $(NAME)))
+CLIBS    = -lc -lstdc++
+
+$(info MACHINE is $(MACHINE))
+$(info OS is $(OS))
 
 $(info MACHINE is $(MACHINE))
 $(info OS is $(OS))
@@ -40,7 +44,7 @@ endif
 ifeq ($(BUILDTYPE),dgswem_serial)
   CF:= $(PPFC)
   O_DIR:=odir4/
-  FFLAGS:= $(FFLAGS3) $(DA) $(IMODS)$(O_DIR)
+  FFLAGS:= $(FFLAGS3) $(DA) $(IMODS)$(O_DIR) $(CLIBS)
   VPATH:=  ../src
   MSG_MOBJ:=
 endif
@@ -57,7 +61,7 @@ endif
 ifeq ($(BUILDTYPE),dgswem)
   CF:= $(PFC)
   O_DIR:=odir5/
-  FFLAGS:= $(FFLAGS4) $(DP) $(IMODS)$(O_DIR)
+  FFLAGS:= $(FFLAGS4) $(DP) $(IMODS)$(O_DIR) $(CLIBS)
   VPATH :=  ../src
   MSG_MOBJ:= $(O_DIR)messenger_elem.o $(O_DIR)messenger.o
   MSG_OBJ:=
@@ -96,6 +100,7 @@ FLUX_MSRC = numerical_flux.F
 SLOPE_MSRC = slopelimiter.F
 WETDRY_MSRC = wetdry.F
 OUTPUT_MSRC = write_results.F
+C_MSRC = c_interface.F90
 
 PREP_MOBJ:= $(patsubst %.F, $(O_DIR)%.o, $(PREP_MSRC) )
 PGLO_MOBJ:= $(patsubst %.F, $(O_DIR)%.o, $(PGLO_MSRC) )
@@ -109,6 +114,7 @@ COUP_MOBJ := $(patsubst %.F, $(O_DIR)%.o, $(COUP_MSRC)  )
 
 # namo
 RAIN_MOBJ := $(patsubst %.F, $(O_DIR)%.o, $(RAIN_MSRC)  )
+C_MOBJ := $(patsubst %.F90, $(O_DIR)%.o, $(C_MSRC)  )
 OWIRAIN_MOBJ := $(patsubst %.F, $(O_DIR)%.o, $(OWIRAIN_MSRC)  )
 SOLVE_MOBJ := $(patsubst %.F, $(O_DIR)%.o, $(SOLVE_MSRC))
 FLUX_MOBJ := $(patsubst %.F, $(O_DIR)%.o, $(FLUX_MSRC))
@@ -189,6 +195,8 @@ $(O_DIR)%.o  : %.f90
 	$(CF) -c $(FLAGS_OPT) $(FLAGS_MSC) $(FLAGS_SER) -module $(O_DIR) -o $@  $<
 	if [ "`echo *.mod`" != '*.mod' ]; then mv *.mod $(O_DIR); fi
 
+$(O_DIR)%.o  : %.cpp
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
 ########################## Executable Targets ##################################
 
 .PHONY: all install metis adcprep adcpost dgswem_serial dgswem #winds
@@ -337,7 +345,7 @@ $(O_DIR)cstart.o      			:  cstart.F $(ADC_MOBJ)  $(HARM_MOBJ)  $(WIND_MOBJ)
 $(O_DIR)hstart.o      			:  hstart.F $(ADC_MOBJ)  $(HARM_MOBJ)  $(WIND_MOBJ)
 $(O_DIR)dgswem.o      			:  dgswem.F $(ADC_MOBJ)  $(HARM_MOBJ) $(WIND_MOBJ) $(OWIRAIN_MOBJ) $(OUTPUT_MOBJ)
 $(O_DIR)calc_normal.o         	:  calc_normal.F $(ADC_MOBJ)
-$(O_DIR)create_edge_data.o    	:  create_edge_data.F $(ADC_MOBJ)
+$(O_DIR)create_edge_data.o    	:  create_edge_data.F $(ADC_MOBJ) $(C_MOBJ) $(O_DIR)count_edges.o
 $(O_DIR)detector.o	      	:  detector.F $(ADC_MOBJ)
 $(O_DIR)DG_timestep.o         	:  DG_timestep.F $(ADC_MOBJ) $(OUTPUT_MOBJ)
 $(O_DIR)DG_hydro_timestep.o   	:  DG_hydro_timestep.F  $(ADC_MOBJ) $(SOLVE_MOBJ) $(SLOPE_MOBJ) $(WETDRY_MOBJ)
@@ -444,3 +452,7 @@ $(O_DIR)SwanMaxOverNodes.o      : SwanMaxOverNodes.f90
 $(O_DIR)ocpids.o                : ocpids.f
 $(O_DIR)ocpcre.o                : ocpcre.f
 $(O_DIR)ocpmix.o                : ocpmix.f
+
+# C interface
+$(O_DIR)c_interface.o			: c_interface.F90
+$(O_DIR)count_edges.o			: count_edges.cpp

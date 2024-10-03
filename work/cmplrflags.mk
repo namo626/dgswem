@@ -355,7 +355,9 @@ ifeq ($(compiler),nvhpc)   # NVIDIA
   IMODS 	:=  -I
   CC            :=  nvc
   CFLAGS        :=  -O3 -I. -fastsse -DLINUX
-  CLIBS         :=
+  CXX    := nvc++
+  CXXFLAGS := -O3 -g
+  CFLAGS        :=  -O3 -I. -fastsse -DLINUX
   LIBS  	:=  -L ../metis  -lmetis
   MSGLIBS	:=
 endif

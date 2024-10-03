@@ -33,7 +33,8 @@ C***********************************************************************
 C.....Use appropriate modules
 
       USE GLOBAL
-      USE DG     
+      USE DG
+      use c_interface
       use sizes, only:  myproc
 #ifdef CMPI
       USE MESSENGER_ELEM
@@ -264,23 +265,32 @@ C.....Find the interior edges
 
 C.....Find elevation specified boundary edges
 
+!     allocate adjacency list
+      NEDNO1 = NEDNO(1,:)
+      NEDNO2 = NEDNO(2,:)
+      call create_adj_list(MNP, NEDGES, NEDNO1, NEDNO2)
+
       DO 10131 K = 1,NOPE
         DO IED = 1,NVDLL(K)-1
           N1 = NBDV(K,IED)
           N2 = NBDV(K,IED+1)
           IERROR = 0
-          DO JED = 1,NEDGES
-            J1 = NEDNO(1,JED)
-            J2 = NEDNO(2,JED)
-            IF ( (J1.EQ.N1).OR.(J1.EQ.N2) ) THEN
-              IF ( (J2.EQ.N1).OR.(J2.EQ.N2) ) THEN
+
+          JED = get_edge_no(N1, N2)
+          if (JED .ne. 0) then
+
+c$$$          DO JED = 1,NEDGES
+c$$$            J1 = NEDNO(1,JED)
+c$$$            J2 = NEDNO(2,JED)
+c$$$            IF ( (J1.EQ.N1).OR.(J1.EQ.N2) ) THEN
+c$$$              IF ( (J2.EQ.N1).OR.(J2.EQ.N2) ) THEN
                 NEEDS = NEEDS + 1
                 NEEDN(NEEDS) = JED
                 NCOUNT(JED) = 4
                 IERROR = 1
-              ENDIF
-            ENDIF
-          ENDDO
+             ENDIF
+c$$$            ENDIF
+c$$$          ENDDO
 Csb-PDG1
 #ifdef CMPI 
           IF(IERROR.EQ.0) THEN
@@ -300,6 +310,7 @@ C.....Find flux specified boundary edges
 
       JNMM = 0
       ONE_OR_TWO = 1
+
       DO 10132 K = 1,NBOU
 Csb-
         DO 10133 IED = 1,NVELL(K)-1
@@ -308,19 +319,28 @@ C--
           N2 = NBVV(K,IED+1)
 
           IERROR = 0
-          DO JED = 1,NEDGES
-            J1 = NEDNO(1,JED)
-            J2 = NEDNO(2,JED)
-            IF ((NOT_AN_EDGE(N1).EQ.1).AND.(NOT_AN_EDGE(N2).EQ.1)) THEN
+          IF ((NOT_AN_EDGE(N1).EQ.1).AND.(NOT_AN_EDGE(N2).EQ.1)) THEN
+             cycle
+          ENDIF
+
+! get global edge index
+          JED = get_edge_no(N1, N2)
+
+          found_land: if (JED .ne. 0) then
+
+c$$$          DO JED = 1,NEDGES
+c$$$            J1 = NEDNO(1,JED)
+c$$$            J2 = NEDNO(2,JED)
+c$$$            IF ((NOT_AN_EDGE(N1).EQ.1).AND.(NOT_AN_EDGE(N2).EQ.1)) THEN
 C              PRINT*,'NODES ',N1,' AND ',N2,' MAKE UP A BOUNDARY',
 C     &                  'SEGMENT THAT IS NOT AN EDGE TO AN ELEMENT; ',
 Csb-
 C     &                  'THIS EDGE IS SKIPPED'
-              GOTO 10133
+              !GOTO 10133
 C--
-            ENDIF
-            IF ( (N1.EQ.J1).OR.(N1.EQ.J2) ) THEN
-              IF ( (N2.EQ.J1).OR.(N2.EQ.J2) ) THEN
+            !ENDIF
+c$$$            IF ( (N1.EQ.J1).OR.(N1.EQ.J2) ) THEN
+c$$$              IF ( (N2.EQ.J1).OR.(N2.EQ.J2) ) THEN
 
                 IERROR = 1
                 NCOUNT(JED) = 1
@@ -391,11 +411,13 @@ c                  endif
                   NREDS = NREDS + 1
                   NREDN(NREDS) = JED
                 ENDIF
-                
-              ENDIF
-            ENDIF
+
+             ENDIF found_land
+
+              !ENDIF
+            !ENDIF
 Csb-
-          ENDDO
+          !ENDDO
 C--
 Csb-PDG1
 #ifdef CMPI 
