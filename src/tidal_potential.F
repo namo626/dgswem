@@ -28,8 +28,8 @@ C***********************************************************************
       integer, value :: irk, np, ntif
       real(sz), value :: dtdp, timeh, rampdg
 
-      INTEGER :: j,i, ncyc, argt, na
-      real(sz) :: argsalt, saltmul, tpmul, argtp, ccsfea, s2sfea, timeh_dg
+      INTEGER :: j,i, ncyc, na
+      real(sz) :: argsalt, saltmul, tpmul, argtp, ccsfea, s2sfea, timeh_dg, argt
       
       TIMEH_DG = TIMEH - DTDP + DTVD(IRK)*DTDP
       
