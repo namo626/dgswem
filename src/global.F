@@ -63,8 +63,8 @@ Casey 121128: Added variables for the output of global files from SWAN.
 C.....Background Atmospheric Pressure in mb
       REAL(SZ), PARAMETER :: PRBCKGRND = 1013.0d0   !tcm 20100617 v49.16 Added
       REAL(8) :: rhoAir = 1.15d0         ! kg/m^3
-      REAL(8) :: windReduction = 0.9d0
-      REAL(8) :: one2ten = 0.8928d0
+      REAL(8), parameter :: windReduction = 0.9d0
+      REAL(8), parameter :: one2ten = 0.8928d0
       REAL(8) :: ten2one = 1.d0/0.8928d0
 Casey 121019: Added multiplication factor to be used before sending winds to coupled wave models.
       REAL(SZ) :: WaveWindMultiplier = 1.D0
@@ -84,6 +84,7 @@ C.....Days to seconds conversion
       REAL(8), PARAMETER :: ms2kt = 1.d0 / kt2ms ! m/s to knots
       REAL(8), PARAMETER :: omega = 2.0d0*pi / 86164.2d0
       REAL(8), PARAMETER :: mb2pa = 100.d0
+      integer, parameter :: dragDefault = 1, dragPowell = 2
 
 C.....parameters used in barrier overflow
       REAL(SZ), PARAMETER ::  BARMIN=0.01D0
@@ -193,8 +194,8 @@ C      REAL(SZ),ALLOCATABLE ::   TAU0VAR(:)
       REAL(SZ),ALLOCATABLE ::   CH1(:),QB(:),QA(:),SOURSIN(:)!,EVC(:)
       REAL(SZ),ALLOCATABLE ::   WSX1(:),WSY1(:),PR1(:)
       REAL(SZ),ALLOCATABLE, managed ::   WSX2(:),WSY2(:),PR2(:)
-      REAL(SZ),ALLOCATABLE ::   WVNX1(:),WVNY1(:),PRN1(:)
-      REAL(SZ),ALLOCATABLE ::   WVNX2(:),WVNY2(:),PRN2(:)
+      REAL(SZ),ALLOCATABLE, managed ::   WVNX1(:),WVNY1(:),PRN1(:)
+      REAL(SZ),ALLOCATABLE, managed ::   WVNX2(:),WVNY2(:),PRN2(:)
       REAL(SZ),ALLOCATABLE ::   RSNX1(:),RSNY1(:),RSNX2(:),RSNY2(:)
 #ifdef SWAN
 Casey 101118: Added the following arrays for output of radiation stress gradients.
@@ -205,7 +206,7 @@ C.....Allocate additional variables for wave friction
       REAL(SZ),ALLOCATABLE ::WAVE_T2(:),WAVE_H2(:),WAVE_A2(:),WAVE_D2(:)
       REAL(SZ),ALLOCATABLE ::WAVE_T(:), WAVE_H(:), WAVE_A(:), WAVE_D(:)
       REAL(SZ),ALLOCATABLE ::   WB(:)
-      REAL(SZ),ALLOCATABLE ::   WVNXOUT(:),WVNYOUT(:)
+      REAL(SZ),ALLOCATABLE, managed ::   WVNXOUT(:),WVNYOUT(:)
       REAL(SZ),ALLOCATABLE ::   TKXX(:),TKYY(:),TKXY(:)
       REAL(SZ),ALLOCATABLE ::    EMO(:,:),EFA(:,:)
       REAL(SZ),ALLOCATABLE ::    UMO(:,:),UFA(:,:),VMO(:,:),VFA(:,:)

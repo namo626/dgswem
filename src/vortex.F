@@ -94,7 +94,8 @@
       INTEGER, PARAMETER :: nPoints = nQuads+2   ! Number of (theta, Rmax)
                                                  ! points for curve fit
       REAL(sz), DIMENSION(nPoints) :: Rmaxes     ! Radius of maximum winds
-      REAL(sz), DIMENSION(nPoints,4) :: Rmaxes4  ! (nautical miles)
+      !REAL(sz), DIMENSION(nPoints,4) :: Rmaxes4  ! (nautical miles)
+      REAL(sz), allocatable, managed :: Rmaxes4(:,:)  ! (nautical miles)
       REAL(sz) :: Pn                          ! Ambient surface pressure (mb)
       REAL(sz) :: Pc                          ! Surface pressure at center of
                                               ! storm (mb)
@@ -111,11 +112,15 @@
       REAL(sz), DIMENSION(nPoints) :: Bs        
       REAL(sz), DIMENSION(nPoints) :: Phis    ! Correction factor to B and Vh
       REAL(sz), DIMENSION(nPoints) :: VmBL
-      REAL(sz), DIMENSION(nPoints,4) :: Bs4        
+      !REAL(sz), DIMENSION(nPoints,4) :: Bs4
+      REAL(sz), allocatable, managed :: Bs4(:,:)
       REAL(sz), DIMENSION(nPoints,4) :: Phis4    ! Correction factor to B and Vh
-      REAL(sz), DIMENSION(nPoints,4) :: VmBL4
-      INTEGER,  DIMENSION(nPoints,4) :: QuadFlag4  
-      REAL(sz), DIMENSION(nPoints,4) :: QuadIr4        
+      !REAL(sz), DIMENSION(nPoints,4) :: VmBL4
+      REAL(sz), allocatable, managed :: VmBL4(:,:)
+c$$$      INTEGER,  DIMENSION(nPoints,4) :: QuadFlag4
+c$$$      REAL(sz), DIMENSION(nPoints,4) :: QuadIr4
+      INTEGER,  allocatable, managed :: QuadFlag4(:,:)
+      REAL(sz), allocatable, managed :: QuadIr4(:,:)
       REAL(sz), DIMENSION(nQuads) :: VrQuadrant
       REAL(sz), DIMENSION(nQuads) :: radius   ! Wind radii - the distance
                                               ! winds of velocity Vr extend
@@ -761,22 +766,26 @@
       !    Subroutine directly accesses global class instance variables
       !=================================================================
       
-      SUBROUTINE uvpr(idist,iangle,irmx,irmx_true,iB,iVm,iPhi,
-     &                uTrans,vTrans,geof, u,v,p)
-      REAL(sz), INTENT(IN)  :: idist
-      REAL(sz), INTENT(IN)  :: iangle
-      REAL(sz), INTENT(IN)  :: irmx
-      REAL(sz), INTENT(IN)  :: irmx_true
-      REAL(sz), INTENT(IN)  :: iB
-      REAL(sz), INTENT(IN)  :: iVm
-      REAL(sz), INTENT(IN)  :: iPhi
-      REAL(sz), INTENT(IN)  :: uTrans
-      REAL(sz), INTENT(IN)  :: vTrans
-      INTEGER , INTENT(IN)  :: geof
+      attributes(device) SUBROUTINE uvpr(ii, np, idist,iangle,irmx,irmx_true,iB,iVm,iPhi,
+     &                uTrans,vTrans,geof, Pc, Corio, cLat, Pn, u,v,p)
+      implicit none
 
-      REAL(sz), INTENT(OUT) :: u
-      REAL(sz), INTENT(OUT) :: v
-      REAL(sz), INTENT(OUT) :: p
+      integer, value :: ii, np
+      REAL(sz), value  :: idist
+      REAL(sz), value  :: iangle
+      REAL(sz), value  :: irmx
+      REAL(sz), value  :: irmx_true
+      REAL(sz), value  :: iB
+      REAL(sz), value  :: iVm
+      REAL(sz), value  :: iPhi
+      REAL(sz), value  :: uTrans
+      REAL(sz), value  :: vTrans
+      INTEGER , value  :: geof
+      real(sz) ,value  :: Pc, Corio, cLat, Pn
+
+      REAL(sz), managed, INTENT(OUT) :: u(np)
+      REAL(sz), managed, INTENT(OUT) :: v(np)
+      REAL(sz), managed, INTENT(OUT) :: p(np)
 
       REAL(sz) :: TransSpdX  !NWS8-style translation speed
       REAL(sz) :: TransSpdY  !NWS8-style translation speed
@@ -788,6 +797,7 @@
       REAL(sz) :: damp
       REAL(sz) :: percentCoriolis
       INTEGER :: i
+      real(sz) :: B, Vmax, Phi, uu, vv, pp
       
       rmx=irmx
       B=iB
@@ -799,9 +809,9 @@
       ! in eye velocity is zero not translational velocity
       !----------------------------------------
       IF (idist < 1.d0) THEN
-         u = 0.0d0
-         v = 0.0d0
-         p = Pc * mb2pa
+         u(ii) = 0.0d0
+         v(ii) = 0.0d0
+         p(ii) = Pc * mb2pa
          RETURN
       END IF
 
@@ -841,28 +851,28 @@
       ! now reduce the wind speed to the surface
       speed = speed * windReduction
 
-      u = -speed * COS(deg2rad*iangle)
-      v =  speed * SIN(deg2rad*iangle)
+      uu = -speed * COS(deg2rad*iangle)
+      vv =  speed * SIN(deg2rad*iangle)
       !
       ! Alter wind direction by adding a frictional inflow angle
-      CALL rotate(u,v, fang(idist,irmx_true), cLat, uf,vf)
-      u = uf
-      v = vf
+      CALL rotate(uu,vv, fang(idist,irmx_true), cLat, uf,vf)
+      uu = uf
+      vv = vf
       !
       ! jgf20111007: Add in the translation velocity
-      u = u + TransSpdX
-      v = v + TransSpdY
+      uu = uu + TransSpdX
+      vv = vv + TransSpdY
       !
       ! convert from 1 minute averaged winds to 10 minute averaged
       ! winds for use in ADCIRC
-      u = u * one2ten
-      v = v * one2ten
+      uu = uu * one2ten
+      vv = vv * one2ten
 
       ! Compute surface pressure from asymmetric hurricane vortex
       IF (geof == 1) THEN
-         p = mb2pa * (Pc + (Pn - Pc) * EXP(-Phi*(rmx/idist)**B))
+         pp = mb2pa * (Pc + (Pn - Pc) * EXP(-Phi*(rmx/idist)**B))
       ELSE
-         p = mb2pa * (Pc + (Pn - Pc) * EXP(-(rmx/idist)**B))
+         pp = mb2pa * (Pc + (Pn - Pc) * EXP(-(rmx/idist)**B))
       ENDIF
       ! cut off the vortex field after 401nm
       !
@@ -873,6 +883,10 @@
       !   v = 0.0d0
       !   p = mb2pa * Pn
       !endif
+
+      u(ii) = uu
+      v(ii) = vv
+      p(ii) = pp
 
       END SUBROUTINE uvpr
       
@@ -894,9 +908,12 @@
       ! case(3): 4 situations
       ! case(4): 5 situations                    
       !=================================================================
-      REAL(sz) FUNCTION spInterp(angle,dist,opt)
-      REAL(sz), INTENT(IN) :: angle,dist  
-      INTEGER, INTENT(IN)  :: opt
+      attributes(device, host ) pure REAL(sz) FUNCTION spInterp(angle,dist,opt)
+      implicit none
+
+      REAL(sz), value :: angle,dist
+      INTEGER, value  :: opt
+
       REAL(sz), DIMENSION(nPoints,4) :: param 
       REAL(sz) :: temp1, temp2  
       REAL(sz) :: delta_angle
@@ -944,10 +961,14 @@
       END FUNCTION spInterp
       
       
-      REAL(sz)  FUNCTION interpR(val,quad,r)
-      REAL(sz), DIMENSION(nPoints,4),INTENT(IN) :: val 
-      INTEGER, INTENT(IN) :: quad
-      REAL(sz), INTENT(IN) :: r 
+      attributes(device, host) pure REAL(sz)  FUNCTION interpR(val,quad,r)
+
+      implicit none
+
+      REAL(sz),INTENT(IN) :: val(nPoints,4)
+      INTEGER, value :: quad
+      REAL(sz), value :: r
+
       REAL(sz) :: fac
       INTEGER  :: total_Isot
       
@@ -1007,7 +1028,7 @@
          ! For whatever reason if our algorithm fails, add the following
          ! line to avoid run-time errors
             interpR = val(quad,maxloc(QuadFlag4(quad,:),1)) 
-            write(*,*) "ERROR: interpR failed in nws20get."
+            !write(*,*) "ERROR: interpR failed in nws20get."
          end select  
          
          END function interpR
@@ -1075,11 +1096,11 @@ C     &            + Rmaxes(base_quadrant)
       !    xr          x component of rotated vector
       !    yr          y component of rotated vector
       !========================================================
-      SUBROUTINE rotate(x,y, angle, whichWay, xr,yr)
-      REAL(sz), INTENT(IN)  :: x
-      REAL(sz), INTENT(IN)  :: y
-      REAL(sz), INTENT(IN)  :: angle
-      REAL(sz), INTENT(IN)  :: whichWay
+      attributes(host,device) SUBROUTINE rotate(x,y, angle, whichWay, xr,yr)
+      REAL(sz), value  :: x
+      REAL(sz), value  :: y
+      REAL(sz), value  :: angle
+      REAL(sz), value  :: whichWay
 
       REAL(sz), INTENT(OUT) :: xr
       REAL(sz), INTENT(OUT) :: yr
@@ -1105,9 +1126,9 @@ C     &            + Rmaxes(base_quadrant)
       ! On output:
       !    fang        frictional inflow angle (degrees)
       !=======================================================
-      REAL(sz) FUNCTION fang(r, rmx)
-      REAL(sz), INTENT(IN) :: r
-      REAL(sz), INTENT(IN) :: rmx
+      attributes(host,device) pure REAL(sz) FUNCTION fang(r, rmx)
+      REAL(sz), value :: r
+      REAL(sz), value :: rmx
 
       IF (0.0d0 <= r .AND. r < rmx) THEN
          fang = 10.0d0 * r/rmx

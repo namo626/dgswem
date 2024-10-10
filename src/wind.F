@@ -1,8 +1,9 @@
 
 
        MODULE WIND
+       use cudafor
        USE SIZES, ONLY : SZ, LOCALDIR
-       USE GLOBAL, ONLY : ScreenUnit
+       USE GLOBAL, ONLY : ScreenUnit, dragDefault, dragPowell, sfea, slam, np
 #ifdef CMPI
 C      use messenger, only : msg_fini
 #endif
@@ -18,8 +19,8 @@ C      use messenger, only : msg_fini
       REAL(8) BLAdj       !jgf46.32 boundary layer adjustment for Holland model
 
 Casey 110518: Added for Mark Powell's sectorial wind drag.
-      REAL(SZ) :: EyeLatR(3) = 0.D0
-      REAL(SZ) :: EyeLonR(3) = 0.D0
+      REAL(SZ), allocatable, managed :: EyeLatR(:)
+      REAL(SZ), allocatable, managed :: EyeLonR(:)
       LOGICAL  :: FoundEye
 
       ! jgf49.1001 Variables for use in NWS=29, for embedding an asymmetric
@@ -37,6 +38,7 @@ Casey 110518: Added for Mark Powell's sectorial wind drag.
       
       REAL(SZ) :: WindDragLimit          ! maximum wind drag value
       CHARACTER(len=10) :: DragLawString ! controls wind drag formulation
+      integer :: dragLaw
 
       ! jgf52.30.04: Allow the inverted barometer condition to be 
       ! activated on elevation-specified boundaries so that low pressure
@@ -88,12 +90,18 @@ C     ----------------------------------------------------------------
       ! FUNCTION WindIceDrag.
       
       DragLawString = 'default'
+      dragLaw = dragDefault
 #ifdef POWELL
       ! jgf50.32 Provide backward compatibility with hardcoded POWELL
       ! support.
       DragLawString = 'Powell'
+      dragLaw = dragPowell
 #endif
       invertedBarometerOnElevationBoundary = .false.
+
+      allocate( eyelatr(3), eyelonr(3) )
+      eyelatr = 0.
+      eyelonr = 0.
 
       RETURN
 C     ----------------------------------------------------------------
@@ -109,12 +117,15 @@ C     jgf46.00 Function to calculate wind drag coefficient from the
 C     windspeed.
 C
 C     ----------------------------------------------------------------
-      REAL(SZ) FUNCTION WindDrag(WindSpeed, NodeNumber)
+      attributes(host, device) pure REAL(SZ) FUNCTION WindDrag(WindSpeed, dragLaw,
+     &   foundeye_value, winddraglimit, NodeNumber)
       !Casey 110518: Added variables for Mark Powell's sector-based wind drag.
-      USE GLOBAL, ONLY: DEG2RAD, SFEA, SLAM
-      REAL(SZ) WindSpeed
+      !USE GLOBAL, ONLY: DEG2RAD, SFEA, SLAM
+      REAL(SZ), value :: WindSpeed, winddraglimit
+      integer, value :: dragLaw
+      logical, value :: foundeye_value
       ! jgf50.32: Even if present, NodeNumber is ignored by Garratt formulation
-      INTEGER,OPTIONAL :: NodeNumber
+      INTEGER,OPTIONAL,value :: NodeNumber
 C
       INTRINSIC :: ATAN2
       INTRINSIC :: MOD
@@ -129,26 +140,26 @@ C
       REAL(SZ)  :: StormDirection
       REAL(SZ)  :: Weight(3)
 C
-      SELECT CASE(TRIM(DragLawString))
+      SELECT CASE(dragLaw)
 C
-      CASE("Garratt","GARRATT","garratt","default")
+      CASE(dragDefault)
          WindDrag = 0.001d0*(0.75d0+0.067d0*WindSpeed)
-         IF(WindDrag.gt.WindDragLimit) WindDrag=WindDragLimit
+         IF(WindDrag.gt.DragLimit) WindDrag=DragLimit
 C
 Casey 110518: Added Mark Powell's sector-based wind drag.
-      CASE("Powell","POWELL","powell")
+      CASE(dragPowell)
 C.. Check whether we have previously found the eye.
-         IF((EyeLatR(1).EQ.0.D0).OR.(EyeLonR(1).EQ.0.D0).OR.
-     &      (EyeLatR(2).EQ.0.D0).OR.(EyeLonR(2).EQ.0.D0).OR.
-     &      (EyeLatR(3).EQ.0.D0).OR.(EyeLonR(3).EQ.0.D0))THEN
-            FoundEye = .FALSE.
-         ENDIF
+c$$$         IF((EyeLatR(1).EQ.0.D0).OR.(EyeLonR(1).EQ.0.D0).OR.
+c$$$     &      (EyeLatR(2).EQ.0.D0).OR.(EyeLonR(2).EQ.0.D0).OR.
+c$$$     &      (EyeLatR(3).EQ.0.D0).OR.(EyeLonR(3).EQ.0.D0))THEN
+c$$$            FoundEye = .FALSE.
+c$$$         ENDIF
 C.. If the eye has not been found then apply Garratt.
          WindDrag = 0.001D0*(0.75D0+0.067D0*WindSpeed)
-         IF(.NOT.FoundEye)THEN
+         IF(.NOT.FoundEye_value)THEN
             FoundSector = .FALSE.
             Weight = 0.D0
-            IF(WindDrag.GT.WindDragLimit) WindDrag = WindDragLimit
+            IF(WindDrag.GT.dragLimit) WindDrag = dragLimit
          ELSE
 C.. We have found the eye!
 C.. Compute the storm's direction.  We use the convention of northward
@@ -236,7 +247,7 @@ C..   260-  0 : Left (3).
 C.. Apply the wind drag limit in case of emergency.
             IF(.NOT.FoundSector)THEN
                Weight = 0.D0
-               IF(WindDrag.GT.WindDragLimit) WindDrag = WindDragLimit
+               IF(WindDrag.GT.dragLimit) WindDrag = dragLimit
             ELSE
 C.. Determine the wind drag for sector 1 (right).
                Drag(1) = WindDrag
@@ -284,13 +295,13 @@ C.. Apply a weighted average.
          ENDIF
 
       CASE DEFAULT
-         WRITE(16,*) 'ERROR: Wind drag law not recognized:'
-         WRITE(16,'(A10)') DragLawString
-         WRITE(16,*) 'Execution will now be terminated.'
+c$$$         WRITE(16,*) 'ERROR: Wind drag law not recognized:'
+c$$$         WRITE(16,'(A10)') DragLawString
+c$$$         WRITE(16,*) 'Execution will now be terminated.'
 #ifdef CMPI
 C         call msg_fini()
 #endif
-         STOP
+         !STOP
 C
       END SELECT
 C
@@ -3196,9 +3207,9 @@ C***********************************************************************
       INTEGER  :: num_entry
 
       REAL(sz) :: TIMELOC, wtratio
-      REAL( 8), SAVE, ALLOCATABLE :: xcoor(:),ycoor(:)
+      REAL( 8), SAVE, ALLOCATABLE, managed :: xcoor(:),ycoor(:)
       REAL( 8) :: slam(np),sfea(np)
-      REAL( 8) :: wvnx(np),wvny(np), press(np)
+      REAL( 8), managed :: wvnx(np),wvny(np), press(np)
       REAL(sz) :: RhoWatG
       REAL(sz) :: corio
 
@@ -3209,6 +3220,7 @@ C***********************************************************************
       INTEGER,DIMENSION(:),ALLOCATABLE, SAVE :: ispd1,icpress1
       INTEGER,DIMENSION(:),ALLOCATABLE, SAVE :: iyear,imth,iday,ihr
       INTEGER,DIMENSION(:),ALLOCATABLE,SAVE ::iyear1,imth1,iday1,ihr1
+      integer istat
 
       CHARACTER(LEN=4),DIMENSION(:),ALLOCATABLE, SAVE:: type! hindcast/nowcast or forecast?
       CHARACTER(LEN=4),DIMENSION(:),ALLOCATABLE, SAVE:: type1 !hindcast/nowcast or forecast?
@@ -3229,17 +3241,17 @@ C***********************************************************************
       REAL(SZ), SAVE :: told
       ! save parameters for each node
       ! change them to allocatable, save Aug. 2013, Jie
-      REAL(sz), ALLOCATABLE, SAVE :: cHollBs1(:), cHollBs2(:)
-      REAL(sz), ALLOCATABLE, SAVE :: cPhiFactor1(:), cPhiFactor2(:)
-      REAL(sz), ALLOCATABLE, SAVE :: cVmwBL1(:), cVmwBL2(:)
-      REAL(sz), ALLOCATABLE, SAVE :: crmaxw1(:), crmaxw2(:)
-      REAL(sz), ALLOCATABLE, SAVE :: crmaxwTrue1(:), crmaxwTrue2(:)
-      REAL(sz), ALLOCATABLE, SAVE :: cHollBs(:)
-      REAL(sz), ALLOCATABLE, SAVE :: cPhiFactor(:)
-      REAL(sz), ALLOCATABLE, SAVE :: cVmwBL(:)
-      REAL(sz), ALLOCATABLE, SAVE :: crmaxw(:)
-      REAL(sz), ALLOCATABLE, SAVE :: crmaxwTrue(:)
-      REAL(sz), ALLOCATABLE, SAVE :: aziangle(:), dist(:)
+      REAL(sz), ALLOCATABLE, SAVE, managed :: cHollBs1(:), cHollBs2(:)
+      REAL(sz), ALLOCATABLE, SAVE, managed :: cPhiFactor1(:), cPhiFactor2(:)
+      REAL(sz), ALLOCATABLE, SAVE, managed :: cVmwBL1(:), cVmwBL2(:)
+      REAL(sz), ALLOCATABLE, SAVE, managed :: crmaxw1(:), crmaxw2(:)
+      REAL(sz), ALLOCATABLE, SAVE, managed :: crmaxwTrue1(:), crmaxwTrue2(:)
+      REAL(sz), ALLOCATABLE, SAVE, managed :: cHollBs(:)
+      REAL(sz), ALLOCATABLE, SAVE, managed :: cPhiFactor(:)
+      REAL(sz), ALLOCATABLE, SAVE, managed :: cVmwBL(:)
+      REAL(sz), ALLOCATABLE, SAVE, managed :: crmaxw(:)
+      REAL(sz), ALLOCATABLE, SAVE, managed :: crmaxwTrue(:)
+      REAL(sz), ALLOCATABLE, SAVE, managed :: aziangle(:), dist(:)
       REAL(sz), SAVE :: timeOffset
 
 !-------------------------------
@@ -3284,6 +3296,8 @@ C***********************************************************************
       LOGICAL :: writeRadialVandP = .false.
       LOGICAL :: writeSpatialVandP = .false.
       LOGICAL :: writeSpatialuvp = .false.
+
+      integer :: istat
 C
 C      call setMessageSource("nws20get")
 #if defined(WIND_TRACE) || defined(ALL_TRACE)
@@ -3309,6 +3323,12 @@ C      call allMessage(DEBUG,"Enter.")
          ALLOCATE (crmaxw(np))
          ALLOCATE (crmaxwTrue(np))
          ALLOCATE (aziangle(np), dist(np))
+
+         allocate( rmaxes4(6,4) )
+         allocate (bs4(6,4) )
+         allocate ( vmbl4(6,4) )
+         allocate( quadflag4(6,4) )
+         allocate ( quadir4(6,4) )
 
          DO i=1,np
             xcoor(i) = slam(i) * rad2deg
@@ -3594,6 +3614,7 @@ c      endif
       cLon  =  lon(icyc-1)  +
      &                         wtratio * (lon(icyc)-lon(icyc-1))
       ! locate each node based on the latest hurricane center location
+!$cuf kernel do <<< *, 128 >>>
       do i=1,np
          dx = deg2rad * Rearth * (xcoor(i) - cLon)*COS(deg2rad*cLat)
          dy = deg2rad * Rearth * (ycoor(i) - cLat)
@@ -3601,6 +3622,7 @@ c      endif
          aziangle(i) = 360.0d0 + rad2deg * ATAN2(dx,dy)
          IF (aziangle(i) > 360.d0) aziangle(i) = aziangle(i) - 360.d0
       enddo
+      istat = cudaDeviceSynchronize()
  ! set parameters at icyc-1
  !        call setQuadFlag4(reshape(quadflag(icyc-1,:,:),(/4,4/)))
  !        call setQuadIr4(reshape(ir(icyc-1,:,:),(/4,4/)))
@@ -3619,6 +3641,7 @@ c      endif
  !        WRITE(16,*) 'Previous: Spatially-interpolated storm parameters',
  !    &                   ' at icyc-1= ', icyc-1,
  !    &                   ' CycleTime=', CycleTime(icyc-1)
+!$cuf kernel do <<< *, 128 >>>
       do i=1,np
          crmaxw1(i) = spInterp(aziangle(i),dist(i),1)
          crmaxwTrue1(i) = spInterp(aziangle(i),1.d0,1)
@@ -3630,6 +3653,7 @@ c      endif
  !            WRITE(16,699) crmaxw1(i),  crmaxwTrue1(i),
  !    &                   cHollBs1(i) ,cVmwBL1(i)
       end do
+      istat = cudaDeviceSynchronize()
          ! set parameters at icyc
 !         call setVortex(ipn(icyc),icpress(icyc),cLat,cLon
 !     $                  ,isotachs_per_cycle(icyc))
@@ -3648,6 +3672,7 @@ c      endif
  !        WRITE(16,*) 'After: Spatially-interpolated storm parameters',
  !    &                   ' at icyc= ', icyc,
  !    &                   ' CycleTime=', CycleTime(icyc)
+!$cuf kernel do <<< *, 128>>>
       do i=1,np
          crmaxw2(i) = spInterp(aziangle(i),dist(i),1)
          crmaxwTrue2(i) = spInterp(aziangle(i),1.d0,1)
@@ -3659,20 +3684,26 @@ c      endif
   !           WRITE(16,699) crmaxw2(i),  crmaxwTrue2(i),
   !   &                   cHollBs2(i) ,cVmwBL2(i)
       end do
+      istat = cudaDeviceSynchronize()
       ! Perform time interpolation, transform variables from integers
       ! to real numbers for hurricane vortex calcualtions.
       Pn    =  1.d0*(ipn(icyc-1)  +
      &                         wtratio*(ipn(icyc)-ipn(icyc-1)))
       Pc    =  1.d0*(icpress(icyc-1) +
      &                         wtratio*(icpress(icyc)-icpress(icyc-1)))
-      crmaxw   =  crmaxw1(:) +
-     &                         wtratio*(crmaxw2(:)-crmaxw1(:))
-      crmaxwTrue   =  crmaxwTrue1(:) +
-     &                         wtratio*(crmaxwTrue2(:)-crmaxwTrue1(:))
-      cHollBs  =  cHollBs1(:) +
-     &                         wtratio*(cHollBs2(:)-cHollBs1(:))
-      cVmwBL   =  cVmwBL1(:) +
-     &                         wtratio*(cVmwBL2(:)-cVmwBL1(:))
+!$cuf kernel do <<< *, 128 >>>
+      do i=1,np
+         crmaxw(i)   =  crmaxw1(i) +
+     &        wtratio*(crmaxw2(i)-crmaxw1(i))
+         crmaxwTrue(i)   =  crmaxwTrue1(i) +
+     &        wtratio*(crmaxwTrue2(i)-crmaxwTrue1(i))
+         cHollBs(i)  =  cHollBs1(i) +
+     &        wtratio*(cHollBs2(i)-cHollBs1(i))
+         cVmwBL(i)   =  cVmwBL1(i) +
+     &        wtratio*(cVmwBL2(i)-cVmwBL1(i))
+      enddo
+      istat = cudaDeviceSynchronize()
+
       corio = 2.0d0 * omega * SIN(deg2rad*cLat)
      &
       Rmax  = 1.d0*(atcfRMW(icyc-1) + wtratio * (atcfRMW(icyc)-atcfRMW(icyc-1)))
@@ -3681,6 +3712,7 @@ c      endif
 !Jie debug GAHM
 !         WRITE(16,700) 'Temporal interpolation:',
 !     &           CycleTime(icyc-1), TIMELOC, CycleTime(icyc)
+!$cuf kernel do <<< *, 128 >>>
       do i=1,np
          cPhiFactor(i) =  1 +
      &                       cVmwBL(i)*kt2ms*crmaxw(i)*nm2m*corio/
@@ -3690,6 +3722,7 @@ c      endif
 !             WRITE(16,699) crmaxw(i),  crmaxwTrue(i),
 !     &                   cHollBs(i) ,cVmwBL(i), cPhiFactor(i)
       enddo
+      istat = cudaDeviceSynchronize()
       uTransNow = uTrans(icyc-1) + wtratio
      &                  * (uTrans(icyc)-utrans(icyc-1))
       vTransNow = vTrans(icyc-1) + wtratio
@@ -3760,25 +3793,31 @@ c      endif
       stormMotionV = cos(dirNow/rad2deg)*stormMotion
       call setVortex(Pn,Pc,cLat,cLon)
       Write (16,*) Pn
-  
+
+!$cuf kernel do <<< *, 128 >>>
       DO i=1,np
-         CALL uvpr(dist(i),aziangle(i),crmaxw(i),crmaxwTrue(i),
+         CALL uvpr(i, np, dist(i),aziangle(i),crmaxw(i),crmaxwTrue(i),
      &        cHollBs(i),cVmwBL(i),cPhiFactor(i),stormMotionU,
-     &        stormMotionV,geofactor,wvnx(i),wvny(i),press(i))
+     &        stormMotionV,geofactor,Pc, corio, cLat, Pn,wvnx,wvny,press)
          !-------------------------------------------
          ! Convert atmospheric pressure (Pascals) to
          ! atmospheric pressure-induced water surface
          ! elevation (meters).
          !-------------------------------------------
          ! namo - add rain
+#if 0
+
          if (rainfall.eq.1) then
            call UPDATE_PREC(i, ycoor(i), xcoor(i), cLon, cLat, Pn, Pc, Rmax, Vmax, 1)
         elseif (rainfall.eq.3)then
            call UPDATE_PREC(i, ycoor(i), xcoor(i), cLon, cLat, Pn, Pc, Rmax, Vmax, 3)
 
          end if
+#endif
+
          press(i) = press(i) / RhoWatG
       END DO
+      istat = cudaDeviceSynchronize()
       !-----------------------------------
       ! NHC advisory best-track i/o format
       !-----------------------------------

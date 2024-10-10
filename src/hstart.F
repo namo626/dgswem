@@ -533,12 +533,12 @@ Cek added NWS = 12 and -12 from version 46
             WINDX = WVNX1(I) + WTRATIO*(WVNX2(I)-WVNX1(I))
             WINDY = WVNY1(I) + WTRATIO*(WVNY2(I)-WVNY1(I))
             WINDMAG = SQRT(WINDX*WINDX+WINDY*WINDY)
-            WDragCo = WindDrag(WindMag, I)
+            WDragCo = winddrag(windmag, draglaw, foundeye, winddraglimit, i)
             IF (LoadDirEffRLen) THEN
               CALL ApplyDirectionalWindReduction(I, WDragCo,
      &              WindMag, DP(I), ETA2(I), H0, G, WindX, WindY)
               WindMag = SQRT(WindX*WindX+WindY*WindY)
-              WDragCo = WindDrag(WindMag, I)
+              WDragCo = winddrag(windmag, draglaw, foundeye, winddraglimit, i)
             ENDIF
             WSX2(I)    = RampMete2*0.001293d0*WDRAGCO*WINDX*WINDMAG
             WSY2(I)    = RampMete2*0.001293d0*WDRAGCO*WINDY*WINDMAG
@@ -558,12 +558,12 @@ Cek added NWS = 12 and -12 from version 46
             WINDX   = WVNX1(I)
             WINDY   = WVNY1(I)
             WINDMAG = SQRT(WINDX*WINDX+WINDY*WINDY)
-            WDragCo = WindDrag(WindMag, I)
+            WDragCo = winddrag(windmag, draglaw, foundeye, winddraglimit, i)
             IF (LoadDirEffRLen) THEN
               CALL ApplyDirectionalWindReduction(I, WDragCo,
      &              WindMag, DP(I), ETA2(I), H0, G, WindX, WindY)
               WindMag = SQRT(WindX*WindX+WindY*WindY)
-              WDragCo = WindDrag(WindMag, I)
+              WDragCo = winddrag(windmag, draglaw, foundeye, winddraglimit, i)
             ENDIF
             WSX2(I)    = RampMete2*0.001293d0*WDRAGCO*WINDX*WINDMAG
             WSY2(I)    = RampMete2*0.001293d0*WDRAGCO*WINDY*WINDMAG
@@ -582,12 +582,12 @@ Cek added NWS = 12 and -12 from version 46
             WindX = WVNX2(I)
             WindY = WVNY2(I)
             WindMag = SQRT(WindX*WindX+WindY*WindY)
-            WDragCo = WindDrag(WindMag, I)
+            WDragCo = winddrag(windmag, draglaw, foundeye, winddraglimit, i)
             IF (LoadDirEffRLen) THEN
                CALL ApplyDirectionalWindReduction(I, WDragCo,
      &              WindMag, DP(I), ETA2(I), H0, G, WindX, WindY)
                WindMag = SQRT(WindX*WindX+WindY*WindY)
-               WDragCo = WindDrag(WindMag, I)
+               WDragCo = winddrag(windmag, draglaw, foundeye, winddraglimit, i)
             ENDIF
             WSX2(I) = RampMete2*0.001293d0*WDragCo*WindX*WindMag
             WSY2(I) = RampMete2*0.001293d0*WDragCo*WindY*WindMag

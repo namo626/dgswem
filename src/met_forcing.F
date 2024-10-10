@@ -162,7 +162,7 @@ C..........Interpolate in time
 C..........Compute wind drag
            
            WINDMAG = SQRT( WINDX*WINDX + WINDY*WINDY )
-           WDragCo = WindDrag(WindMag, I)
+           WDragCo = winddrag(windmag, draglaw, foundeye, winddraglimit, i)
            
 C..........Apply directional wind reductions
            
@@ -171,7 +171,7 @@ C..........Apply directional wind reductions
      &                                          DP(II), ETA2(II), H0, G,
      &                                          WINDX, WINDY )
              WINDMAG = SQRT( WINDX*WINDX + WINDY*WINDY )
-             WDragCo = WindDrag(WindMag, I)
+             WDragCo = winddrag(windmag, draglaw, foundeye, winddraglimit, i)
            ENDIF
            
 C..........Apply met ramp
@@ -234,7 +234,7 @@ C.........Interpolate in time
 C.........Compute wind drag
             
           WINDMAG = SQRT( WINDX*WINDX + WINDY*WINDY )
-          WDragCo = WindDrag(WindMag, I)
+          WDragCo = winddrag(windmag, draglaw, foundeye, winddraglimit, i)
            
 C.........Apply directional wind reductions
 
@@ -243,7 +243,7 @@ C.........Apply directional wind reductions
      &                                          DP(II), ETA2(II), H0, G,
      &                                          WINDX, WINDY )
             WINDMAG = SQRT(WINDX*WINDX+WINDY*WINDY)
-            WDragCo = WindDrag(WindMag, I)
+            WDragCo = winddrag(windmag, draglaw, foundeye, winddraglimit, i)
           ENDIF
             
 C.........Apply met ramp
@@ -306,7 +306,7 @@ C.........Interpolate in time
 C.........Compute wind drag
           
           WINDMAG = SQRT( WINDX*WINDX + WINDY*WINDY )
-          WDragCo = WindDrag(WindMag, I)
+          WDragCo = winddrag(windmag, draglaw, foundeye, winddraglimit, i)
           
 C.........Apply directional wind reductions
           
@@ -315,7 +315,7 @@ C.........Apply directional wind reductions
      &                                          DP(II), ETA2(II), H0, G,
      &                                          WINDX, WINDY )
             WINDMAG = SQRT( WINDX*WINDX + WINDY*WINDY )
-            WDragCo = WindDrag(WindMag, I)
+            WDragCo = winddrag(windmag, draglaw, foundeye, winddraglimit, i)
           ENDIF
           
 C.........Apply met ramp
@@ -384,7 +384,7 @@ C.........Interpolate in time
 C.........Compute wind drag
           
           WINDMAG = SQRT(WINDX*WINDX+WINDY*WINDY)
-          WDragCo = WindDrag(WindMag, I)
+          WDragCo = winddrag(windmag, draglaw, foundeye, winddraglimit, i)
           
 C.........Apply directional wind reductions
 
@@ -393,7 +393,7 @@ C.........Apply directional wind reductions
      &                                          DP(II), ETA2(II), H0, G,
      &                                          WINDX, WINDY )
             WINDMAG = SQRT(WINDX*WINDX+WINDY*WINDY)
-            WDragCo = WindDrag(WindMag, I)
+            WDragCo = winddrag(windmag, draglaw, foundeye, winddraglimit, i)
           ENDIF
           
 C.........Apply met ramp
@@ -490,7 +490,7 @@ c         write(*,*) 'calling HollandGet ',time_a
 C.........Compute wind drag
           
           WINDMAG = SQRT(WINDX*WINDX+WINDY*WINDY)
-          WDragCo = WindDrag(WindMag, I)
+          WDragCo = winddrag(windmag, draglaw, foundeye, winddraglimit, i)
           
 C.........Apply directional wind reductions
           
@@ -499,7 +499,7 @@ C.........Apply directional wind reductions
      &                                          DP(II), ETA2(II), H0, G,
      &                                          WINDX, WINDY )
             WINDMAG = SQRT(WINDX*WINDX + WINDY*WINDY)
-            WDragCo = WindDrag(WindMag, I)
+            WDragCo = winddrag(windmag, draglaw, foundeye, winddraglimit, i)
           ENDIF
             
 C.........Apply met ramp
@@ -616,7 +616,7 @@ C.........Interpolate in time
 C.........Compute wind drag
            
           WINDMAG = SQRT(WINDX*WINDX + WINDY*WINDY)
-          WDragCo = WindDrag(WindMag, I)
+          WDragCo = winddrag(windmag, draglaw, foundeye, winddraglimit, i)
 
 C.........Apply directional wind reductions
 
@@ -625,7 +625,7 @@ C.........Apply directional wind reductions
      &                                          DP(II), ETA2(II), H0, G,
      &                                          WINDX, WINDY )
             WINDMAG = SQRT(WINDX*WINDX + WINDY*WINDY)
-            WDragCo = WindDrag(WindMag, I)
+            WDragCo = winddrag(windmag, draglaw, foundeye, winddraglimit, i)
           ENDIF
           
 C.........Apply met ramp
@@ -698,7 +698,7 @@ C.........Interpolate in time
 C.........Compute wind drag
             
           WINDMAG = SQRT(WINDX*WINDX+WINDY*WINDY)
-          WDragCo = WindDrag(WindMag, I)
+          WDragCo = winddrag(windmag, draglaw, foundeye, winddraglimit, i)
             
 C.........Apply directional wind reductions
 
@@ -707,7 +707,7 @@ C.........Apply directional wind reductions
      &                                          DP(II), ETA2(II), H0, G,
      &                                          WINDX, WINDY )
             WINDMAG = SQRT(WINDX*WINDX + WINDY*WINDY)
-            WDragCo = WindDrag(WindMag, I)
+            WDragCo = winddrag(windmag, draglaw, foundeye, winddraglimit, i)
           ENDIF
             
 C.........Apply met ramp
@@ -767,7 +767,7 @@ C.........Interpolate in time
 C.........Compute wind drag
           
           WINDMAG = SQRT(WINDX*WINDX + WINDY*WINDY)
-          WDragCo = WindDrag(WindMag, I)
+          WDragCo = winddrag(windmag, draglaw, foundeye, winddraglimit, i)
           
 C.........Apply directional wind reductions
           
@@ -776,7 +776,7 @@ C.........Apply directional wind reductions
      &                                          DP(II), ETA2(II), H0, G,
      &                                          WINDX, WINDY )
             WINDMAG = SQRT(WINDX*WINDX + WINDY*WINDY)
-            WDragCo = WindDrag(WindMag, I)
+            WDragCo = winddrag(windmag, draglaw, foundeye, winddraglimit, i)
           ENDIF
           
 C.........Apply met ramp
@@ -804,12 +804,12 @@ Casey 101118: Added these lines for coupling winds to SWAN.
             WindX = WVNX2(II)
             WindY = WVNY2(II)
             WindMag = SQRT(WindX*WindX+WindY*WindY)
-            WDragCo = WindDrag(WindMag, I)
+            WDragCo = winddrag(windmag, draglaw, foundeye, winddraglimit, i)
             IF (LoadDirEffRLen) THEN
                CALL ApplyDirectionalWindReduction(II, WDragCo,
      &              WindMag, DP(II), ETA2(II), H0, G, WindX, WindY)
                WindMag = SQRT(WindX*WindX+WindY*WindY)
-               WDragCo = WindDrag(WindMag, I)
+               WDragCo = winddrag(windmag, draglaw, foundeye, winddraglimit, i)
             ENDIF
 
             WSX2(II) = RampMete*0.001293d0*WDragCo*WindX*WindMag
@@ -833,17 +833,22 @@ Casey 121019: Added multiplication factor to be used before sending winds to cou
 
       IF(NWS.EQ.20) THEN
          CALL NWS20GET(SLAM,SFEA,WVNX2,WVNY2,PRN2,NP,AsymmetricTime,ICS)
+!$cuf kernel do <<< *, 128>>>
          DO II=1,NP
             WindX = WVNX2(II)
             WindY = WVNY2(II)
             WindMag = SQRT(WindX*WindX+WindY*WindY)
-            WDragCo = WindDrag(WindMag, I)
+            WDragCo = WindDrag(WindMag, dragLaw, foundEye, winddraglimit, I)
+#if 0
+
             IF (LoadDirEffRLen) THEN
                CALL ApplyDirectionalWindReduction(II, WDragCo,
      &              WindMag, DP(II), ETA2(II), H0, G, WindX, WindY)
                WindMag = SQRT(WindX*WindX+WindY*WindY)
-               WDragCo = WindDrag(WindMag, I)
+               WDragCo = winddrag(windmag, draglaw, foundeye, winddraglimit, i)
             ENDIF
+#endif
+
 
             WSX2(II) = RampMete*0.001293d0*WDragCo*WindX*WindMag
             WSY2(II) = RampMete*0.001293d0*WDragCo*WindY*WindMag
