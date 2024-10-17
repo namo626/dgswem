@@ -3431,6 +3431,7 @@ C
 
 #ifdef CMPI
 
+      istat = cudaDeviceSynchronize()
       CALL UPDATER(ZE_MIN1,ZE_MAX1,QX_MIN1,3)
       CALL UPDATER(QX_MAX1,QY_MIN1,QY_MAX1,3)
 
