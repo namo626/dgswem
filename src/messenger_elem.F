@@ -60,6 +60,7 @@ C
       INTEGER, PRIVATE, ALLOCATABLE :: REQ_C3D(:), STAT_C3D(:,:)
       INTEGER, PRIVATE, ALLOCATABLE :: INDEX(:)
       REAL(SZ), PRIVATE,ALLOCATABLE :: SENDBUF(:,:), RECVBUF(:,:)
+      integer, PRIVATE,ALLOCATABLE :: gather(:,:), pgather(:,:), scatter(:,:)
 C--
 C
 
@@ -201,7 +202,8 @@ C
 #ifndef HAVE_MPI_MOD
       include 'mpif.h'
 #endif
-      INTEGER :: IDPROC,NLOCAL,I,J,JJ,NEIGH
+      INTEGER :: IDPROC,NLOCAL,I,J,JJ,NEIGH,k, ii, ncount
+      logical :: first
 C
       OPEN(18,FILE=DIRNAME(1:LNAME)//'/'//'DG.18')
 C
@@ -251,6 +253,40 @@ C
       ENDDO
 C
       CLOSE(18)
+
+      allocate(gather(mne*dofh, neighproc_s), pgather(mne*dofh, neighproc_s))
+
+      gather = 0
+      do j=1,neighproc_s
+         do i=1,nelemsend(j)
+            gather(DOFH*(isendloc(i,j)-1)+1:DOFH*(isendloc(i,j)-1)+DOFH, j) = 1
+         enddo
+      enddo
+
+
+
+      do j = 1,neighproc_s
+         ncount = 0
+         do i = 1,nelemsend(j)
+            ii = isendloc(i,j)
+            do k = 1,DOFH
+               ncount = ncount + 1
+               pgather(DOFH*(ii-1)+k ,j) = ncount
+            enddo
+         enddo
+      enddo
+
+
+      allocate(scatter(mne*dofh, neighproc_r))
+      do j=1,neighproc_R
+         do i=1,nelemrecv(j)
+            do k = 1,dofh
+               scatter(DOFH*(i-1)+k, j) = DOFH*(irecvloc(i,j) - 1) + k
+            enddo
+         enddo
+      enddo
+
+
       RETURN
 C
 1130  FORMAT(8X,9I8)
@@ -292,6 +328,7 @@ C         ALLOCATE ( RECVBUF(2*MNP*MNODES,NEIGHPROC) )
         STOP 'NOT UPDATED'
       ELSE
          ALLOCATE ( SENDBUF(NCOMMELEM_S*DOFH*4,NEIGHPROC_S) )
+         ALLOCATE ( SENDBUF_test(NCOMMELEM_S*DOFH*4,NEIGHPROC_S) )
          ALLOCATE ( RECVBUF(NCOMMELEM_R*DOFH*4,NEIGHPROC_R) )
       ENDIF
 C
@@ -507,6 +544,38 @@ C
       RETURN
       END SUBROUTINE
 
+      subroutine packElems(dof, ne, gather, pgather, vec1, packed)
+      implicit none
+
+      integer, value :: ne, dof
+      real(sz), intent(in) :: vec1(ne*dof)
+      integer, intent(in) :: gather(:), pgather(:)
+      real(sz), intent(out) :: packed(:)
+
+      integer :: j
+
+      do j = 1,ne*dof
+         if (gather(j) == 1) then
+            packed(pgather(j)) = vec1(j)
+         endif
+      enddo
+      end subroutine
+
+      subroutine unpackElems(dof, ne, nrecv, scatter, packed, vec1)
+      implicit none
+
+      integer, value :: nrecv, dof, ne
+      real(sz), intent(in) :: packed(:)
+      integer, intent(in) :: scatter(:)
+      real(sz), intent(out) :: vec1(ne*dof)
+
+      integer :: j
+
+      do j = 1,nrecv*dof
+         vec1(scatter(j)) = packed(j)
+      enddo
+
+      end subroutine
 
       SUBROUTINE UPDATER_ELEM( VEC1, VEC2, VEC3, IRK, NMSG )
 C
@@ -814,27 +883,14 @@ C      DO JJ=1,NEIGHPROC_S
 C         J = MOD(JJ-1+MYPROC,NEIGHPROC_S)+1
       DO J=1,NEIGHPROC_S
          NCOUNT = 0
-         DO I=1,NELEMSEND(J)
-            DO K=1,DOFH
-              NCOUNT = NCOUNT+1
-              SENDBUF(NCOUNT,J)=VEC1(K,ISENDLOC(I,J),IRK)
-            ENDDO
-         ENDDO
+         call packElems(DOFH, MNE, gather(:,j), pgather(:,j), vec1(:,:,irk), sendbuf(:,j) )
+         NCOUNT = nelemsend(J)*DOFH + 1
          IF (NMSG.GT.1) THEN
-           DO I=1,NELEMSEND(J)
-             DO K=1,DOFH
-               NCOUNT = NCOUNT+1
-               SENDBUF(NCOUNT,J)=VEC2(K,ISENDLOC(I,J),IRK)
-             ENDDO
-           ENDDO
+            call packElems(DOFH, MNE, gather(:,j), pgather(:,j), vec2(:,:,irk), sendbuf(ncount:,j) )
+            NCOUNT = 2*nelemsend(J)*DOFH + 1
          ENDIF
          IF (NMSG.GT.2) THEN
-           DO I=1,NELEMSEND(J)
-             DO K=1,DOFH
-               NCOUNT = NCOUNT+1
-               SENDBUF(NCOUNT,J)=VEC3(K,ISENDLOC(I,J),IRK)
-             ENDDO
-           ENDDO
+            call packElems(DOFH, MNE, gather(:,j), pgather(:,j), vec3(:,:,irk), sendbuf(ncount:,j) )
          ENDIF
 
          ! Start sending a message
