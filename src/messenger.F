@@ -58,7 +58,7 @@ C
       INTEGER, PRIVATE, ALLOCATABLE :: REQ_R3D(:), STAT_R3D(:,:)
       INTEGER, PRIVATE, ALLOCATABLE :: REQ_C3D(:), STAT_C3D(:,:)
       INTEGER, PRIVATE, ALLOCATABLE :: INDEX(:)
-      REAL(SZ), PRIVATE,ALLOCATABLE, managed :: SENDBUF(:,:), RECVBUF(:,:)
+      REAL(SZ), PRIVATE,ALLOCATABLE, device :: SENDBUF(:,:), RECVBUF(:,:)
       INTEGER, PRIVATE, ALLOCATABLE, managed :: gather(:,:), pgather(:,:)
 C--
 C
@@ -445,9 +445,9 @@ C
       implicit none
 
       integer, value :: np
-      real(sz), managed, intent(in) :: vec1(:)
+      real(sz), device, intent(in) :: vec1(:)
       integer,  managed, intent(in) :: gather(:), pgather(:)
-      real(sz), managed, intent(out) :: packed(:)
+      real(sz), device, intent(out) :: packed(:)
 
       integer :: j, istat
 !$cuf kernel do <<< *, 128 >>>
@@ -464,9 +464,9 @@ C
       implicit none
 
       integer, value :: nrecv
-      real(sz), managed, intent(in) :: packed(:)
+      real(sz), device, intent(in) :: packed(:)
       integer, managed, intent(in) :: irecvloc(:)
-      real(sz), managed, intent(out) :: vec1(:)
+      real(sz), device, intent(out) :: vec1(:)
 
       integer :: j, istat
 
@@ -496,7 +496,7 @@ C
 #endif
 C
       INTEGER,  INTENT(IN) ::  NMSG
-      REAL(SZ), managed, INTENT(INOUT) ::  VEC1(:),VEC2(:),VEC3(:)
+      REAL(SZ), device, INTENT(INOUT) ::  VEC1(:),VEC2(:),VEC3(:)
       INTEGER :: N,I,J,NCOUNT,NFINI,TOT
 C
                              !..Pack 1, 2, or 3 Messages

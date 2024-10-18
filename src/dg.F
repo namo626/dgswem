@@ -158,8 +158,8 @@ C.....Declare allocatable real arrays
       REAL(SZ), ALLOCATABLE, managed :: QX(:,:,:), QY(:,:,:), ZE(:,:,:)
 
       ! For slope limiter
-      Real(SZ), Allocatable, managed :: ZE_MIN1(:),ZE_MAX1(:),QX_MIN1(:),QX_MAX1(:)
-      Real(SZ), Allocatable, managed :: QY_MIN1(:),QY_MAX1(:)
+      Real(SZ), Allocatable, device :: ZE_MIN1(:),ZE_MAX1(:),QX_MIN1(:),QX_MAX1(:)
+      Real(SZ), Allocatable, device :: QY_MIN1(:),QY_MAX1(:)
 
       Real(SZ), ALLOCATABLE, target:: bed(:,:,:,:)
       Real(SZ), Allocatable :: dynP(:,:,:),dynP_MAX(:), dynP_MIN(:)
