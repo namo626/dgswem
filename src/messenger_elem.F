@@ -328,7 +328,6 @@ C         ALLOCATE ( RECVBUF(2*MNP*MNODES,NEIGHPROC) )
         STOP 'NOT UPDATED'
       ELSE
          ALLOCATE ( SENDBUF(NCOMMELEM_S*DOFH*4,NEIGHPROC_S) )
-         ALLOCATE ( SENDBUF_test(NCOMMELEM_S*DOFH*4,NEIGHPROC_S) )
          ALLOCATE ( RECVBUF(NCOMMELEM_R*DOFH*4,NEIGHPROC_R) )
       ENDIF
 C
@@ -982,25 +981,14 @@ cdebug     print *, myproc, tot,nfini,index(1),index(2)
               IF (INDEX(N).GT.0.AND.INDEX(N).LE.RDIM)  THEN
                 IF (INDEX(N).LE.NEIGHPROC_R) THEN
                   J = INDEX(N)
-                  NCOUNT = 0
-                  DO I=1,NELEMRECV(J)
-                    DO K=1,DOFH
-                      NCOUNT = NCOUNT+1
-                      VEC1(K,IRECVLOC(I,J),IRK) = RECVBUF(NCOUNT,J)
-                    ENDDO
-                  ENDDO
-                  DO I=1,NELEMRECV(J)
-                    DO K=1,DOFH
-                      NCOUNT = NCOUNT+1
-                      VEC2(K,IRECVLOC(I,J),IRK) = RECVBUF(NCOUNT,J)
-                    ENDDO
-                  ENDDO
-                  DO I=1,NELEMRECV(J)
-                    DO K=1,DOFH
-                      NCOUNT = NCOUNT+1
-                      VEC3(K,IRECVLOC(I,J),IRK) = RECVBUF(NCOUNT,J)
-                    ENDDO
-                  ENDDO
+                  call unpackElems(dofh, mne, nelemrecv(j), scatter(:,j), recvbuf(:,j), vec1(:,:,irk))
+                  NCOUNT = DOFH*nelemrecv(j) + 1
+
+                  call unpackElems(dofh, mne, nelemrecv(j), scatter(:,j), recvbuf(ncount:,j), vec2(:,:,irk))
+                  NCOUNT = 2*DOFH*nelemrecv(j) + 1
+
+                  call unpackElems(dofh, mne, nelemrecv(j), scatter(:,j), recvbuf(ncount:,j), vec3(:,:,irk))
+
                 ENDIF
               ENDIF
            ENDDO
