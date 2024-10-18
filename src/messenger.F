@@ -429,6 +429,7 @@ C
 C  vjp  8/06/1999
 C--------------------------------------------------------------------------
 C 
+      use nvtx
       IMPLICIT NONE
 #ifndef HAVE_MPI_MOD
       include 'mpif.h'
@@ -439,6 +440,7 @@ C
       INTEGER :: N,I,J,NCOUNT,NFINI,TOT
 C
                              !..Pack 1, 2, or 3 Messages
+      call nvtxStartRange("UPDATER", 5)
       DO J=1,NEIGHPROC
          NCOUNT = 0
          DO I=1,NNODSEND(J)
@@ -552,6 +554,8 @@ cdebug     print *, myproc, tot,nfini,index(1),index(2)
       ENDIF
 C 
  999  continue
+
+      call nvtxEndRange()
       RETURN
       END SUBROUTINE
 
