@@ -6,6 +6,7 @@ C
       MODULE MESSENGER
 C
       USE SIZES
+      use cudafor
       USE GLOBAL, ONLY: C3D
       USE DG, ONLY: dofh
 Csb-PDG1
@@ -44,7 +45,7 @@ Casey 121126: Changed some variables to public.
       LOGICAL,SAVE,PRIVATE,ALLOCATABLE :: RESNODE(:)
 C
 Casey 121126: Changed some variables to public.
-      INTEGER, ALLOCATABLE :: NNODRECV(:),IRECVLOC(:,:)
+      INTEGER, ALLOCATABLE, managed :: NNODRECV(:),IRECVLOC(:,:)
       INTEGER, PRIVATE, ALLOCATABLE :: IPROC(:), NNODELOC(:),
      &    NNODSEND(:), IBELONGTO(:),ISENDLOC(:,:), 
      &    ISENDBUF(:,:), IRECVBUF(:,:)
@@ -57,8 +58,8 @@ C
       INTEGER, PRIVATE, ALLOCATABLE :: REQ_R3D(:), STAT_R3D(:,:)
       INTEGER, PRIVATE, ALLOCATABLE :: REQ_C3D(:), STAT_C3D(:,:)
       INTEGER, PRIVATE, ALLOCATABLE :: INDEX(:)
-      REAL(SZ), PRIVATE,ALLOCATABLE :: SENDBUF(:,:), RECVBUF(:,:)
-      INTEGER, PRIVATE, ALLOCATABLE :: gather(:,:), pgather(:,:)
+      REAL(SZ), PRIVATE,ALLOCATABLE, managed :: SENDBUF(:,:), RECVBUF(:,:)
+      INTEGER, PRIVATE, ALLOCATABLE, managed :: gather(:,:), pgather(:,:)
 C--
 C
 
@@ -444,33 +445,37 @@ C
       implicit none
 
       integer, value :: np
-      real(sz), intent(in) :: vec1(:)
-      integer, intent(in) :: gather(:), pgather(:)
-      real(sz), intent(out) :: packed(:)
+      real(sz), managed, intent(in) :: vec1(:)
+      integer,  managed, intent(in) :: gather(:), pgather(:)
+      real(sz), managed, intent(out) :: packed(:)
 
-      integer :: j
-
+      integer :: j, istat
+!$cuf kernel do <<< *, 128 >>>
       do j = 1,np
          if (gather(j) == 1) then
             packed(pgather(j)) = vec1(j)
          endif
       enddo
+
+      istat = cudaDeviceSynchronize()
       end subroutine
 
       subroutine unpackNodes(nrecv, irecvloc, packed, vec1)
       implicit none
 
       integer, value :: nrecv
-      real(sz), intent(in) :: packed(:)
-      integer, intent(in) :: irecvloc(:)
-      real(sz), intent(out) :: vec1(:)
+      real(sz), managed, intent(in) :: packed(:)
+      integer, managed, intent(in) :: irecvloc(:)
+      real(sz), managed, intent(out) :: vec1(:)
 
-      integer :: j
+      integer :: j, istat
 
+!$cuf kernel do <<< *, 128 >>>
       do j = 1,nrecv
          vec1(irecvloc(j)) = packed(j)
       enddo
 
+      istat = cudaDeviceSynchronize()
       end subroutine
 
 
@@ -491,7 +496,7 @@ C
 #endif
 C
       INTEGER,  INTENT(IN) ::  NMSG
-      REAL(SZ), INTENT(INOUT) ::  VEC1(:),VEC2(:),VEC3(:)
+      REAL(SZ), managed, INTENT(INOUT) ::  VEC1(:),VEC2(:),VEC3(:)
       INTEGER :: N,I,J,NCOUNT,NFINI,TOT
 C
                              !..Pack 1, 2, or 3 Messages
