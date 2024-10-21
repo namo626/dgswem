@@ -39,7 +39,7 @@ C.....Use appropriate modules
       
 C.....Declare local variables
 
-      INTEGER II, l, P_0, DOF_0,j,k,kk,jj,i,chi,ll,mm,Q,M,P,SZ2,w,III
+      INTEGER II, l, P_0, DOF_0,j,k,kk,jj,i,chi,ll,mm,Q,M,P,SZ2,w,III, istat
       CHARACTER(LEN = 8) REGION
       REAL(SZ) AREA, ANGLE_SUM, HBB(3), CASUM, DP_MIN,temp_lay,XP,YP
       REAL(SZ) XI, YI, ZE1, ZE2, ZE3, l2er,l2erh2,xcen,ycen,epsl,pi_n
@@ -1530,6 +1530,9 @@ C.....Prep the slopelimiter
             print *, 'Finished'
          ENDIF
       ENDIF
+
+      istat = cudaStreamCreate(stream1)
+      istat = cudaStreamCreate(stream2)
 C--   
 
 C.....Close files

@@ -10,7 +10,7 @@ C
       USE SIZES
       use cudafor
       USE GLOBAL!, ONLY: C3D
-      USE DG, ONLY: DOFH
+      USE DG, ONLY: DOFH, stream2
       USE DIFF45_41,ONLY : MNODES
 
 
@@ -37,6 +37,7 @@ C  Message-Passing Array space
 C
 Csb-PDG1
       PUBLIC
+      integer :: numElemSend
 
       INTEGER, SAVE :: MPI_COMM_ADCIRC
       INTEGER, SAVE ::  COMM_COMP     
@@ -61,7 +62,7 @@ C
       INTEGER, PRIVATE, ALLOCATABLE :: REQ_C3D(:), STAT_C3D(:,:)
       INTEGER, PRIVATE, ALLOCATABLE :: INDEX(:)
       REAL(SZ), PRIVATE,ALLOCATABLE, managed :: SENDBUF(:,:), RECVBUF(:,:)
-      integer, PRIVATE,ALLOCATABLE, managed :: gather(:,:), pgather(:,:), scatter(:,:)
+      integer,ALLOCATABLE, managed :: gatherElem(:), gather(:,:), pgather(:,:), scatter(:,:)
 C--
 C
 
@@ -255,15 +256,19 @@ C
 C
       CLOSE(18)
 
+      allocate(gatherElem(mne))
       allocate(gather(mne*dofh, neighproc_s), pgather(mne*dofh, neighproc_s))
 
+      gatherElem = 0
       gather = 0
       do j=1,neighproc_s
          do i=1,nelemsend(j)
+            gatherElem(isendloc(i,j)) = 1
             gather(DOFH*(isendloc(i,j)-1)+1:DOFH*(isendloc(i,j)-1)+DOFH, j) = 1
          enddo
       enddo
 
+      numElemSend = sum(gatherElem)
 
 
       do j = 1,neighproc_s
@@ -554,7 +559,7 @@ C
 
       integer :: j, istat
 
-!$cuf kernel do <<<* , 128>>>
+!$cuf kernel do <<<* , 128,stream=stream2>>>
       do j = 1,ne*dof
          if (gather(j) == 1) then
             packed(pgather(j)) = vec1(j)
@@ -573,7 +578,7 @@ C
 
       integer :: j, istat
 
-!$cuf kernel do <<<* , 128>>>
+!$cuf kernel do <<<* , 128, stream=stream2>>>
       do j = 1,nrecv*dof
          vec1(scatter(j)) = packed(j)
       enddo
@@ -901,7 +906,7 @@ C         J = MOD(JJ-1+MYPROC,NEIGHPROC_S)+1
             call packElems(DOFH, MNE, gather(:,j), pgather(:,j), vec3(:,:,irk), sendbuf(ncount:,j) )
          ENDIF
 
-         istat = cudaDeviceSynchronize()
+         istat = cudaStreamSynchronize(stream2)
          ! Start sending a message
          IF (NMSG.EQ.1) THEN
             CALL MPI_START ( REQ_R1(J+NEIGHPROC_R), IERR )

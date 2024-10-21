@@ -17,7 +17,7 @@ C***********************************************************************
       use sizes, only : sz
       use global, only : tip2, facet, sfea, slam, fft, saltpha, etrf, pert, amigt,
      &  saltamp, tpk
-      use dg, only : dtvd
+      use dg, only : dtvd, stream1
 
       contains
 
@@ -35,7 +35,7 @@ C***********************************************************************
       
 C.....Loop over the nodes
 
-!$cuf kernel do <<< *, 128 >>>
+!$cuf kernel do <<< *, 128, stream=stream1 >>>
       DO I = 1,NP
       
 C.....Initialize tidal potential terms

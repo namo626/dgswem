@@ -221,14 +221,14 @@ C.......Compute LDG auxiliary equations
          
 C.......Compute elevation specified edges
 
-         IF (NEEDS.GT.0)  CALL OCEAN_EDGE_HYDRO<<<needs/128+1,128>>>(
+         IF (NEEDS.GT.0)  CALL OCEAN_EDGE_HYDRO<<<needs/128+1,128,0,stream1>>>(
      &    IT,irk,needs,nbfr,timedg,rampdg,g,nleq,leq,nleqg,fg_l,
      &        nope, h0, ifnlfa, layers, loadgeoidoffset
      &  )
 
 C.......Compute no-normal flow edges
 
-         IF (NLEDS.GT.0)  CALL LAND_EDGE_HYDRO<<<nleds/128+1, 128>>>(
+         IF (NLEDS.GT.0)  CALL LAND_EDGE_HYDRO<<<nleds/128+1, 128,0,stream1>>>(
      &        IT, irk, nleds, g, nleq, leq, nleqg, fg_l, layers
      &  )
 
@@ -236,7 +236,7 @@ C.......Compute non-zero flow edges
 
          IF (NFEDS.GT.0)  then
             !istat = cudaDeviceSynchronize()
-           CALL FLOW_EDGE_HYDRO<<<nfeds/128+1, 128>>>(
+           CALL FLOW_EDGE_HYDRO<<<nfeds/128+1, 128,0,stream1>>>(
      &    IT, IRK, nfeds, mnffr, nffr, rampdg, timedg,
      &        g, nleq, leq, nleqg, fg_l, layers
      &  )
@@ -248,25 +248,59 @@ C.......Compute radiation edges
 
 C.......Compute internal barrier edges
 
-         IF (NIBEDS.GT.0) CALL IBARRIER_EDGE_HYDRO<<<nibseg/128+1,128>>>(
+         IF (NIBEDS.GT.0) CALL IBARRIER_EDGE_HYDRO<<<nibseg/128+1,128,0,stream1>>>(
      &        IT, irk, nibseg, g, leq, nleq, nleqg, fg_l, rampdg
      &  )
          
 C.......Compute external barrier edges
 
-         IF (NEBEDS.GT.0) CALL EBARRIER_EDGE_HYDRO<<<nebseg/128+1,128>>>(
+         IF (NEBEDS.GT.0) CALL EBARRIER_EDGE_HYDRO<<<nebseg/128+1,128,0,stream1>>>(
      &        IT, irk, nebseg, g, leq, nleq, nleqg, fg_l, rampdg
      &    )
          
 C.......Compute internal edges
 
-         call INTERNAL_EDGE_HYDRO<<<NIEDS/128+1,128>>>(
+         call INTERNAL_EDGE_HYDRO<<<NIEDS/128+1,128,0,stream1>>>(
      &        IT, IRK, NIEDS, G, DOFH, nleq, leq, nleqg, fg_l, layers
      &   )
 
+         istat = cudaDeviceSynchronize()
+
+#ifdef CMPI
+         CALL RHS_DG_HYDRO_ghost<<<numElemSend/128+1,128,0,stream2>>>(
+     &      IT, DTDP, IRK, NE,
+     &     NLEQ, LEQ, NLEQG, G, NWS, NTIP, rampdg, fg_l, cf, tau, iflinbf, ifhybf,
+     &        hbreak, ftheta, fgamma, layers, rainfall, loadManningsN
+     &   )
+!$cuf kernel do <<< numElemSend/128+1, (128,1),stream=stream2 >>>
+         DO J = 1,NE
+            if (gatherElem(J) == 1) then
+               DO K = 1,DOFH
+                  ze_next = 0.
+                  qx_next = 0.
+                  qy_next = 0.
+                  DO I = 1,IRK
+                     ARK = ATVD(IRK,I)
+                     BRK = BTVD(IRK,I)*DT
+
+                     ze_next = ze_next + ARK*ZE(K,J,I)
+     &                    + BRK*RHS_ZE(K,J,I)
+                     qx_next = qx_next + ARK*QX(K,J,I)
+     &                    + BRK*RHS_QX(K,J,I)
+                     qy_next = qy_next + ARK*QY(K,J,I)
+     &                    + BRK*RHS_QY(K,J,I)
+                  ENDDO
+                  ze(k,j,irk+1) = ze_next
+                  qx(k,j,irk+1) = qx_next
+                  qy(k,j,irk+1) = qy_next
+               ENDDO
+            endif
+         ENDDO
+#endif
+
 C.......Compute elements to finish building the rhs
          
-         CALL RHS_DG_HYDRO<<<NE/128+1,128>>>(
+         CALL RHS_DG_HYDRO<<<NE/128+1,128,0,stream1>>>(
      &      IT, DTDP, IRK, NE,
      &     NLEQ, LEQ, NLEQG, G, NWS, NTIP, rampdg, fg_l, cf, tau, iflinbf, ifhybf,
      &        hbreak, ftheta, fgamma, layers, rainfall, loadManningsN
@@ -274,7 +308,7 @@ C.......Compute elements to finish building the rhs
 
 C.......SSP Runge-Kutta Time Scheme
 
-!$cuf kernel do <<< *, (128,1) >>>
+!$cuf kernel do <<< *, (128,1),stream=stream1 >>>
          DO J = 1,NE
             DO K = 1,DOFH
                   ze_next = 0.
@@ -339,6 +373,11 @@ C.......Compute the dynamic pressure if flagged
                qy(k,j,irk+1) = qy_next
             ENDDO
          ENDDO
+
+#ifdef CMPI
+         istat = cudaStreamSynchronize(stream2)
+         CALL UPDATER_ELEM_MOD(ZE,QX,QY,IRK+1,3)
+#endif
 
 #endif
 
@@ -542,8 +581,6 @@ C.......Compute the dynamic pressure if flagged
 #endif
 
 #ifdef CMPI
-         istat = cudaDeviceSynchronize()
-         CALL UPDATER_ELEM_MOD(ZE,QX,QY,IRK+1,3)
 #ifdef TRACE
          CALL UPDATER_ELEM_MOD(iota,iota2,QY,IRK+1,2 )
 #endif
