@@ -873,6 +873,8 @@ C
 C  vjp  8/06/1999
 C--------------------------------------------------------------------------
 C 
+      use nvtx
+
       IMPLICIT NONE
 #ifndef HAVE_MPI_MOD
       include 'mpif.h'
@@ -881,6 +883,8 @@ C
       INTEGER,  INTENT(IN) ::  IRK, NMSG
       REAL(SZ), managed, INTENT(INOUT) ::  VEC1(:,:,:),VEC2(:,:,:),VEC3(:,:,:)
       INTEGER :: N,I,J,JJ,K,NCOUNT,NFINI,TOT, istat
+
+      call nvtxStartRange("UPDATER_ELEM", 6)
 C
                              !..Pack 1, 2, or 3 Messages
 C      DO JJ=1,NEIGHPROC_S
@@ -1005,6 +1009,8 @@ C
  999  continue
 
       istat = cudaDeviceSynchronize()
+
+      call nvtxEndRange()
       RETURN
       END SUBROUTINE
 
