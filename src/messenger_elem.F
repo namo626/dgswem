@@ -561,7 +561,6 @@ C
          endif
       enddo
 
-      istat = cudaDeviceSynchronize()
       end subroutine
 
       subroutine unpackElems(dof, ne, nrecv, scatter, packed, vec1)
@@ -579,7 +578,6 @@ C
          vec1(scatter(j)) = packed(j)
       enddo
 
-      istat = cudaDeviceSynchronize()
 
       end subroutine
 
@@ -882,7 +880,7 @@ C
 C
       INTEGER,  INTENT(IN) ::  IRK, NMSG
       REAL(SZ), managed, INTENT(INOUT) ::  VEC1(:,:,:),VEC2(:,:,:),VEC3(:,:,:)
-      INTEGER :: N,I,J,JJ,K,NCOUNT,NFINI,TOT
+      INTEGER :: N,I,J,JJ,K,NCOUNT,NFINI,TOT, istat
 C
                              !..Pack 1, 2, or 3 Messages
 C      DO JJ=1,NEIGHPROC_S
@@ -899,6 +897,7 @@ C         J = MOD(JJ-1+MYPROC,NEIGHPROC_S)+1
             call packElems(DOFH, MNE, gather(:,j), pgather(:,j), vec3(:,:,irk), sendbuf(ncount:,j) )
          ENDIF
 
+         istat = cudaDeviceSynchronize()
          ! Start sending a message
          IF (NMSG.EQ.1) THEN
             CALL MPI_START ( REQ_R1(J+NEIGHPROC_R), IERR )
@@ -1004,6 +1003,8 @@ cdebug     print *, myproc, tot,nfini,index(1),index(2)
       ENDIF
 C 
  999  continue
+
+      istat = cudaDeviceSynchronize()
       RETURN
       END SUBROUTINE
 

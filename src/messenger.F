@@ -457,7 +457,6 @@ C
          endif
       enddo
 
-      istat = cudaDeviceSynchronize()
       end subroutine
 
       subroutine unpackNodes(nrecv, irecvloc, packed, vec1)
@@ -475,7 +474,6 @@ C
          vec1(irecvloc(j)) = packed(j)
       enddo
 
-      istat = cudaDeviceSynchronize()
       end subroutine
 
 
@@ -497,7 +495,7 @@ C
 C
       INTEGER,  INTENT(IN) ::  NMSG
       REAL(SZ), device, INTENT(INOUT) ::  VEC1(:),VEC2(:),VEC3(:)
-      INTEGER :: N,I,J,NCOUNT,NFINI,TOT
+      INTEGER :: N,I,J,NCOUNT,NFINI,TOT, istat
 C
                              !..Pack 1, 2, or 3 Messages
       call nvtxStartRange("UPDATER", 5)
@@ -526,6 +524,7 @@ c$$$           ENDDO
             NCOUNT = 3*NNODSEND(J) + 1
          ENDIF
       ENDDO
+      istat = cudaDeviceSynchronize()
 C                    
               ! Send/receive messages to/from all neighbors
 C
@@ -626,6 +625,7 @@ c$$$                  ENDDO
       ENDIF
 C 
  999  continue
+      istat = cudaDeviceSynchronize()
 
       call nvtxEndRange()
       RETURN
