@@ -62,7 +62,7 @@ C
       INTEGER, PRIVATE, ALLOCATABLE :: REQ_C3D(:), STAT_C3D(:,:)
       INTEGER, PRIVATE, ALLOCATABLE :: INDEX(:)
       REAL(SZ), PRIVATE,ALLOCATABLE, managed :: SENDBUF(:,:), RECVBUF(:,:)
-      integer,ALLOCATABLE, managed :: gatherElem(:), gather(:,:), pgather(:,:), scatter(:,:)
+      integer,ALLOCATABLE, managed :: gatherElem(:), gather(:,:), pgather(:,:), scatter(:,:), indElemSend(:)
 C--
 C
 
@@ -269,6 +269,16 @@ C
       enddo
 
       numElemSend = sum(gatherElem)
+      allocate(indElemSend(numElemSend))
+      !indElemSend = findloc(gatherElem, 1)
+      ncount = 0
+      do j = 1,MNE
+         if (gatherElem(j) == 1) then
+            ncount = ncount + 1
+            indElemSend(ncount) = j
+         endif
+      enddo
+
 
 
       do j = 1,neighproc_s

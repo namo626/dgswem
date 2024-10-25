@@ -30,7 +30,7 @@ c$$$     &     FGAMMA,LoadManningsN,ManningsN,CF
       USE sizes, ONLY: myproc, sz
       USE PRECIPITATION, only : computeElemTRR, PREC3, PREC2
 #ifdef CMPI
-      use messenger_elem, only : gatherElem
+      use messenger_elem, only : indElemSend, gatherElem
 #endif
 
 
@@ -73,7 +73,7 @@ C.....Declare local variables
       L = (blockidx%x-1)*blockdim%x + threadidx%x
       DTDPH = 1.D0/DTDP
 
-      thread: if (L <= NE) then
+      thread: if (L <= NE .and. gatherElem(L) == 0) then
       !DO L = 1, NE
 c     nd
 c$$$         advectqx(l)=0.0
@@ -488,13 +488,14 @@ C.........Build the rhs
 
       END SUBROUTINE
 
-      attributes(global) SUBROUTINE RHS_DG_HYDRO_ghost(IT, DTDP, IRK, NE,
+      attributes(global) SUBROUTINE RHS_DG_HYDRO_ghost(numElemSend, IT, DTDP, IRK, NE,
      &     NLEQ, LEQ, NLEQG, G, NWS, NTIP, rampdg, fg_l, cf, tau, iflinbf, ifhybf,
      &     hbreak, ftheta, fgamma, layers, rainfall, loadmanningsn)
 
       IMPLICIT NONE
 
-      INTEGER, value :: IT, IRK, NE, NWS, NTIP, iflinbf, ifhybf, layers, rainfall
+
+      INTEGER, value :: IT, IRK, NE, NWS, NTIP, iflinbf, ifhybf, layers, rainfall, numElemSend
       real(sz), value :: nleq, leq, nleqg, G, dtdp, rampdg, fg_l, hbreak, cf, tau
       real(sz), value :: ftheta, fgamma
       logical, value :: loadmanningsn
@@ -519,12 +520,14 @@ C.....Declare local variables
       !Real(SZ),allocatable :: XBCbt(:),YBCbt(:)
 
       real(sz) source_max, source_r
+      integer :: kk
       !Allocate ( XBCbt(MNE),YBCbt(MNE) )
 
-      L = (blockidx%x-1)*blockdim%x + threadidx%x
+      kk = (blockidx%x-1)*blockdim%x + threadidx%x
       DTDPH = 1.D0/DTDP
 
-      thread: if (l <= NE .and. gatherElem(l) == 1) then
+      thread: if (kk <= numElemSend ) then
+         L = indElemSend(kk)
       !DO L = 1, NE
 c     nd
 c$$$         advectqx(l)=0.0

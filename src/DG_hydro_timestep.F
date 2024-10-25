@@ -59,7 +59,7 @@ C.....Declare local variables
       real(sz) avg_rain
       integer istat
 
-      INTEGER IT,L,GED,NBOREL,NNBORS,NDRYNBORS,NQEDS,Istop,k,j,kk,i,mm
+      INTEGER IT,L,GED,NBOREL,NNBORS,NDRYNBORS,NQEDS,Istop,k,j,kk,i,mm, jj
       INTEGER Detected,flagger,store
       REAL(SZ) QBCT1,QBCT2,QBC1,QBC2,ZP(3),QXP(3),QXP_OLD(3),
      $     QYP(3),QYP_OLD(3),ZP_OLD(3),ell_1,ell_2,ell_3
@@ -268,13 +268,13 @@ C.......Compute internal edges
 
 #ifdef CMPI
          CALL RHS_DG_HYDRO_ghost<<<numElemSend/128+1,128,0,stream2>>>(
-     &      IT, DTDP, IRK, NE,
+     &      numElemSend, IT, DTDP, IRK, NE,
      &     NLEQ, LEQ, NLEQG, G, NWS, NTIP, rampdg, fg_l, cf, tau, iflinbf, ifhybf,
      &        hbreak, ftheta, fgamma, layers, rainfall, loadManningsN
      &   )
 !$cuf kernel do <<< numElemSend/128+1, (128,1),stream=stream2 >>>
-         DO J = 1,NE
-            if (gatherElem(J) == 1) then
+         DO JJ = 1,numElemSend
+            J = indElemSend(JJ)
                DO K = 1,DOFH
                   ze_next = 0.
                   qx_next = 0.
@@ -294,8 +294,8 @@ C.......Compute internal edges
                   qx(k,j,irk+1) = qx_next
                   qy(k,j,irk+1) = qy_next
                ENDDO
-            endif
          ENDDO
+
 #endif
 
 C.......Compute elements to finish building the rhs
@@ -310,6 +310,7 @@ C.......SSP Runge-Kutta Time Scheme
 
 !$cuf kernel do <<< *, (128,1),stream=stream1 >>>
          DO J = 1,NE
+            if (gatherElem(j) == 0) then
             DO K = 1,DOFH
                   ze_next = 0.
                   qx_next = 0.
@@ -372,6 +373,8 @@ C.......Compute the dynamic pressure if flagged
                qx(k,j,irk+1) = qx_next
                qy(k,j,irk+1) = qy_next
             ENDDO
+         endif
+
          ENDDO
 
 #ifdef CMPI
