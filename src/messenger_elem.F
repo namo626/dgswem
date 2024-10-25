@@ -863,6 +863,58 @@ C
       RETURN
       END SUBROUTINE
 
+      SUBROUTINE UPDATER_ELEM_dummy()
+C
+C--------------------------------------------------------------------------
+C  Update 1, 2, or 3 Real Arrays's Ghost Cells using asynchronous
+C  and persistent message-passing.
+C
+C  vjp  8/06/1999
+C--------------------------------------------------------------------------
+C
+      use nvtx
+
+      IMPLICIT NONE
+#ifndef HAVE_MPI_MOD
+      include 'mpif.h'
+#endif
+C
+      INTEGER :: N,I,J,JJ,K,NCOUNT,NFINI,TOT, istat
+
+      call nvtxStartRange("UPDATER_ELEM_DUMMY", 7)
+C
+                             !..Pack 1, 2, or 3 Messages
+      istat = cudaDeviceSynchronize()
+      DO J=1,NEIGHPROC_S
+
+         ! Start sending a message
+            CALL MPI_START ( REQ_R3(J+NEIGHPROC_R), IERR )
+      ENDDO
+C
+              ! Send/receive messages to/from all neighbors
+C
+        CALL MPI_STARTALL ( RDIM-NEIGHPROC_S, REQ_R3, IERR )
+C
+              !..Unpack Received messages as they arrive
+C
+        TOT = 0
+        DO WHILE (TOT.LT.RDIM)
+           DO N=1, RDIM
+              INDEX(N) = 0
+           ENDDO
+           CALL MPI_WAITSOME( RDIM,REQ_R3,NFINI,INDEX,STAT_R3,IERR )
+           TOT = TOT + NFINI
+cdebug     print *, myproc, tot,nfini,index(1),index(2)
+        ENDDO
+        GOTO 999
+C
+ 999  continue
+
+      istat = cudaDeviceSynchronize()
+
+      call nvtxEndRange()
+      RETURN
+      END SUBROUTINE
 
       SUBROUTINE UPDATER_ELEM_MOD( VEC1, VEC2, VEC3, IRK, NMSG )
 C
