@@ -10,7 +10,7 @@ C
       USE SIZES
       use cudafor
       USE GLOBAL!, ONLY: C3D
-      USE DG, ONLY: DOFH, stream2, nieds, niedn, nedel
+      USE DG, ONLY: DOFH, stream2, stream1, nieds, niedn, nedel
       USE DIFF45_41,ONLY : MNODES
 
 
@@ -600,7 +600,7 @@ C
 
       integer :: j, istat
 
-!$cuf kernel do <<<* , 128,stream=stream2>>>
+!$cuf kernel do <<<* , 128,stream=stream1>>>
       do j = 1,ne*dof
          if (gather(j) == 1) then
             packed(pgather(j)) = vec1(j)
@@ -909,6 +909,39 @@ C
       RETURN
       END SUBROUTINE
 
+      subroutine pack_elem_send(vec1, vec2, vec3, irk, nmsg)
+      implicit none
+
+      INTEGER,  INTENT(IN) ::  IRK, NMSG
+      REAL(SZ), managed, INTENT(INOUT) ::  VEC1(:,:,:),VEC2(:,:,:),VEC3(:,:,:)
+      INTEGER :: N,I,J,JJ,K,NCOUNT,NFINI,TOT, istat
+
+      DO J=1,NEIGHPROC_S
+         NCOUNT = 0
+         call packElems(DOFH, MNE, gather(:,j), pgather(:,j), vec1(:,:,irk), sendbuf(:,j) )
+         NCOUNT = nelemsend(J)*DOFH + 1
+         IF (NMSG.GT.1) THEN
+            call packElems(DOFH, MNE, gather(:,j), pgather(:,j), vec2(:,:,irk), sendbuf(ncount:,j) )
+            NCOUNT = 2*nelemsend(J)*DOFH + 1
+         ENDIF
+         IF (NMSG.GT.2) THEN
+            call packElems(DOFH, MNE, gather(:,j), pgather(:,j), vec3(:,:,irk), sendbuf(ncount:,j) )
+         ENDIF
+
+         IF (NMSG.EQ.1) THEN
+            CALL MPI_START ( REQ_R1(J+NEIGHPROC_R), IERR )
+         ELSEIF (NMSG.EQ.2) THEN
+            CALL MPI_START ( REQ_R2(J+NEIGHPROC_R), IERR )
+         ELSE
+            CALL MPI_START ( REQ_R3(J+NEIGHPROC_R), IERR )
+         ENDIF
+      enddo
+
+      istat = cudaStreamSynchronize(stream1)
+
+
+      end subroutine
+
 
       SUBROUTINE UPDATER_ELEM_MOD( VEC1, VEC2, VEC3, IRK, NMSG )
 C
@@ -935,29 +968,8 @@ C
                              !..Pack 1, 2, or 3 Messages
 C      DO JJ=1,NEIGHPROC_S
 C         J = MOD(JJ-1+MYPROC,NEIGHPROC_S)+1
-      DO J=1,NEIGHPROC_S
-         NCOUNT = 0
-         call packElems(DOFH, MNE, gather(:,j), pgather(:,j), vec1(:,:,irk), sendbuf(:,j) )
-         NCOUNT = nelemsend(J)*DOFH + 1
-         IF (NMSG.GT.1) THEN
-            call packElems(DOFH, MNE, gather(:,j), pgather(:,j), vec2(:,:,irk), sendbuf(ncount:,j) )
-            NCOUNT = 2*nelemsend(J)*DOFH + 1
-         ENDIF
-         IF (NMSG.GT.2) THEN
-            call packElems(DOFH, MNE, gather(:,j), pgather(:,j), vec3(:,:,irk), sendbuf(ncount:,j) )
-         ENDIF
-
-         istat = cudaStreamSynchronize(stream2)
          ! Start sending a message
-         IF (NMSG.EQ.1) THEN
-            CALL MPI_START ( REQ_R1(J+NEIGHPROC_R), IERR )
-         ELSEIF (NMSG.EQ.2) THEN
-            CALL MPI_START ( REQ_R2(J+NEIGHPROC_R), IERR )
-         ELSE
-            CALL MPI_START ( REQ_R3(J+NEIGHPROC_R), IERR )
-         ENDIF
-      ENDDO
-C                    
+C
               ! Send/receive messages to/from all neighbors
 C
       IF (NMSG.EQ.1) THEN
