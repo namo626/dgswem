@@ -927,15 +927,8 @@ C
          IF (NMSG.GT.2) THEN
             call packElems(DOFH, MNE, gather(:,j), pgather(:,j), vec3(:,:,irk), sendbuf(ncount:,j) )
          ENDIF
+      Enddo
 
-         IF (NMSG.EQ.1) THEN
-            CALL MPI_START ( REQ_R1(J+NEIGHPROC_R), IERR )
-         ELSEIF (NMSG.EQ.2) THEN
-            CALL MPI_START ( REQ_R2(J+NEIGHPROC_R), IERR )
-         ELSE
-            CALL MPI_START ( REQ_R3(J+NEIGHPROC_R), IERR )
-         ENDIF
-      enddo
 
       istat = cudaStreamSynchronize(stream1)
 
@@ -972,6 +965,17 @@ C         J = MOD(JJ-1+MYPROC,NEIGHPROC_S)+1
 C
               ! Send/receive messages to/from all neighbors
 C
+      DO J=1,NEIGHPROC_S
+
+         IF (NMSG.EQ.1) THEN
+            CALL MPI_START ( REQ_R1(J+NEIGHPROC_R), IERR )
+         ELSEIF (NMSG.EQ.2) THEN
+            CALL MPI_START ( REQ_R2(J+NEIGHPROC_R), IERR )
+         ELSE
+            CALL MPI_START ( REQ_R3(J+NEIGHPROC_R), IERR )
+         ENDIF
+      enddo
+
       IF (NMSG.EQ.1) THEN
         CALL MPI_STARTALL ( RDIM-NEIGHPROC_S, REQ_R1, IERR )
       ELSEIF (NMSG.EQ.2) THEN
