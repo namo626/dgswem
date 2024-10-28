@@ -302,6 +302,8 @@ C
          endif
       enddo
 
+      print *, 'numElemSend = ', numElemSend
+      print *, 'numIntEdgeSend = ', numIntEdgeSend
 
 
       do j = 1,neighproc_s

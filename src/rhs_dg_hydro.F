@@ -67,7 +67,7 @@ C.....Declare local variables
 
       !Real(SZ),allocatable :: XBCbt(:),YBCbt(:)
 
-      real(sz) source_max, source_r
+      real(sz) source_max, source_r, tmp
       !Allocate ( XBCbt(MNE),YBCbt(MNE) )
 
       L = (blockidx%x-1)*blockdim%x + threadidx%x
@@ -430,17 +430,25 @@ C.........Build the rhs
 #endif
 
 
-            RHS_QX(1,L,IRK) = RHS_QX(1,L,IRK) + SRFAC(1,I,L,pa)*SOURCE_X
-            RHS_QY(1,L,IRK) = RHS_QY(1,L,IRK) + SRFAC(1,I,L,pa)*SOURCE_Y
+c$$$            RHS_QX(1,L,IRK) = RHS_QX(1,L,IRK) + SRFAC(1,I,L,pa)*SOURCE_X
+c$$$            RHS_QY(1,L,IRK) = RHS_QY(1,L,IRK) + SRFAC(1,I,L,pa)*SOURCE_Y
+            tmp = atomicAdd(RHS_QX(1,L,IRK), SRFAC(1,I,L,pa)*SOURCE_X)
+            tmp = atomicAdd(RHS_QY(1,L,IRK), SRFAC(1,I,L,pa)*SOURCE_Y)
 
             DO K = 2,DOFS(L)
+               tmp = atomicAdd(RHS_ZE(K,L,IRK), XFAC(K,I,L,pa)*FX_IN
+     &                + YFAC(K,I,L,pa)*FY_IN)
+               tmp = atomicAdd(RHS_QX(K,L,IRK), XFAC(K,I,L,pa)*GX_IN
+     &              + YFAC(K,I,L,pa)*GY_IN + SRFAC(K,I,L,pa)*SOURCE_X)
+               tmp = atomicAdd(RHS_QY(K,L,IRK), XFAC(K,I,L,pa)*HX_IN
+     &              + YFAC(K,I,L,pa)*HY_IN + SRFAC(K,I,L,pa)*SOURCE_Y)
 
-               RHS_ZE(K,L,IRK) = RHS_ZE(K,L,IRK) + XFAC(K,I,L,pa)*FX_IN
-     &                + YFAC(K,I,L,pa)*FY_IN
-               RHS_QX(K,L,IRK) = RHS_QX(K,L,IRK) + XFAC(K,I,L,pa)*GX_IN
-     &              + YFAC(K,I,L,pa)*GY_IN + SRFAC(K,I,L,pa)*SOURCE_X
-               RHS_QY(K,L,IRK) = RHS_QY(K,L,IRK) + XFAC(K,I,L,pa)*HX_IN
-     &              + YFAC(K,I,L,pa)*HY_IN + SRFAC(K,I,L,pa)*SOURCE_Y
+c$$$               RHS_ZE(K,L,IRK) = RHS_ZE(K,L,IRK) + XFAC(K,I,L,pa)*FX_IN
+c$$$     &                + YFAC(K,I,L,pa)*FY_IN
+c$$$               RHS_QX(K,L,IRK) = RHS_QX(K,L,IRK) + XFAC(K,I,L,pa)*GX_IN
+c$$$     &              + YFAC(K,I,L,pa)*GY_IN + SRFAC(K,I,L,pa)*SOURCE_X
+c$$$               RHS_QY(K,L,IRK) = RHS_QY(K,L,IRK) + XFAC(K,I,L,pa)*HX_IN
+c$$$     &              + YFAC(K,I,L,pa)*HY_IN + SRFAC(K,I,L,pa)*SOURCE_Y
 
 #ifdef SED_LAY
 
@@ -519,7 +527,7 @@ C.....Declare local variables
 
       !Real(SZ),allocatable :: XBCbt(:),YBCbt(:)
 
-      real(sz) source_max, source_r
+      real(sz) source_max, source_r, tmp
       integer :: kk
       !Allocate ( XBCbt(MNE),YBCbt(MNE) )
 
@@ -883,18 +891,17 @@ C.........Build the rhs
      &           + MassAction2nd*SRFAC(1,I,L,pa)*FH_NL
 #endif
 
-
-            RHS_QX(1,L,IRK) = RHS_QX(1,L,IRK) + SRFAC(1,I,L,pa)*SOURCE_X
-            RHS_QY(1,L,IRK) = RHS_QY(1,L,IRK) + SRFAC(1,I,L,pa)*SOURCE_Y
+            tmp = atomicAdd(RHS_QX(1,L,IRK), SRFAC(1,I,L,pa)*SOURCE_X)
+            tmp = atomicAdd(RHS_QY(1,L,IRK), SRFAC(1,I,L,pa)*SOURCE_Y)
 
             DO K = 2,DOFS(L)
+               tmp = atomicAdd(RHS_ZE(K,L,IRK), XFAC(K,I,L,pa)*FX_IN
+     &                + YFAC(K,I,L,pa)*FY_IN)
+               tmp = atomicAdd(RHS_QX(K,L,IRK), XFAC(K,I,L,pa)*GX_IN
+     &              + YFAC(K,I,L,pa)*GY_IN + SRFAC(K,I,L,pa)*SOURCE_X)
+               tmp = atomicAdd(RHS_QY(K,L,IRK), XFAC(K,I,L,pa)*HX_IN
+     &              + YFAC(K,I,L,pa)*HY_IN + SRFAC(K,I,L,pa)*SOURCE_Y)
 
-               RHS_ZE(K,L,IRK) = RHS_ZE(K,L,IRK) + XFAC(K,I,L,pa)*FX_IN
-     &                + YFAC(K,I,L,pa)*FY_IN
-               RHS_QX(K,L,IRK) = RHS_QX(K,L,IRK) + XFAC(K,I,L,pa)*GX_IN
-     &              + YFAC(K,I,L,pa)*GY_IN + SRFAC(K,I,L,pa)*SOURCE_X
-               RHS_QY(K,L,IRK) = RHS_QY(K,L,IRK) + XFAC(K,I,L,pa)*HX_IN
-     &              + YFAC(K,I,L,pa)*HY_IN + SRFAC(K,I,L,pa)*SOURCE_Y
 
 #ifdef SED_LAY
 
