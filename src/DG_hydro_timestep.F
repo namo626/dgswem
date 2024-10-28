@@ -260,13 +260,15 @@ C.......Compute external barrier edges
          
 C.......Compute internal edges
 
-         call INTERNAL_EDGE_HYDRO<<<NIEDS/128+1,128,0,stream1>>>(
-     &        IT, IRK, NIEDS, G, DOFH, nleq, leq, nleqg, fg_l, layers
-     &   )
-
          istat = cudaDeviceSynchronize()
 
+
+
 #ifdef CMPI
+         call INTERNAL_EDGE_HYDRO_ghost<<<numIntEdgeSend/128+1,128,0,stream2>>>(
+     &        IT, IRK, numIntEdgeSend, G, DOFH, nleq, leq, nleqg, fg_l, layers
+     &   )
+
          CALL RHS_DG_HYDRO_ghost<<<numElemSend/128+1,128,0,stream2>>>(
      &      numElemSend, IT, DTDP, IRK, NE,
      &     NLEQ, LEQ, NLEQG, G, NWS, NTIP, rampdg, fg_l, cf, tau, iflinbf, ifhybf,
@@ -297,6 +299,12 @@ C.......Compute internal edges
          ENDDO
 
 #endif
+
+         call INTERNAL_EDGE_HYDRO<<<NIEDS/128+1,128,0,stream1>>>(
+     &        IT, IRK, NIEDS, G, DOFH, nleq, leq, nleqg, fg_l, layers
+     &   )
+
+
 
 C.......Compute elements to finish building the rhs
          
