@@ -10,7 +10,7 @@ C
       USE SIZES
       use cudafor
       USE GLOBAL!, ONLY: C3D
-      USE DG, ONLY: DOFH, stream2
+      USE DG, ONLY: DOFH, stream2, nieds, niedn, nedel
       USE DIFF45_41,ONLY : MNODES
 
 
@@ -37,7 +37,7 @@ C  Message-Passing Array space
 C
 Csb-PDG1
       PUBLIC
-      integer :: numElemSend
+      integer :: numElemSend, numIntEdgeSend
 
       INTEGER, SAVE :: MPI_COMM_ADCIRC
       INTEGER, SAVE ::  COMM_COMP     
@@ -63,6 +63,7 @@ C
       INTEGER, PRIVATE, ALLOCATABLE :: INDEX(:)
       REAL(SZ), PRIVATE,ALLOCATABLE, managed :: SENDBUF(:,:), RECVBUF(:,:)
       integer,ALLOCATABLE, managed :: gatherElem(:), gather(:,:), pgather(:,:), scatter(:,:), indElemSend(:)
+      integer, allocatable, managed :: gatherIntEdge(:), indIntEdgeSend(:)
 C--
 C
 
@@ -204,7 +205,7 @@ C
 #ifndef HAVE_MPI_MOD
       include 'mpif.h'
 #endif
-      INTEGER :: IDPROC,NLOCAL,I,J,JJ,NEIGH,k, ii, ncount
+      INTEGER :: IDPROC,NLOCAL,I,J,JJ,NEIGH,k, ii, ncount, ged
       logical :: first
 C
       OPEN(18,FILE=DIRNAME(1:LNAME)//'/'//'DG.18')
@@ -276,6 +277,28 @@ C
          if (gatherElem(j) == 1) then
             ncount = ncount + 1
             indElemSend(ncount) = j
+         endif
+      enddo
+
+      ! ghost internal edges
+      allocate(gatherIntEdge(nieds))
+      gatherIntEdge = 0
+      do j = 1,nieds
+         GED = NIEDN(j)
+         EL_IN = NEDEL(1,GED)
+         EL_EX = NEDEL(2,GED)
+         if (gatherElem(el_in) == 1 .or. gatherElem(el_ex) == 1) then
+            gatherIntEdge(j) = 1
+         endif
+      enddo
+      numIntEdgeSend = sum(gatherIntEdge)
+      allocate(indIntEdgeSend(numIntEdgeSend))
+
+      ncount = 0
+      do j = 1,nieds
+         if (gatherIntEdge(j) == 1) then
+            ncount = ncount + 1
+            indIntEdgeSend(ncount) = j
          endif
       enddo
 
