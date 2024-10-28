@@ -257,6 +257,18 @@ C
 C
       CLOSE(18)
 
+
+
+      RETURN
+C
+1130  FORMAT(8X,9I8)
+3010  FORMAT(8X,2I8)
+      END SUBROUTINE
+
+      subroutine message_init_ghost()
+      implicit none
+      integer :: j, i, ncount, ged, ii, k
+
       allocate(gatherElem(mne))
       allocate(gather(mne*dofh, neighproc_s), pgather(mne*dofh, neighproc_s))
 
@@ -327,13 +339,7 @@ C
          enddo
       enddo
 
-
-      RETURN
-C
-1130  FORMAT(8X,9I8)
-3010  FORMAT(8X,2I8)
-      END SUBROUTINE
-
+      end subroutine
 
       SUBROUTINE MESSAGE_START_ELEM ()
 C

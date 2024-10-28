@@ -176,6 +176,7 @@ C.....Create the edge based data
       ENDIF
 
 #ifdef CMPI
+      call message_init_ghost()
       CALL MESSAGE_START_ELEM() ! Startup persistent message passing
       IF (SLOPEFLAG.ge.4) CALL MESSAGE_START()
 #endif
