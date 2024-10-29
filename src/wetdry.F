@@ -20,10 +20,14 @@ C***********************************************************************
       use dg, only : ze, qx, qy, dp_node, dp_vol, wdflg, dofs,
      &   phi_integrated, phi_corner, hb, dpe_min, phi_check, ncheck
       use global, only : nodecode, nm, areas, pdg_el
+#ifdef CMPI
+      use messenger_elem, only : gatherElem
+#endif
+
 
       contains
 
-      attributes(global) SUBROUTINE WETDRY(irk, dofh, np, ne, h0, c13, c16)
+      attributes(global) SUBROUTINE WETDRY(ghost, irk, dofh, np, ne, h0, c13, c16)
       
 C.....Use appropriate modules
       
@@ -31,7 +35,7 @@ C.....Use appropriate modules
 
       IMPLICIT NONE
 
-      integer, value :: irk, np, ne, dofh
+      integer, value :: irk, np, ne, dofh, ghost
       real(sz), value :: c13, c16, h0
 
 C.....Declare local variables
@@ -74,7 +78,7 @@ c$$$         NODECODE(I) = 0
 c$$$      ENDDO
 C.....Loop over the elements
 
-      thread: if (J <= NE) then
+      thread: if (J <= NE .and. gatherElem(J) == ghost) then
 
 
          pa = pdg_el(j)

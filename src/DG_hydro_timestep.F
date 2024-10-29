@@ -643,7 +643,11 @@ C.......Apply the wet-dry algorithm if appropriate
             NODECODE(I) = 0.
          ENDDO
 
-         CALL WETDRY<<<NE/128+1,128>>>(irk, dofh, np, ne, h0, c13, c16)
+         CALL WETDRY<<<NE/128+1,128>>>(1, irk, dofh, np, ne, h0, c13, c16)
+         CALL pack_elem_send(ZE,QX,QY,IRK+1,3)
+         istat = cudaDeviceSynchronize()
+
+         CALL WETDRY<<<NE/128+1,128>>>(0, irk, dofh, np, ne, h0, c13, c16)
       ENDIF
 
 c$$$C...Apply the slopelimiter again if auxiliary variable is being used
@@ -663,8 +667,6 @@ C...drying is being used
 
 #ifdef CMPI
          if (SLOPEFLAG.NE.0.OR.NOLIFA.GE.2) THEN
-            istat = cudaDeviceSynchronize()
-            CALL pack_elem_send(ZE,QX,QY,IRK+1,3)
             CALL UPDATER_ELEM_MOD(ZE,QX,QY,IRK+1,3)
             
 #ifdef TRACE
