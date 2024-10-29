@@ -1534,6 +1534,7 @@ C.....Prep the slopelimiter
 
       istat = cudaStreamCreate(stream1)
       istat = cudaStreamCreate(stream2)
+      istat = cudaStreamCreate(stream3)
 C--   
 
 C.....Close files

@@ -158,7 +158,7 @@ C.....Declare allocatable real arrays
       REAL(SZ), ALLOCATABLE :: QIB(:)
       REAL(SZ), ALLOCATABLE, managed :: QX(:,:,:), QY(:,:,:), ZE(:,:,:)
 
-      integer(kind=cuda_stream_kind) :: stream1, stream2
+      integer(kind=cuda_stream_kind) :: stream1, stream2, stream3
 
       ! For slope limiter
       Real(SZ), Allocatable, device :: ZE_MIN1(:),ZE_MAX1(:),QX_MIN1(:),QX_MAX1(:)

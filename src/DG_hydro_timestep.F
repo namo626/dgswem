@@ -265,15 +265,16 @@ C.......Compute internal edges
 
 
 #ifdef CMPI
-         call INTERNAL_EDGE_HYDRO_ghost<<<numIntEdgeSend/128+1,128,0,stream1>>>(
+         call INTERNAL_EDGE_HYDRO_ghost<<<numIntEdgeSend/128+1,128,0,stream2>>>(
      &        IT, IRK, numIntEdgeSend, G, DOFH, nleq, leq, nleqg, fg_l, layers
      &   )
 
-         CALL RHS_DG_HYDRO_ghost<<<numElemSend/128+1,128,0,stream1>>>(
+         CALL RHS_DG_HYDRO_ghost<<<numElemSend/128+1,128,0,stream3>>>(
      &      numElemSend, IT, DTDP, IRK, NE,
      &     NLEQ, LEQ, NLEQG, G, NWS, NTIP, rampdg, fg_l, cf, tau, iflinbf, ifhybf,
      &        hbreak, ftheta, fgamma, layers, rainfall, loadManningsN
      &   )
+         istat = cudaDeviceSynchronize()
 !$cuf kernel do <<< numElemSend/128+1, (128,1),stream=stream1 >>>
          DO JJ = 1,numElemSend
             J = indElemSend(JJ)
@@ -298,7 +299,7 @@ C.......Compute internal edges
                ENDDO
          ENDDO
 
-         istat = cudaStreamSynchronize(stream1)
+         !istat = cudaStreamSynchronize(stream1)
          CALL pack_elem_send(ZE,QX,QY,IRK+1,3)
 
 #endif
