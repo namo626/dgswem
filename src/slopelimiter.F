@@ -17,11 +17,13 @@ C***********************************************************************
       USE SIZES, ONLY : SZ,layers
       use cudafor
 
+
 #ifdef CMPI
       USE MESSENGER
+      use messenger_elem, only : gatherElem
 #endif
       use dg, only : ze, qx, qy,  phi_corner, ze_min1,ze_max1,qx_min1,qx_max1,
-     &   qy_min1, qy_max1
+     &   qy_min1, qy_max1, stream1
       use global, only : nm, el_count, eletab
       contains
 
@@ -3272,14 +3274,14 @@ C
 C     
 C***********************************************************************
 
-      SUBROUTINE SLOPELIMITER5(irk, NE, NP, MAXEL)
+      SUBROUTINE SLOPELIMITER5(ghost, irk, NE, NP, MAXEL)
 
 C.....Use appropriate modules
 
 
       IMPLICIT NONE
 
-      integer, value :: ne, np, maxel, irk
+      integer, value :: ne, np, maxel, irk, ghost
 
 C.....Declare local variables
 
@@ -3311,7 +3313,7 @@ C     SHARING A NODE
       bound = 0.0D0
 
       !I = (blockidx%x-1)*blockdim%x + threadidx%x
-!$cuf kernel do <<< *, 128 >>>
+!$cuf kernel do <<< *, 128,stream=stream1 >>>
       DO I = 1,NP
          ZE_MIN1(I)=99999.
          ZE_MAX1(I)=-99999.
@@ -3457,10 +3459,37 @@ C
 C     LOOP OVER ELEMENTS TO CALCULATE NEW VERTEX VALUES
 C     
 
+         end subroutine
+
+      SUBROUTINE SLOPELIMITER5_2(ghost, irk, NE, NP, MAXEL)
+
+C.....Use appropriate modules
+
+
+      IMPLICIT NONE
+
+      integer, value :: ne, np, maxel, irk, ghost
+
+C.....Declare local variables
+
+      integer :: no_nbors, n1, n2, n3, nbor_el, istat
+      !real(sz), managed :: ze_dg(maxel), qx_dg(maxel), qy_dg(maxel)
+      real(sz) :: ze_dg, qx_dg, qy_dg, zec1, zec2, zec3
+      real(sz) :: zemax11, zemin11, zemax12, zemin12, zemax13, zemin13
+      real(sz) :: zevertex1, zevertex2, zevertex3, dif1, dif2, dif3
+      INTEGER L, LL, INC1,INC2,INC3,KDP,NN,IVAR,I,J,kk,k,varnum,bb,varnum_prev
+c$$$      REAL(SZ), managed :: ZEC(NE,3),ZEVERTEX(NE,3),DIF(NE,3)
+      real(sz) :: SUMLOC,SUMDIF,SIGNDIF,
+     $     DIV,REDFAC,REDMAX,tmp1,tmp2,tmp3,bound
+c$$$      Real(SZ), managed :: ZEMIN1(NE,3),ZEMAX1(NE,3),QXMIN1(NE,3),QXMAX1(NE,3)
+c$$$      Real(SZ), managed :: QYMIN1(NE,3),QYMAX1(NE,3)
+      Real(SZ), managed :: iotaMIN1(3),iotaMAX1(3)
+      Real(SZ), managed :: iota2MIN1(3),iota2MAX1(3)
       bb = 1
 
-!$cuf kernel do <<<*, 128>>>
+!$cuf kernel do <<<*, 128, stream=stream1>>>
       DO I=1,NE
+         mask: if (gatherElem(I) == ghost) then
          !IF(WDFLG(I).EQ.0) CYCLE ! DON'T COUNT DRY ELEMENTS  sb 02/26/07
          N1=NM(I,1)
          N2=NM(I,2)
@@ -3837,6 +3866,7 @@ c$$$               endif
 
                                 !endif
 
+         endif mask
       ENDDO
 
       END SUBROUTINE 

@@ -30,7 +30,7 @@ C.....Use appropriate modules
       USE DG
       use tidal_dg, only : tidal_potential
       use wetdry_dg, only : wetdry
-      use slopelimiters, only : slopelimiter5
+      use slopelimiters, only : slopelimiter5, slopelimiter5_2
       USE precipitation, only : prec2
       use ocean_edge_dg, only : ocean_edge_hydro
       use flow_edge_dg, only : flow_edge_hydro
@@ -624,7 +624,8 @@ C.......Apply the slopelimiter if appropriate
 
 #ifdef SLOPE5
          !CALL SLOPELIMITER5<<<NE/128+1, 128>>>(irk, ne, np, maxel)
-         CALL SLOPELIMITER5(irk, ne, np, maxel)
+         CALL SLOPELIMITER5(1, irk, ne, np, maxel)
+         CALL SLOPELIMITER5_2(1, irk, ne, np, maxel)
 #endif
 
 #ifdef STBLZR
@@ -638,16 +639,17 @@ C.......Apply the slopelimiter if appropriate
 C.......Apply the wet-dry algorithm if appropriate
 
       IF (NOLIFA .GE. 2) THEN
-!$cuf kernel do <<<*, 128>>>
+!$cuf kernel do <<<*, 128, stream=stream1>>>
          DO I = 1,NP
             NODECODE(I) = 0.
          ENDDO
 
-         CALL WETDRY<<<NE/128+1,128>>>(1, irk, dofh, np, ne, h0, c13, c16)
+         CALL WETDRY<<<NE/128+1,128,0,stream1>>>(1, irk, dofh, np, ne, h0, c13, c16)
          CALL pack_elem_send(ZE,QX,QY,IRK+1,3)
          istat = cudaDeviceSynchronize()
 
-         CALL WETDRY<<<NE/128+1,128>>>(0, irk, dofh, np, ne, h0, c13, c16)
+         CALL SLOPELIMITER5_2(0, irk, ne, np, maxel)
+         CALL WETDRY<<<NE/128+1,128,0,stream1>>>(0, irk, dofh, np, ne, h0, c13, c16)
       ENDIF
 
 c$$$C...Apply the slopelimiter again if auxiliary variable is being used
