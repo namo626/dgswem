@@ -218,23 +218,6 @@ C.....to single nodal values
 
       iota_int = 0.D0
       
-      do j = 1,ne
-         
-         DO I = 1,NAGP(pa)
-            
-            iota_error = 0.D0
-            
-            do k = 1,dofs(j)
-               
-               iota_error = iota_error + (iota(k,j,1)- iotaa(k,j,1)) * PHI_AREA(k,I,pa) 
-               
-            ENDDO
-            
-            iota_int = iota_int + iota_error**2.D0 * WAGP(I,pa)*AREAS(J)
-            
-         ENDDO
-         
-      enddo
 C...
 C...OUTPUT ELEVATION RECORDING STATION INFORMATION IF NOUTE<>0 AND THE
 C....TIME STEP FALLS WITHIN THE SPECIFIED WINDOW
