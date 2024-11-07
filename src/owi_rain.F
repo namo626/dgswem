@@ -211,7 +211,7 @@ C***********************************************************************
       ! Put a blank snap for the first 'numBlankSnaps' snaps
       if(cntSnaps.LE.numBlankSnaps) then
         do i=1,NP
-          Crainval(I)=0.d0
+          Crainval(I)=0.0
         enddo
         IF(NSCREEN.GE.1) THEN
           if(MYPROC.EQ.0) then
@@ -328,7 +328,7 @@ C***********************************************************************
 
       rampfrac = isnapB-1
 c      if (rampfrac<36) then
-c        ramp = tanh(18d0*rampfrac/36d0)
+c        ramp = tanh(180*rampfrac/360)
 c      end if
       ramp = 1.0
 
@@ -348,7 +348,7 @@ c      end if
 
       do i=1,NP
 
-        rain1=-9999.9D0
+        rain1=-9999.90
 
         ! BASIN ---------------------------------------------------------
 
@@ -367,17 +367,17 @@ c      end if
           CV(2) = CrainB(xi+1,yi)
           CV(3) = CrainB(xi+1,yi+1)
           CV(4) = CrainB(xi,yi+1)
-          CVbar = 0.d0
+          CVbar = 0.0
           ibar = 0
           do k=1,4
-             if(CV(k) .ge. 0.d0) then
+             if(CV(k) .ge. 0.0) then
                 CVbar = CVbar + CV(k)
                 ibar = ibar + 1
              endif
           enddo
           if (ibar.gt.0) CVbar = CVbar/real(ibar,sz)
           do k=1,4
-             if (CV(k).lt.0.d0) CV(k) = CVbar
+             if (CV(k).lt.0.0) CV(k) = CVbar
           enddo
 
 !         perform the interpolation
@@ -403,18 +403,18 @@ c      end if
           CV(2) = CrainR(xi+1,yi)
           CV(3) = CrainR(xi+1,yi+1)
           CV(4) = CrainR(xi,yi+1)
-          CVbar = 0.d0
+          CVbar = 0.0
           ibar = 0
 
           do k=1,4
-             if(CV(k) .ge. 0.d0) then
+             if(CV(k) .ge. 0.0) then
                 CVbar = CVbar + CV(k)
                 ibar = ibar + 1
              endif
           enddo
           if (ibar.gt.0) CVbar = CVbar/real(ibar,sz)
           do k=1,4
-             if (CV(k).lt.0.d0) CV(k) = CVbar
+             if (CV(k).lt.0.0) CV(k) = CVbar
           enddo
 
 !         perform the interpolation
@@ -424,8 +424,8 @@ c      end if
 
         ! COPY TO ARRAYS ----------------------------------------------------------
 
-        if(rain1.eq.-9999.9D0) then
-          Crainval(I)=0.d0
+        if(rain1.eq.-9999.90) then
+          Crainval(I)=0.0
         else
           if (rampfrac<36) then
             rain1=Crain_env-(Crain_env-rain1)*ramp
@@ -434,7 +434,7 @@ c      end if
         end if
 
 ! Convert the rainfall from mm/hr to m/s
-        Crainval(i)=Crainval(i)*0.00000027778d0
+        Crainval(i)=Crainval(i)*0.000000277780
 
       enddo
 
@@ -478,7 +478,7 @@ c      end if
       WRITE(16,*) ''
 
       do i=1,NP
-        Crainval(I)=0.d0
+        Crainval(I)=0.0
       enddo
 
       RETURN

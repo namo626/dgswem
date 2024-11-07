@@ -176,8 +176,8 @@ C..........Apply directional wind reductions
            
 C..........Apply met ramp
 c           RampMete = RAMPDG
-           WSX2(II)    = RampMete*0.001293D0*WDRAGCO*WINDX*WINDMAG
-           WSY2(II)    = RampMete*0.001293D0*WDRAGCO*WINDY*WINDMAG
+           WSX2(II)    = RampMete*0.0012930*WDRAGCO*WINDX*WINDMAG
+           WSY2(II)    = RampMete*0.0012930*WDRAGCO*WINDY*WINDMAG
            WVNXOUT(II) = RampMete*WINDX
            WVNYOUT(II) = RampMete*WINDY
 #ifdef SWAN
@@ -248,8 +248,8 @@ C.........Apply directional wind reductions
             
 C.........Apply met ramp
 c           RampMete = RAMPDG
-          WSX2(II)    = RampMete*0.001293d0*WDRAGCO*WINDX*WINDMAG
-          WSY2(II)    = RampMete*0.001293d0*WDRAGCO*WINDY*WINDMAG
+          WSX2(II)    = RampMete*0.0012930*WDRAGCO*WINDX*WINDMAG
+          WSY2(II)    = RampMete*0.0012930*WDRAGCO*WINDY*WINDMAG
           PR2(II)     = RampMete*(PRN1(II)+WTRATIO*(PRN2(II)- PRN1(II)))
           WVNXOUT(II) = RampMete*WINDX
           WVNYOUT(II) = RampMete*WINDY
@@ -320,8 +320,8 @@ C.........Apply directional wind reductions
           
 C.........Apply met ramp
           
-          WSX2(II)    = RampMete*0.001293d0*WDRAGCO*WINDX*WINDMAG
-          WSY2(II)    = RampMete*0.001293d0*WDRAGCO*WINDY*WINDMAG
+          WSX2(II)    = RampMete*0.0012930*WDRAGCO*WINDX*WINDMAG
+          WSY2(II)    = RampMete*0.0012930*WDRAGCO*WINDY*WINDMAG
           PR2(II)     = RampMete*(PRN1(II)+WTRATIO*(PRN2(II)-PRN1(II)))
           WVNXOUT(II) = RampMete*WINDX
           WVNYOUT(II) = RampMete*WINDY
@@ -398,8 +398,8 @@ C.........Apply directional wind reductions
           
 C.........Apply met ramp
           
-          WSX2(II)    = RampMete*0.001293d0*WDRAGCO*WINDX*WINDMAG
-          WSY2(II)    = RampMete*0.001293d0*WDRAGCO*WINDY*WINDMAG
+          WSX2(II)    = RampMete*0.0012930*WDRAGCO*WINDX*WINDMAG
+          WSY2(II)    = RampMete*0.0012930*WDRAGCO*WINDY*WINDMAG
           PR2(II)     = RampMete*(PRN1(II)+WTRATIO*(PRN2(II)-PRN1(II)))
           WVNXOUT(II) = RampMete*WINDX
           WVNYOUT(II) = RampMete*WINDY
@@ -504,8 +504,8 @@ C.........Apply directional wind reductions
             
 C.........Apply met ramp
             
-          WSX2(II)    = RampMete*0.001293d0*WDRAGCO*WINDX*WINDMAG
-          WSY2(II)    = RampMete*0.001293d0*WDRAGCO*WINDY*WINDMAG
+          WSX2(II)    = RampMete*0.0012930*WDRAGCO*WINDX*WINDMAG
+          WSY2(II)    = RampMete*0.0012930*WDRAGCO*WINDY*WINDMAG
           PR2(II)     = RampMete*PRN2(II)
           WVNXOUT(II) = RampMete*WINDX
           WVNYOUT(II) = RampMete*WINDY
@@ -554,8 +554,8 @@ C          ENDIF
           
 C.........Apply met ramp
 
-C          WSX2(II)    = RampMete*0.001293d0*WDRAGCO*WINDX*WINDMAG
-C          WSY2(II)    = RampMete*0.001293d0*WDRAGCO*WINDY*WINDMAG
+C          WSX2(II)    = RampMete*0.0012930*WDRAGCO*WINDX*WINDMAG
+C          WSY2(II)    = RampMete*0.0012930*WDRAGCO*WINDY*WINDMAG
 C          PR2(II)     = RampMete*PRN2(II)
 C          WVNXOUT(II) = RampMete*WINDX
 C          WVNYOUT(II) = RampMete*WINDY
@@ -630,8 +630,8 @@ C.........Apply directional wind reductions
           
 C.........Apply met ramp
           
-          WSX2(II)    = RampMete*0.001293d0*WDRAGCO*WINDX*WINDMAG
-          WSY2(II)    = RampMete*0.001293d0*WDRAGCO*WINDY*WINDMAG
+          WSX2(II)    = RampMete*0.0012930*WDRAGCO*WINDX*WINDMAG
+          WSY2(II)    = RampMete*0.0012930*WDRAGCO*WINDY*WINDMAG
           PR2(II)     = RampMete*(PRN1(II)+WTRATIO*(PRN2(II)-PRN1(II)))
           WVNXOUT(II) = RampMete*WINDX
           WVNYOUT(II) = RampMete*WINDY
@@ -712,8 +712,8 @@ C.........Apply directional wind reductions
             
 C.........Apply met ramp
             
-          WSX2(II)    = RampMete*0.001293d0*WDRAGCO*WINDX*WINDMAG
-          WSY2(II)    = RampMete*0.001293d0*WDRAGCO*WINDY*WINDMAG
+          WSX2(II)    = RampMete*0.0012930*WDRAGCO*WINDX*WINDMAG
+          WSY2(II)    = RampMete*0.0012930*WDRAGCO*WINDY*WINDMAG
           PR2(II)     = RampMete*(PRN1(II)+WTRATIO*(PRN2(II)-PRN1(II)))
           WVNXOUT(II) = RampMete*WINDX
           WVNYOUT(II) = RampMete*WINDY
@@ -781,8 +781,8 @@ C.........Apply directional wind reductions
           
 C.........Apply met ramp
           
-          WSX2(II)    = RampMete*0.001293d0*WDRAGCO*WINDX*WINDMAG
-          WSY2(II)    = RampMete*0.001293d0*WDRAGCO*WINDY*WINDMAG
+          WSX2(II)    = RampMete*0.0012930*WDRAGCO*WINDX*WINDMAG
+          WSY2(II)    = RampMete*0.0012930*WDRAGCO*WINDY*WINDMAG
           PR2(II)     = RampMete*(PRN1(II)+WTRATIO*(PRN2(II)-PRN1(II)))
           WVNXOUT(II) = RampMete*WINDX
           WVNYOUT(II) = RampMete*WINDY
@@ -812,10 +812,10 @@ Casey 101118: Added these lines for coupling winds to SWAN.
                WDragCo = winddrag(windmag, draglaw, foundeye, winddraglimit, i)
             ENDIF
 
-            WSX2(II) = RampMete*0.001293d0*WDragCo*WindX*WindMag
-            WSY2(II) = RampMete*0.001293d0*WDragCo*WindY*WindMag
+            WSX2(II) = RampMete*0.0012930*WDragCo*WindX*WindMag
+            WSY2(II) = RampMete*0.0012930*WDragCo*WindY*WindMag
 !            PR2(II)=RampMete*PRN2(II)
-            PRBCKGRND_MH2O = 100.0D0*PRBCKGRND/(RHOWAT0*G)
+            PRBCKGRND_MH2O = 100.0*PRBCKGRND/(RHOWAT0*G)
             PRDIFF = RampMete*(PRN2(II)-PRBCKGRND_MH2O)
             PR2(II) = PRBCKGRND_MH2O + PRDIFF
             WVNXOUT(II)=RampMete*WindX
@@ -850,10 +850,10 @@ Casey 121019: Added multiplication factor to be used before sending winds to cou
 #endif
 
 
-            WSX2(II) = RampMete*0.001293d0*WDragCo*WindX*WindMag
-            WSY2(II) = RampMete*0.001293d0*WDragCo*WindY*WindMag
+            WSX2(II) = RampMete*0.0012930*WDragCo*WindX*WindMag
+            WSY2(II) = RampMete*0.0012930*WDragCo*WindY*WindMag
 !            PR2(II)=RampMete*PRN2(II)
-            PRBCKGRND_MH2O = 100.0D0*PRBCKGRND/(RHOWAT0*G)
+            PRBCKGRND_MH2O = 100.0*PRBCKGRND/(RHOWAT0*G)
             PRDIFF = RampMete*(PRN2(II)-PRBCKGRND_MH2O)
             PR2(II) = PRBCKGRND_MH2O + PRDIFF
             WVNXOUT(II)=RampMete*WindX

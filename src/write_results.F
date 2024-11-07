@@ -84,17 +84,17 @@ C.....to single nodal values
          enddo nbor_loop1
 
 
-          ETA2(I) = 0.D0
+          ETA2(I) = 0.0
 #ifdef TRACE
-          tracer(I) = 0.D0
-          tracer2(I) = 0.D0
+          tracer(I) = 0.0
+          tracer2(I) = 0.0
 #endif
 
          
-          UU2(I)  = 0.D0
-          VV2(I)  = 0.D0
+          UU2(I)  = 0.0
+          VV2(I)  = 0.0
          
-          IF(SEDFLAG.GE.2) DP(I) = 0.D0
+          IF(SEDFLAG.GE.2) DP(I) = 0.0
 
           nbor_loop2: DO J = 1,NO_NBORS
             NBOR_EL = ELETAB(I,1+J)
@@ -126,7 +126,7 @@ C.....to single nodal values
 #endif
 
 #ifdef SED_LAY
-            HB_DG(J) = 0.d0
+            HB_DG(J) = 0.0
             bed_DG(J,:) = bed(1,NBOR_EL,1,:)
             HB_DG(J) = sum(bed_DG(J,:))
 #endif
@@ -172,9 +172,9 @@ C.....to single nodal values
             ENDDO
 
 
-            AREA = 0.5d0*AREAS(NBOR_EL)/AREA_SUM
+            AREA = 0.50*AREAS(NBOR_EL)/AREA_SUM
             DEPTH = ZE_DG + HB_DG
-            FH_NL = 1.D0/(NLEQ*DEPTH + LEQ)
+            FH_NL = 1.0/(NLEQ*DEPTH + LEQ)
             ETA2(I) = ETA2(I) + AREA*ZE_DG
 #ifdef TRACE
             tracer(I)  = tracer(I)  + AREA*iota_DG(J)*FH_NL
@@ -216,7 +216,7 @@ C.....to single nodal values
       real(sz) qmaxe,elmaxe, iota_int, iota_error
       integer :: imaxze,imaxq,ErrorElevExceeded, k,j , i, kk
 
-      iota_int = 0.D0
+      iota_int = 0.0
       
 C...
 C...OUTPUT ELEVATION RECORDING STATION INFORMATION IF NOUTE<>0 AND THE
@@ -317,7 +317,7 @@ C...
                      VV00(I) = VV00(I) + QY(K,NNV(I),1)*PHI_STAV(K,I)
                   ENDDO
                   DEPTH   = ZE00 + DP00
-                  FH_NL   = 1.D0/(NLEQ*DEPTH + LEQ)
+                  FH_NL   = 1.0/(NLEQ*DEPTH + LEQ)
                   UU00(I) = UU00(I)*FH_NL
                   VV00(I) = VV00(I)*FH_NL
                 else
@@ -374,8 +374,8 @@ C...
                 else
                   HH2N1=dpe(nnc(i))+IFNLFA*ETA2(nnv(i))
                   C1=CH1(NM1)/HH2N1
-                  C2=0.0d0
-                  C3=0.0d0
+                  C2=0.0
+                  C3=0.0
                 endif
                 NC1=NODECODE(NM1)
                 NC2=NODECODE(NM2)
@@ -485,7 +485,7 @@ C.....time step falls within the specified window
               if (ModetoNode.eq.1) then
                 DO I=1,NP
                 
-                  IF (ABS(ETA2(I)).LE.(10.0**(-30))) ETA2(I) = 0.D0
+                  IF (ABS(ETA2(I)).LE.(10.0**(-30))) ETA2(I) = 0.0
                   IF (NOLIFA .EQ. 2) THEN
                     ! namo - 6/22 temporarily plot total depth (H)
                     !IF (NODECODE(I).EQ.1) WRITE(63,2453) I,ETA2(I)+DP(I)
@@ -504,21 +504,21 @@ C.....time step falls within the specified window
                 ENDIF
               else
                 DO I=1,NE
-                  IF (ABS(ETA2(I)).LE.(10.0**(-30))) ETA2(I) = 0.D0
+                  IF (ABS(ETA2(I)).LE.(10.0**(-30))) ETA2(I) = 0.0
                   WRITE(63,2453) I,ETA2(I)
 #ifdef TRACE                   
-                  IF (ABS(tracer(I)).LE.(10.0**(-30))) tracer(I) = 0.D0
+                  IF (ABS(tracer(I)).LE.(10.0**(-30))) tracer(I) = 0.0
                   WRITE(88,2453) I,tracer(I)
-                  IF (ABS(tracer2(I)).LE.(10.0**(-30))) tracer2(I) = 0.D0
+                  IF (ABS(tracer2(I)).LE.(10.0**(-30))) tracer2(I) = 0.0
                   WRITE(89,2453) I,tracer2(I)
 #endif
 #ifdef CHEM                   
-                  IF (ABS(tracer(I)).LE.(10.0**(-30))) tracer(I) = 0.D0
+                  IF (ABS(tracer(I)).LE.(10.0**(-30))) tracer(I) = 0.0
                   WRITE(88,2453) I,tracer(I)
-                  IF (ABS(tracer2(I)).LE.(10.0**(-30))) tracer2(I) = 0.D0
+                  IF (ABS(tracer2(I)).LE.(10.0**(-30))) tracer2(I) = 0.0
                   WRITE(89,2453) I,tracer2(I)
 #endif
-                  IF (ABS(dpe(I)).LE.(10.0**(-30))) dpe(I) = 0.D0
+                  IF (ABS(dpe(I)).LE.(10.0**(-30))) dpe(I) = 0.0
                   write(4441,2453) I,dpe(I)
                 ENDDO
               ENDIF
@@ -682,15 +682,15 @@ C...
               if (ModetoNode.eq.1) then
                 DO I = 1,NP
 C.....Had trouble writing out numbers with less than E-99 (EJK)
-                  IF (ABS(UU2(I)).LE.(10.0**(-30))) UU2(I) = 0.D0
-                  IF (ABS(VV2(I)).LE.(10.0**(-30))) VV2(I) = 0.D0
+                  IF (ABS(UU2(I)).LE.(10.0**(-30))) UU2(I) = 0.0
+                  IF (ABS(VV2(I)).LE.(10.0**(-30))) VV2(I) = 0.0
                   WRITE(64,2454) I,UU2(I),VV2(I)
 2454              FORMAT(2X,I8,2(2X,E16.8E3))
                 ENDDO
               else
                 DO I = 1,NE
-                  IF (ABS(UU2(I)).LE.(10.0**(-30))) UU2(I) = 0.D0
-                  IF (ABS(VV2(I)).LE.(10.0**(-30))) VV2(I) = 0.D0
+                  IF (ABS(UU2(I)).LE.(10.0**(-30))) UU2(I) = 0.0
+                  IF (ABS(VV2(I)).LE.(10.0**(-30))) VV2(I) = 0.0
                   WRITE(64,2454) I,UU2(I),VV2(I)
                 ENDDO
               endif
@@ -899,7 +899,7 @@ C...
                     UU00(I) = UU00(I) + QX(K,NNV(I),1)*PHI_STAV(K,I)
                     VV00(I) = VV00(I) + QY(K,NNV(I),1)*PHI_STAV(K,I)
                   ENDDO
-                  FH_NL   = 1.D0/(NLEQ*DEPTH + LEQ)
+                  FH_NL   = 1.0/(NLEQ*DEPTH + LEQ)
                   UU00(I) = UU00(I)*FH_NL
                   VV00(I) = VV00(I)*FH_NL
                 ENDDO
@@ -1064,15 +1064,15 @@ C....IF ELMAX EXCEEDS THRESHOLD, PRINT INFORMATION ON ALL PROCESSORS WHERE
 C....THIS OCCURS 
 C...
         IF(NSCREEN.EQ.1) THEN
-          ELMAX=0.0d0
-          VELMAX=0.0d0
+          ELMAX=0.0
+          VELMAX=0.0
           KEMAX = 0
           KVMAX = 0
 c
-          imaxze=0.0d0
-          elmaxe=0.0d0
-          qmaxe=0.0d0
-          imaxq = 0.0d0
+          imaxze=0.0
+          elmaxe=0.0
+          qmaxe=0.0
+          imaxq = 0.0
           DO I=1,NP
              IF((NODECODE(I).EQ.1).AND.(ABS(ETA2(I)).GT.ELMAX))THEN
                 ELMAX=ABS(ETA2(I))
@@ -1098,16 +1098,16 @@ c
              endif
           enddo
 C             
-          VELMAX=VELMAX**0.5d0
+          VELMAX=VELMAX**0.50
           ErrorElevExceeded=0
           if (KEMAX .eq. 0) then
              KEMAX = 1
           endif 
 C          
 #ifdef CMPI
-          IF( (MYPROC.EQ.0).AND.(ELMAX.LT.1000.d0).AND.
+          IF( (MYPROC.EQ.0).AND.(ELMAX.LT.1000.0).AND.
      &        (MOD(IT,NSCREEN_INC).EQ.0) ) THEN
-             WRITE(6,1991) IT,TIME_A/86400.d0,
+             WRITE(6,1991) IT,TIME_A/86400.0,
      $            ETA2(KEMAX),KEMAX,VELMAX,KVMAX,MYPROC
  1991        FORMAT(1X,'TIME STEP =',I8,5X,'TIME = ',F12.6,
      &            /,2X,'ELMAX = ', E11.4,' AT NODE',I7,
@@ -1162,10 +1162,10 @@ C
           
           
           
-          IF(ELMAX.GT.1000.d0) THEN
-            WRITE(6,1993) IT,TIME_A/86400.d0,
+          IF(ELMAX.GT.1000.0) THEN
+            WRITE(6,1993) IT,TIME_A/86400.0,
      &            ETA2(KEMAX),KEMAX,VELMAX,KVMAX,MYPROC
-            WRITE(16,1993) IT,TIME_A/86400.d0,
+            WRITE(16,1993) IT,TIME_A/86400.0,
      &           ETA2(KEMAX),KEMAX,VELMAX,KVMAX,MYPROC
  1993       FORMAT(1X,'TIME STEP =',I8,6X,'TIME =',F12.6,
      &       /,2X,'ELMAX = ', E11.4,' AT NODE',I7,
@@ -1179,8 +1179,8 @@ C
             stop
          ENDIF
 #else
-         IF(ELMAX.LT.1000.d0.and.(MOD(IT,NSCREEN_INC).EQ.0) ) THEN
-           WRITE(6,1992) IT,TIME_A/86400.d0,ETA2(KEMAX),KEMAX,VELMAX,KVMAX
+         IF(ELMAX.LT.1000.0.and.(MOD(IT,NSCREEN_INC).EQ.0) ) THEN
+           WRITE(6,1992) IT,TIME_A/86400.0,ETA2(KEMAX),KEMAX,VELMAX,KVMAX
  1992      FORMAT(1X,'TIME STEP =',I8,5X,'TIME =',F12.6,
      &           /,2X,'ELMAX = ', E11.4,' AT NODE',I7,
      &           2X,'SPEEDMAX = ',E11.4,' AT NODE',I7)
@@ -1209,10 +1209,10 @@ C
 
          ENDIF
 C
-         IF(ELMAX.GT.1000.d0) THEN
-            WRITE(6,1994) IT,TIME_A/86400.d0,
+         IF(ELMAX.GT.1000.0) THEN
+            WRITE(6,1994) IT,TIME_A/86400.0,
      $           ETA2(KEMAX),KEMAX,VELMAX,KVMAX
-            WRITE(16,1994) IT,TIME_A/86400.d0,
+            WRITE(16,1994) IT,TIME_A/86400.0,
      $           ETA2(KEMAX),KEMAX,VELMAX,KVMAX
  1994       FORMAT(1X,'TIME STEP =',I8,6X,'TIME =',F12.6,
      &           /,2X,'ELMAX = ', E11.4,' AT NODE',I7,
@@ -1300,9 +1300,9 @@ C          PRINT*,'NT =',NT
 C        ENDIF
 
 C        DO J=1,MNE
-C          ZE_DG(1) = 0.D0
-C          QX_DG(1) = 0.D0
-C          QY_DG(1) = 0.D0
+C          ZE_DG(1) = 0.0
+C          QX_DG(1) = 0.0
+C          QY_DG(1) = 0.0
 C
 C          DO K=1,DOF
 C            ZE_DG(1) = ZE_DG(1) + PHI_CENTER(K)*ZE(K,J,1)

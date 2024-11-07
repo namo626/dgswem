@@ -242,9 +242,9 @@ C***********************************************************************
       ! Put a blank snap for the first 'numBlankSnaps' snaps
       if(cntSnaps.LE.numBlankSnaps) then
         do i=1,NP
-          WVNX(I)=0.d0
-          WVNY(I)=0.d0
-          PRN(I)=101300.d0/RHOWATG
+          WVNX(I)=0.0
+          WVNY(I)=0.0
+          PRN(I)=101300.0/RHOWATG
         enddo
         IF(NSCREEN.GE.1) THEN
           if(MYPROC.EQ.0) then
@@ -400,7 +400,7 @@ c      write(*,*) 'reading wind components ',myproc
       
       rampfrac = isnapB-1
 c      if (rampfrac<36) then
-c        ramp = tanh(18d0*rampfrac/36d0)
+c        ramp = tanh(180*rampfrac/360)
 c      end if
       ramp = 1.0
 
@@ -420,7 +420,7 @@ c      end if
          
       do i=1,NP
 
-        uu=-9999.9D0
+        uu=-9999.90
 
         ! BASIN ---------------------------------------------------------
 
@@ -465,10 +465,10 @@ c      end if
         
         ! COPY TO ARRAYS ----------------------------------------------------------
 
-        if(uu.eq.-9999.9D0) then
-          WVNX(I)=0.d0
-          WVNY(I)=0.d0
-          PRN(I)=101300.d0/RHOWATG
+        if(uu.eq.-9999.90) then
+          WVNX(I)=0.0
+          WVNY(I)=0.0
+          PRN(I)=101300.0/RHOWATG
         else
           if (rampfrac<36) then
             uu=uu*ramp
@@ -477,7 +477,7 @@ c      end if
           endif
           
           !CONVERT MILLIBARS TO M OF WATER
-          PRN(i)  = 100.d0*PP/RHOWATG
+          PRN(i)  = 100.0*PP/RHOWATG
 
           ! Apply wind velocity multiplier
           uu = uu * windMultiplier
@@ -529,9 +529,9 @@ c      end if
       WRITE(16,*) ''
 
       do i=1,NP
-        WVNX(I)=0.d0
-        WVNY(I)=0.d0
-        PRN(I)=101300.d0/RHOWATG
+        WVNX(I)=0.0
+        WVNY(I)=0.0
+        PRN(I)=101300.0/RHOWATG
       enddo
 
       RETURN

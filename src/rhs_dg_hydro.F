@@ -67,7 +67,7 @@ C.....Declare local variables
       !Allocate ( XBCbt(MNE),YBCbt(MNE) )
 
       L = (blockidx%x-1)*blockdim%x + threadidx%x
-      DTDPH = 1.D0/DTDP
+      DTDPH = 1.0/DTDP
 
       thread: if (L <= NE) then
       !DO L = 1, NE
@@ -94,7 +94,7 @@ C.......Compute rain source term if rain is enabled
             IF (rainfall == 1 .OR. rainfall == 3) SOURCE_R = computeElemTRR(L)
             IF (rainfall == 2) SOURCE_R =  7.0556e-6 ! 1 inch/hour
 
-            IF (SOURCE_R .GT. 0.D0) THEN
+            IF (SOURCE_R .GT. 0.0) THEN
               DO I = 1,NAGP(pa)
                 DO K = 1,DOFS(L)
                   RHS_ZE(K,L,IRK) = RHS_ZE(K,L,IRK) +
@@ -121,7 +121,7 @@ C.......Compute avaraged values
 C.......These will be used later when bottom friction is computed
 
          DEPTH_C = HB(1,L,1) + ZE(1,L,IRK)
-         FH_NL_C = 1.D0/(NLEQ*DEPTH_C + LEQ)
+         FH_NL_C = 1.0/(NLEQ*DEPTH_C + LEQ)
          UX_C = QX(1,L,IRK)*FH_NL_C
          UY_C = QY(1,L,IRK)*FH_NL_C
          UMAG_C = SQRT(UX_C*UX_C + UY_C*UY_C)
@@ -163,7 +163,7 @@ C.......Compute ZE, QX, QY, and HB at each area Gauss quadrature point
             DHB_Y = DBATHDY(I,L,pa)
 
 #ifdef SED_LAY
-            HB(:,L,irk) = 0.D0
+            HB(:,L,irk) = 0.0
             do ll = 1,layers
                HB(1,L,irk) = HB(1,L,irk) + bed(1,L,irk,ll)
 
@@ -171,13 +171,13 @@ C.......Compute ZE, QX, QY, and HB at each area Gauss quadrature point
                MZ_Y(ll) =  MZ(1,2,ll,L)
             enddo
             HB_IN = HB(1,L,irk)
-            DHB_X = 0.D0
-            DHB_Y = 0.D0
-            DH_Y = 0.D0
-            DH_X = 0.D0
-            DPHIDX = 0.D0
-            DPHIDY = 0.D0
-            HB(1,L,irk) = 0.D0
+            DHB_X = 0.0
+            DHB_Y = 0.0
+            DH_Y = 0.0
+            DH_X = 0.0
+            DPHIDX = 0.0
+            DPHIDY = 0.0
+            HB(1,L,irk) = 0.0
             do K = 1,DOFS(L)
                do ll = 1,layers
                   HB(k,L,irk) = HB(k,L,irk) + bed(k,L,irk,ll)
@@ -252,7 +252,7 @@ C.......Compute ZE, QX, QY, and HB at each area Gauss quadrature point
                   MZ_X(ll) =  MZ_X(ll) + MZ(K,1,ll,L)*PHI_AREA(K,I,pa)
                   MZ_Y(ll) =  MZ_Y(ll) + MZ(K,2,ll,L)*PHI_AREA(K,I,pa)
                enddo
-               DEPTH = 0.D0
+               DEPTH = 0.0
                DEPTH = ZE_IN + HB_IN
 C.........Compute sediment discharge model
 
@@ -287,14 +287,14 @@ C.........Compute momentum flux terms
             FU_NL = NLEQ*QX_IN
             FV_NL = NLEQ*QY_IN
             FG_NL = NLEQG*ZE_IN*WDFLG(L)
-            FH_NL = 1.D0/(NLEQ*DEPTH + LEQ)
+            FH_NL = 1.0/(NLEQ*DEPTH + LEQ)
             U_IN  = QX_IN*FH_NL
             V_IN  = QY_IN*FH_NL
 
             HUU = FU_NL*U_IN
             HVV = FV_NL*V_IN
             HUV = FU_NL*V_IN
-            GH2 = FG_NL*(0.5D0*ZE_IN + HB_IN) + FG_L*ZE_IN
+            GH2 = FG_NL*(0.50*ZE_IN + HB_IN) + FG_L*ZE_IN
 
 C.........Compute x momentum fluxes
 
@@ -314,7 +314,7 @@ C.........Compute the friction factor
             if (LoadManningsN) then
                fric_el(L)=G*
      $              ((ManningsN(n1)+ManningsN(n2)+ManningsN(n3))/3.)**2
-     $              /(DEPTH**(1.d0/3.d0))
+     $              /(DEPTH**(1.0/3.0))
                if (fric_el(L).lt.CF) fric_el(L)=CF
             endif
             TAU = FRIC_EL(L)
@@ -328,14 +328,14 @@ C     small. S.B. 9-Feb-2008
 c     cnd modified 4/23/10 to test friction
                TAU  = TAU*UMAG*FH_NL
                IF (IFHYBF.EQ.1) TAU = TAU*
-     &              (1.D0  + (HBREAK*FH_NL_C)**FTHETA)**(FGAMMA/FTHETA)
+     &              (1.0  + (HBREAK*FH_NL_C)**FTHETA)**(FGAMMA/FTHETA)
 C     It is numerically probable that the bottom friction is large enoght
 C     to reverse the direction of currents backward due to a too small column
 C     height even though it does not happen in reality. To avoid this, the MIN
 C     function bellow is added. It is expected that this MIN function upper-limits
 C     TAU so the bottom friction force does not reverse the currents within
 C     half a time step.  S.B. 9-Feb-2008
-               TAU = MIN(TAU, .9D0*DTDPH)
+               TAU = MIN(TAU, .90*DTDPH)
             ENDIF
 
 C.........Compute the x momentum source/sink terms
@@ -374,7 +374,7 @@ C.........3.) Coriolis force
 C.........4.) Wind and pressure forcing (in x and y)
 
             IF (NWS.NE.0) THEN
-               FW_NL = 1.D0/F1_NL
+               FW_NL = 1.0/F1_NL
                SOURCE_X = SOURCE_X + FW_NL*( WSX2(N1)*PSI1(I,pa)
      &              + WSX2(N2)*PSI2(I,pa)  + WSX2(N3)*PSI3(I,pa) )
      &              - G*SFACQUAD*DEPTH
@@ -405,15 +405,15 @@ C.........5) Tidal potential forcing (in x and y)
 C.........6) Chemical mass action
 
 #ifdef CHEM
-            MassAction1st = 0.D0
-            MassAction2nd = 0.D0
+            MassAction1st = 0.0
+            MassAction2nd = 0.0
 
-            MassMax(L) = 0.D0
+            MassMax(L) = 0.0
 
-            rate = reaction_rate*1.D0/86400.D0
+            rate = reaction_rate*1.0/86400.0
 
-            MassAction1st =  rate*(max(iota2_IN,0.D0)*max(iota_IN,0.D0))
-            MassAction2nd =  rate*(max(iota2_IN,0.D0)*max(iota_IN,0.D0))
+            MassAction1st =  rate*(max(iota2_IN,0.0)*max(iota_IN,0.0))
+            MassAction2nd =  rate*(max(iota2_IN,0.0)*max(iota_IN,0.0))
 
             MassMax(L) = min(MassAction1st,MassAction2nd)
 

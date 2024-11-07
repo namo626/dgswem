@@ -67,21 +67,21 @@ C.....Compute the water level on each side of the barrier
           ENDIF
           RBARWL1 = RBARWL1AVG(I)
           RBARWL2 = RBARWL2AVG(I)
-          RBARWL1F = 2.0D0*RBARWL1/3.0D0
-          RBARWL2F = 2.0D0*RBARWL2/3.0D0
-          QIB(NNBB1) = 0.0D0
+          RBARWL1F = 2.0*RBARWL1/3.0
+          RBARWL2F = 2.0*RBARWL2/3.0
+          QIB(NNBB1) = 0.0
             
 C.....Case 0:  The side with a higher Water level is dry 
 C.....I want to use WDFLG(EL) here in the future. sb
 
           IF (RBARWL1.GT.RBARWL2) THEN
             IF((ETA2(NNBB1)+DP(NNBB1)).LT.H0) THEN
-              QIB(NNBB1) = 0.0D0
+              QIB(NNBB1) = 0.0
               GOTO 1034
             ENDIF
           ELSE 
             IF ((ETA2(NNBB2)+DP(NNBB2)).LT.H0) THEN
-              QIB(NNBB1) = 0.0D0
+              QIB(NNBB1) = 0.0
               GOTO 1034
             ENDIF
           ENDIF
@@ -94,14 +94,14 @@ Csb-debug
 #else
           IF (.TRUE.) THEN
 #endif
-            QIB(NNBB1) = 0.0D0
+            QIB(NNBB1) = 0.0
             GOTO 1034
           ENDIF
 
 C.....Case 2:  Water level equal on both sides of the barrier
 
           IF(RBARWL1.EQ.RBARWL2) THEN
-            QIB(NNBB1) = 0.0D0
+            QIB(NNBB1) = 0.0
             GOTO 1034
           ENDIF
               
@@ -114,14 +114,14 @@ C.....Case 3:  Outward subcritical flow
 
             IF (RBARWL2.GT.RBARWL1F) THEN
               QIB(NNBB1) = -BRAMP*RBARWL2*BARINCFSB(I)*
-     &                                 (2.D0*G*(RBARWL1-RBARWL2))**0.5D0
+     &                                 (2.0*G*(RBARWL1-RBARWL2))**0.50
               NIBNODECODE(NNBB1) = 1
 
 C.....Case 4:  Outward supercritical flow
 
             ELSE
               QIB(NNBB1) = -BRAMP*BARINCFSP(I)*RBARWL1F*(RBARWL1F*G)
-     &                                                           **0.5D0
+     &                                                           **0.50
               NIBNODECODE(NNBB1) = 1
             ENDIF
 
@@ -138,14 +138,14 @@ C.....Case 5:  Inward subcritical
 
             IF (RBARWL1.GT.RBARWL2F) THEN
               QIB(NNBB1) = BRAMP*RBARWL1*BARINCFSB(I)*
-     &                                (2.0D0*G*(RBARWL2-RBARWL1))**0.5D0
+     &                                (2.0*G*(RBARWL2-RBARWL1))**0.50
               NIBNODECODE(NNBB1) = 1
 
 C.....Case 6:  Inward supercritical flow
 
             ELSE
               QIB(NNBB1) = BRAMP*BARINCFSP(I)*RBARWL2F*(RBARWL2F*G)
-     &                                                           **0.5D0
+     &                                                           **0.50
               NIBNODECODE(NNBB1) = 1
             ENDIF
                 

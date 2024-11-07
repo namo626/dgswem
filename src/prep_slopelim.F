@@ -54,8 +54,8 @@ C.....Retrieve the nodal coordinates of the given element
 
 C.....Compute the barycenter coordinates of the element and store
 
-         XBC(J) = 1.D0/3.D0*(X(N1) + X(N2) + X(N3))
-         YBC(J) = 1.D0/3.D0*(Y(N1) + Y(N2) + Y(N3))
+         XBC(J) = 1.0/3.0*(X(N1) + X(N2) + X(N3))
+         YBC(J) = 1.0/3.0*(Y(N1) + Y(N2) + Y(N3))
 
          X1 = XBC(J)
          Y1 = YBC(J)
@@ -97,15 +97,15 @@ C.....Compute the barycenter coordinates of two neighboring elements
             N2 = NM(EL_NBORS(I,J),2)
             N3 = NM(EL_NBORS(I,J),3)
             
-            X2 = 1.D0/3.D0*(X(N1) + X(N2) + X(N3))
-            Y2 = 1.D0/3.D0*(Y(N1) + Y(N2) + Y(N3))
+            X2 = 1.0/3.0*(X(N1) + X(N2) + X(N3))
+            Y2 = 1.0/3.0*(Y(N1) + Y(N2) + Y(N3))
             
             N1 = NM(EL_NBORS(I+1,J),1)
             N2 = NM(EL_NBORS(I+1,J),2)
             N3 = NM(EL_NBORS(I+1,J),3)
 
-            X3 = 1.D0/3.D0*(X(N1) + X(N2) + X(N3))
-            Y3 = 1.D0/3.D0*(Y(N1) + Y(N2) + Y(N3))
+            X3 = 1.0/3.0*(X(N1) + X(N2) + X(N3))
+            Y3 = 1.0/3.0*(Y(N1) + Y(N2) + Y(N3))
             
 C.....Compute the time independent planar constant
 
@@ -120,7 +120,7 @@ C.....Compute the time independent planar constant
      &              '    ELEMENT ',J,
      &              ' WILL NOT BE CONSIDERED IN SLOPE LIMITING.'
                WRITE(*,*)
-               SL3(I,J) = 0.D0
+               SL3(I,J) = 0.0
             ENDIF
             
  110        CONTINUE
@@ -137,31 +137,31 @@ C.....and must fill array for all possible p (ie. dofl:dofh)
       
 #ifdef SLOPEALL
 
-      XBCb = 0.D0
-      YBCb = 0.D0
-      Deltx = 0.D0
-      Delty = 0.D0
-      xtransform = 0.D0
-      ytransform = 0.D0
-      xi1BCb = 0.D0
-      xi2BCb = 0.D0
-      xi1vert = 0.D0
-      xi2vert = 0.D0
-      xtransformv = 0.D0
-      ytransformv = 0.D0
-      YBCv = 0.D0
-      XBCv = 0.D0
-      xi1BCv = 0.D0
-      xi2BCv = 0.D0
-      f = 0.D0
-      g0 = 0.D0 
-      varsigma0 = 0.D0
-      fv = 0.D0
-      g0v = 0.D0 
-      varsigma0v = 0.D0
-      var2sigmag = 0.D0
-      NmatrixInv = 0.D0
-      Nmatrix = 0.D0
+      XBCb = 0.0
+      YBCb = 0.0
+      Deltx = 0.0
+      Delty = 0.0
+      xtransform = 0.0
+      ytransform = 0.0
+      xi1BCb = 0.0
+      xi2BCb = 0.0
+      xi1vert = 0.0
+      xi2vert = 0.0
+      xtransformv = 0.0
+      ytransformv = 0.0
+      YBCv = 0.0
+      XBCv = 0.0
+      xi1BCv = 0.0
+      xi2BCv = 0.0
+      f = 0.0
+      g0 = 0.0 
+      varsigma0 = 0.0
+      fv = 0.0
+      g0v = 0.0 
+      varsigma0v = 0.0
+      var2sigmag = 0.0
+      NmatrixInv = 0.0
+      Nmatrix = 0.0
 
 
 C.....Loop over p, and allocate for each order
@@ -176,7 +176,7 @@ C.....Loop over the elements
 
 C.....Set areas over the physical elements
                
-               areau = 0.5D0*AREAS(k)
+               areau = 0.50*AREAS(k)
 
 C.....Retrieve the nodal coordinates (above) of the given element
 
@@ -196,8 +196,8 @@ C.....Find cell conditioners
 
                if (ll.le.2) then
 
-                  Deltx(k) = ( xmax - xmin ) / 2.D0 
-                  Delty(k) = ( ymax - ymin ) / 2.D0 
+                  Deltx(k) = ( xmax - xmin ) / 2.0 
+                  Delty(k) = ( ymax - ymin ) / 2.0 
 
                else 
 
@@ -210,16 +210,16 @@ C.....Find cell conditioners
 
 C.....Compute the centroid coordinates of the base element in physical space
 
-               XBCb(k) = ( x(n1) + x(n2) + x(n3) ) / 3.D0
-               YBCb(k) = ( y(n1) + y(n2) + y(n3) ) / 3.D0
+               XBCb(k) = ( x(n1) + x(n2) + x(n3) ) / 3.0
+               YBCb(k) = ( y(n1) + y(n2) + y(n3) ) / 3.0
 
 C.....Transform quad points to physical space (for integration) xi --> x
 
                do mm=1,nagp(ll)
 
-                  ell_1 = -0.5D0 * ( xagp(mm,ph) + yagp(mm,ph) )
-                  ell_2 =  0.5D0 * ( xagp(mm,ph) + 1.D0 )
-                  ell_3 =  0.5D0 * ( yagp(mm,ph) + 1.D0 )
+                  ell_1 = -0.50 * ( xagp(mm,ph) + yagp(mm,ph) )
+                  ell_2 =  0.50 * ( xagp(mm,ph) + 1.0 )
+                  ell_3 =  0.50 * ( yagp(mm,ph) + 1.0 )
 
               xtransform(k,mm) = x(n1)*ell_1 + x(n2)*ell_2 + x(n3)*ell_3
               ytransform(k,mm) = y(n1)*ell_1 + y(n2)*ell_2 + y(n3)*ell_3
@@ -228,23 +228,23 @@ C.....Transform quad points to physical space (for integration) xi --> x
 
 C.....Find centroid coordinates in the master element frame
 
-               xi1BCb(k) =  ( (y(N3)-y(N1))*( XBCb(k) -0.5D0 * 
+               xi1BCb(k) =  ( (y(N3)-y(N1))*( XBCb(k) -0.50 * 
      &              (x(N2) + x(N3))) + (x(N1) - x(N3))*(YBCb(k)
-     &              - 0.5D0*(y(N2) + y(N3)) ) ) / areau
-               xi2BCb(k) =  ( (y(N1)-y(N2))*( XBCb(k) -0.5D0 * (x(N2) 
+     &              - 0.50*(y(N2) + y(N3)) ) ) / areau
+               xi2BCb(k) =  ( (y(N1)-y(N2))*( XBCb(k) -0.50 * (x(N2) 
      &              + x(N3))) + (x(N2) - x(N1))*(YBCb(k)
-     &              - 0.5D0*(y(N2) + y(N3)) ) ) / areau
+     &              - 0.50*(y(N2) + y(N3)) ) ) / areau
 
 C.....Find vertices in the master element frame
 
                do lll=1,3
 
-               xi1vert(k,lll) =  ( (y(N3)-y(N1))*( x(nm(k,lll)) -0.5D0 *
+               xi1vert(k,lll) =  ( (y(N3)-y(N1))*( x(nm(k,lll)) -0.50 *
      &                 (x(N2) + x(N3))) + (x(N1) - x(N3))* (y(nm(k,lll))
-     &                 - 0.5D0*(y(N2) + y(N3)) ) ) / areau
-               xi2vert(k,lll) =  ( (y(N1)-y(N2))*( x(nm(k,lll)) -0.5D0 *
+     &                 - 0.50*(y(N2) + y(N3)) ) ) / areau
+               xi2vert(k,lll) =  ( (y(N1)-y(N2))*( x(nm(k,lll)) -0.50 *
      &                 (x(N2) + x(N3))) + (x(N2) - x(N1))* (y(nm(k,lll))
-     &                 - 0.5D0*(y(N2) + y(N3)) ) ) / areau
+     &                 - 0.50*(y(N2) + y(N3)) ) ) / areau
 
                enddo
 
@@ -260,9 +260,9 @@ C.....Find all neighbors of shared vertex
                            
 C.....Compute the centroids of all conterminous (of codimension 2) elements (by vertex) of base element k in physical space
 
-                           XBCv(k,mm) = 1.D0/3.D0*( X(NM(mm,1)) + 
+                           XBCv(k,mm) = 1.0/3.0*( X(NM(mm,1)) + 
      &                          X(NM(mm,2)) + X(NM(mm,3)) )
-                           YBCv(k,mm) = 1.D0/3.D0*( Y(NM(mm,1)) + 
+                           YBCv(k,mm) = 1.0/3.0*( Y(NM(mm,1)) + 
      &                          Y(NM(mm,2)) + Y(NM(mm,3)) )
 
                                 !Stored_neighbors(k,mm,lll) = k*mm*lll !store neighboring elements
@@ -272,14 +272,14 @@ C.....of base element k to the master element space
 
                            xi1BCv(k,mm) = ( (y(NM(mm,3))-y(NM(mm,1)))*
      &                          ( XBCv(k,mm) 
-     &                          -0.5D0 * (x(Nm(mm,2)) + x(NM(mm,3)))) + 
+     &                          -0.50 * (x(Nm(mm,2)) + x(NM(mm,3)))) + 
      &                          (x(NM(mm,1)) - x(NM(mm,3)))*(YBCv(k,mm) 
-     &                   - 0.5D0*(y(NM(mm,2)) + y(NM(mm,3))) ) ) / areau
+     &                   - 0.50*(y(NM(mm,2)) + y(NM(mm,3))) ) ) / areau
                            xi2BCv(k,mm) = ( (y(NM(mm,1))-y(NM(mm,2)))*
      &                          ( XBCv(k,mm) 
-     &                          -0.5D0 * (x(Nm(mm,2)) + x(NM(mm,3)))) + 
+     &                          -0.50 * (x(Nm(mm,2)) + x(NM(mm,3)))) + 
      &                          (x(NM(mm,2)) - x(NM(mm,1)))*(YBCv(k,mm)
-     &                   - 0.5D0*(y(NM(mm,2)) + y(NM(mm,3))) ) ) / areau
+     &                   - 0.50*(y(NM(mm,2)) + y(NM(mm,3))) ) ) / areau
                            
                         endif
                      enddo
@@ -292,10 +292,10 @@ C.....of base element k to the master element space
 C.....Now compute the derivatives of the Taylor basis with respect to the physical 
 C.....basis using the transformation rules from the paper (e.g. Leibniz and Faa' di Bruno formulas)
                
-               dxdxi1 = 0.5D0 * ( x(N2) - x(N1) )
-               dydxi1 = 0.5D0 * ( y(N2) - y(N1) )
-               dxdxi2 = 0.5D0 * ( x(N3) - x(N1) )
-               dydxi2 = 0.5D0 * ( y(N3) - y(N1) )
+               dxdxi1 = 0.50 * ( x(N2) - x(N1) )
+               dydxi1 = 0.50 * ( y(N2) - y(N1) )
+               dxdxi2 = 0.50 * ( x(N3) - x(N1) )
+               dydxi2 = 0.50 * ( y(N3) - y(N1) )
 
                dxi1dx = ( y(N3) - y(N1) ) / areau
                dxi2dx = ( y(N1) - y(N2) ) / areau
@@ -313,7 +313,7 @@ C.....using the physical to master transformation, e.g. T^-1:x-->xi
                      Call factorial(i,fact(i))
                      Call factorial(j,fact(j))
 
-                     Area_integral(k,i,j) = 0.D0
+                     Area_integral(k,i,j) = 0.0
 
 
                      do mm = 1,NAGP(ll) !number of quad points
@@ -350,7 +350,7 @@ C.....using the physical to master transformation, e.g. T^-1:x-->xi
 
                      do lll = 1,3 !at vertices
 
-                        AreaV_integral(k,i,j,lll) = 0.D0
+                        AreaV_integral(k,i,j,lll) = 0.0
 
                         do mm = 1,nagp(ll) !number of quad points
 
@@ -403,7 +403,7 @@ C.....Re-order the Taylor basis functions and componentwise derivatives into hie
                         
                         if ( abs(var2sigmag(k,mm,bbb)).lt.1.0E-15 ) then
 
-                           var2sigmag(k,mm,bbb) = 0.D0 
+                           var2sigmag(k,mm,bbb) = 0.0 
                            
                         endif
 
@@ -416,7 +416,7 @@ C.....Re-order the Taylor basis functions and componentwise derivatives into hie
 
                        if ( abs(var2sigmav(k,lll,bbb)).lt.1.0E-15 ) then
 
-                                !var2sigmav(k,lll,bbb) = 0.D0 
+                                !var2sigmav(k,lll,bbb) = 0.0 
                            
                         endif
 
@@ -440,9 +440,9 @@ C.....matrix Nmatrix=Pmatrix*M(-1), using the mass matrix inverse M_inv,
 
                ell = (ll+1)*(ll+2)/2
 
-               A = 0.D0
-               Full_M_inv = 0.D0
-               temp_p = 0.D0
+               A = 0.0
+               Full_M_inv = 0.0
+               temp_p = 0.0
 
 
 
@@ -450,7 +450,7 @@ C.....matrix Nmatrix=Pmatrix*M(-1), using the mass matrix inverse M_inv,
 
                   do j = 1,ell
                      
-                     pmatrix(k,i,j)=0.D0
+                     pmatrix(k,i,j)=0.0
 
                      do mm=1,NAGP(ll)
                         

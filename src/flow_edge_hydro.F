@@ -97,70 +97,70 @@ C.....Compute ZE, QX, QY, and HB at each edge Gauss quadrature point
 
          DO I = 1,NEGP(pa)
 
-            ZE_IN = 0.D0
-            QX_IN = 0.D0
-            QY_IN = 0.D0
+            ZE_IN = 0.0
+            QX_IN = 0.0
+            QY_IN = 0.0
 
-            ZE_EX = 0.D0
-            QX_EX = 0.D0
-            QY_EX = 0.D0
+            ZE_EX = 0.0
+            QX_EX = 0.0
+            QY_EX = 0.0
             
-            HB_IN = 0.D0
+            HB_IN = 0.0
             SFAC_IN = SFACED(I,LED,EL_IN,pa)
 
 #ifdef TRACE
-            iota_IN = 0.D0
-            iota_EX = 0.D0
+            iota_IN = 0.0
+            iota_EX = 0.0
 #endif
 
 #ifdef CHEM
-            iota_IN = 0.D0
-            iota_EX = 0.D0
+            iota_IN = 0.0
+            iota_EX = 0.0
 
-            iota2_IN = 0.D0
-            iota2_EX = 0.D0
+            iota2_IN = 0.0
+            iota2_EX = 0.0
 #endif     
 
 
 #ifdef DYNP 
-            dynP_IN = 0.D0
+            dynP_IN = 0.0
             dynP_EX = 0.D
 #endif
 
 #ifdef TRACE
-            TZ_X_IN = 0.D0
-            TZ_Y_IN = 0.D0
+            TZ_X_IN = 0.0
+            TZ_Y_IN = 0.0
 #endif
 
 
 #ifdef SED_LAY
-            bed_IN(:) = 0.D0 
-            bed_EX(:) = 0.D0
+            bed_IN(:) = 0.0 
+            bed_EX(:) = 0.0
             
-            MZ_X_IN(:) = 0.D0
-            MZ_Y_IN(:) = 0.D0
+            MZ_X_IN(:) = 0.0
+            MZ_Y_IN(:) = 0.0
 #endif
 
 #ifdef WAVE_DIF
-            HZ_X_IN = 0.D0
-            HZ_Y_IN = 0.D0
+            HZ_X_IN = 0.0
+            HZ_Y_IN = 0.0
 #endif
 
-            LZ_XX_IN = 0.D0
-            LZ_XY_IN = 0.D0
-            LZ_YX_IN = 0.D0
-            LZ_YY_IN = 0.D0
+            LZ_XX_IN = 0.0
+            LZ_XY_IN = 0.0
+            LZ_YX_IN = 0.0
+            LZ_YY_IN = 0.0
 
             
 C.....Compute the specified flow boundaries for the exterior state
 
-            Q_N_EXT = 0.D0
+            Q_N_EXT = 0.0
             DO JJ = 1,MNFFR
                IF (NFFR.EQ.0) THEN
-                  ARGJ = 0.D0
+                  ARGJ = 0.0
                   RFF = RAMPDG
-               ELSEIF (FPER(JJ).EQ.0.D0) THEN
-                  NCYC = 0.D0
+               ELSEIF (FPER(JJ).EQ.0.0) THEN
+                  NCYC = 0.0
                   ARGJ = FAMIG(JJ)*(TIMEDG - NCYC*FPER(JJ)) + FFACE(JJ)
                   RFF  = FFF(JJ)*RAMPDG
                ELSE
@@ -169,16 +169,16 @@ C.....Compute the specified flow boundaries for the exterior state
                   RFF  = FFF(JJ)*RAMPDG
                ENDIF
                
-               QNAM_GP = 0.5D0*(QNAM_DG(JJ,L,1) + QNAM_DG(JJ,L,2))
-     &            + 0.5D0*(QNAM_DG(JJ,L,2) - QNAM_DG(JJ,L,1))*XEGP(I,PA)
-               QNPH_GP = 0.5D0*(QNPH_DG(JJ,L,1) + QNPH_DG(JJ,L,2))
-     &            + 0.5D0*(QNPH_DG(JJ,L,2) - QNPH_DG(JJ,L,1))*XEGP(I,PA)
+               QNAM_GP = 0.50*(QNAM_DG(JJ,L,1) + QNAM_DG(JJ,L,2))
+     &            + 0.50*(QNAM_DG(JJ,L,2) - QNAM_DG(JJ,L,1))*XEGP(I,PA)
+               QNPH_GP = 0.50*(QNPH_DG(JJ,L,1) + QNPH_DG(JJ,L,2))
+     &            + 0.50*(QNPH_DG(JJ,L,2) - QNPH_DG(JJ,L,1))*XEGP(I,PA)
                
                ARG = ARGJ - QNPH_GP
                
                Q_N_EXT = Q_N_EXT + QNAM_GP*RFF*COS(ARG)
-        !Q_N_EXT = Q_N_EXT + QNAM_GP*RFF*COS(ARG)+rff*RAMPExtFlux*0.05D0 
-               Q_T_EXT =  0.D0
+        !Q_N_EXT = Q_N_EXT + QNAM_GP*RFF*COS(ARG)+rff*RAMPExtFlux*0.050 
+               Q_T_EXT =  0.0
                
                QX_EX = -( TY*Q_N_EXT - NY*Q_T_EXT)/(NX*TY - NY*TX)
                QY_EX = -(-TX*Q_N_EXT + NX*Q_T_EXT)/(NX*TY - NY*TX)
@@ -300,7 +300,7 @@ C.....Compute the edge integral
 
             DO K = 1,DOFS(EL_IN)
 
-               W_IN = 2.0d0*M_INV(K,pa)/AREAS(EL_IN)*XLEN(GED)*
+               W_IN = 2.0*M_INV(K,pa)/AREAS(EL_IN)*XLEN(GED)*
      &              PHI_EDGE(K,I,LED,pa)*WEGP(I,pa)
 
                tmp = atomicAdd(RHS_ZE(K,EL_IN,IRK), -W_IN*F_HAT)

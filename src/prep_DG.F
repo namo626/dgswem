@@ -72,9 +72,9 @@ C.....Declare local variables
      & BARY(DIM) )
       Allocate ( PT(DIM) )
 
-      C13 = 1.D0/3.D0
-      C16 = 1.D0/6.D0
-      R = 6378206.4d0
+      C13 = 1.0/3.0
+      C16 = 1.0/6.0
+      R = 6378206.40
 
       call alloc_managed()
 
@@ -228,10 +228,10 @@ C.....Re-arrange non-zero flow specified boundary segment data for DG
                      IF (NQEDS .LE. NFEDS) THEN
                         QNAM_DG(1,NQEDS,1) = RAMPDG*( QNIN1(J) + 
      &                                 QTRATIO*( QNIN2(J) - QNIN1(J) ) )
-                        QNPH_DG(1,NQEDS,1) = 0.D0
+                        QNPH_DG(1,NQEDS,1) = 0.0
                         QNAM_DG(1,NQEDS,2) = RAMPDG*( QNIN1(J+1) + 
      &                             QTRATIO*( QNIN2(J+1) - QNIN1(J+1) ) )
-                        QNPH_DG(1,NQEDS,2) = 0.D0
+                        QNPH_DG(1,NQEDS,2) = 0.0
                      ENDIF
                   ENDIF
                ENDDO
@@ -316,7 +316,7 @@ C.....Construct node to element angle table
                      IF ((J3.EQ.N1).OR.(J3.EQ.N2).OR.(J3.EQ.N3)) THEN
                         ELETAB(I,1+KK) = EL
                         S2  = SFAC(J2)
-                        SAV = (S1 + S2)/2.D0
+                        SAV = (S1 + S2)/2.0
                         VEC1(1) =      X(J1) - X(J2)
                         VEC1(2) = SAV*(Y(J1) - Y(J2))
                         VEC2(1) =      X(J1) - X(J3)
@@ -342,31 +342,31 @@ C.....Construct node to element angle table
       
 C.....Initialize the DG arrays
 
-      ZE = 0.D0
-      zeo = 0.D0
-      QX = 0.D0
-      QY = 0.D0
-      hbo = 0.D0
-      hb = 0.D0
-      LZ = 0.d0
-      HZ = 0.D0
-      TZ = 0.D0
-      MZ = 0.D0
-      iota = 0.D0
-      iota2 = 0.D0
-      iotaa = 0.D0
-      iotaa2 = 0.D0 
-      iotaa3 = 0.D0       
-      MassMax = 0.D0
+      ZE = 0.0
+      zeo = 0.0
+      QX = 0.0
+      QY = 0.0
+      hbo = 0.0
+      hb = 0.0
+      LZ = 0.0
+      HZ = 0.0
+      TZ = 0.0
+      MZ = 0.0
+      iota = 0.0
+      iota2 = 0.0
+      iotaa = 0.0
+      iotaa2 = 0.0 
+      iotaa3 = 0.0       
+      MassMax = 0.0
       MARK = 0
-      bed = 0.D0
-      RHS_ZE = 0.D0
-      RHS_QX = 0.D0
-      RHS_QY = 0.D0
-      RHS_iota = 0.D0
-      RHS_iota2 = 0.D0
-      WSX2(:) = 0.d0
-      WSY2(:) = 0.d0
+      bed = 0.0
+      RHS_ZE = 0.0
+      RHS_QX = 0.0
+      RHS_QY = 0.0
+      RHS_iota = 0.0
+      RHS_iota2 = 0.0
+      WSX2(:) = 0.0
+      WSY2(:) = 0.0
 C.....If using modal initial conditions transform the bathymetry from
 C.....nodal coordinates to modal dof
 
@@ -374,14 +374,14 @@ C.....nodal coordinates to modal dof
          N1 = NM(J,1)
          N2 = NM(J,2)
          N3 = NM(J,3)
-         hbo(1,J,1) =  1.D0/3.D0 * (DP(N1) + DP(N2) + DP(N3))
-         hbo(2,J,1) = -1.D0/6.D0 * (DP(N1) + DP(N2)) + 1.D0/3.D0*DP(N3)
-         hbo(3,J,1) = -0.5D0*DP(N1) + 0.5D0*DP(N2)
+         hbo(1,J,1) =  1.0/3.0 * (DP(N1) + DP(N2) + DP(N3))
+         hbo(2,J,1) = -1.0/6.0 * (DP(N1) + DP(N2)) + 1.0/3.0*DP(N3)
+         hbo(3,J,1) = -0.50*DP(N1) + 0.50*DP(N2)
 
-         ydubo(1,J)= 1.D0/3.D0*(Y(N1) + Y(N2) + Y(N3))
-         ydubo(2,J) = -1.D0/6.D0*(Y(N1) + Y(N2))
-     $        + 1.D0/3.D0*Y(N3)
-         ydubo(3,J) = -0.5D0*Y(N1) + 0.5D0*Y(N2)
+         ydubo(1,J)= 1.0/3.0*(Y(N1) + Y(N2) + Y(N3))
+         ydubo(2,J) = -1.0/6.0*(Y(N1) + Y(N2))
+     $        + 1.0/3.0*Y(N3)
+         ydubo(3,J) = -0.50*Y(N1) + 0.50*Y(N2)
 
       ENDDO
 
@@ -390,11 +390,11 @@ C.....nodal coordinates to modal dof
             N1 = NM(J,1)
             N2 = NM(J,2)
             N3 = NM(J,3)
-            MANN(1,J) =  1.D0/3.D0*(ManningsN(N1)
+            MANN(1,J) =  1.0/3.0*(ManningsN(N1)
      $           + ManningsN(N2) + ManningsN(N3))
-            MANN(2,J) = -1.D0/6.D0*(ManningsN(N1) 
-     $           + ManningsN(N2)) + 1.D0/3.D0*ManningsN(N3)
-            MANN(3,J) = -0.5D0*ManningsN(N1) + 0.5D0*ManningsN(N2)
+            MANN(2,J) = -1.0/6.0*(ManningsN(N1) 
+     $           + ManningsN(N2)) + 1.0/3.0*ManningsN(N3)
+            MANN(3,J) = -0.50*ManningsN(N1) + 0.50*ManningsN(N2)
          ENDDO
       endif
 
@@ -405,12 +405,12 @@ C     this assumes a cold start
                N1 = NM(J,1)
                N2 = NM(J,2)
                N3 = NM(J,3)
-               zeo(1,J,1)=1.d0/3.d0*(GeoidOffset(N1)+GeoidOffset(N2)+
+               zeo(1,J,1)=1.0/3.0*(GeoidOffset(N1)+GeoidOffset(N2)+
      $              GeoidOffset(N3))
                IF (dof_0.NE.1) THEN
-                 zeo(2,J,1)=-1.d0/6.d0*(GeoidOffset(N1)+GeoidOffset(N2))
-     $                 +1.d0/3.d0*GeoidOffset(N3)
-                  zeo(3,J,1)=-.5d0*GeoidOffset(N1)+.5d0*GeoidOffset(N2)
+                 zeo(2,J,1)=-1.0/6.0*(GeoidOffset(N1)+GeoidOffset(N2))
+     $                 +1.0/3.0*GeoidOffset(N3)
+                  zeo(3,J,1)=-.50*GeoidOffset(N1)+.50*GeoidOffset(N2)
                ENDIF
             ENDDO
          endif
@@ -450,7 +450,7 @@ C.....2. Set wet-and-dry elemental flags
 C.....3. Set the DOF at dry elements = 1
       do j=1,ph
           jj = 2*j
-          NEGP(j)  = CEILING((jj+3)/2.0d0)
+          NEGP(j)  = CEILING((jj+3)/2.0)
       enddo
 
       NCHECK(1) = 3
@@ -461,11 +461,11 @@ C.....3. Set the DOF at dry elements = 1
       endif
       
       CALL ALLOC_DG_WETDRY()
-      PHI_CHECK = 0.D0
-      PSI_CHECK = 0.D0
+      PHI_CHECK = 0.0
+      PSI_CHECK = 0.0
       H0L = H0
-      H0H = H0 * 1.0d0
-      HABSMIN = H0 * 1.0d0
+      H0H = H0 * 1.0
+      HABSMIN = H0 * 1.0
             
 C.....Retrieve the normals to the edges
 
@@ -608,16 +608,16 @@ C.....Retrieve the edge integral gauss quadrature points
 
           if (j.eq.1) then
 
-             NEGP(ph) = CEILING((phh+3)/2.0d0)
+             NEGP(ph) = CEILING((phh+3)/2.0)
              CALL ALLOC_EDGE_GAUSS()
 
           endif
           jj = 2*j
-          SZ2 = CEILING((jj+3)/2.0d0)
+          SZ2 = CEILING((jj+3)/2.0)
           NEGP(j) = SZ2
 
           Allocate( PTS(SZ2,1), WTS(SZ2) )
-          CALL quad_rules_general(NEGP(j),.true.,0.0d0,0.0d0,PTS,WTS)
+          CALL quad_rules_general(NEGP(j),.true.,0.0,0.0,PTS,WTS)
      
           XEGP(1:NEGP(j),j) = PTS(1:NEGP(j),1)
           WEGP(1:NEGP(j),j) = WTS(1:NEGP(j))
@@ -631,18 +631,18 @@ C.....Determine vertices and element barycenter by elements type
   
       if (ELEM .eq. 1 .and. DIM .eq. 2) then
          Allocate( VERT(3,DIM) )
-         BARY(:) = (/ -1.D0/3.D0, -1.D0/3.D0/)
-         VERT(1,:) = (/ -1.D0, -1.D0 /)
-         VERT(2,:) = (/ 1.D0, -1.D0 /)
-         VERT(3,:) = (/ -1.D0, 1.D0 /)
+         BARY(:) = (/ -1.0/3.0, -1.0/3.0/)
+         VERT(1,:) = (/ -1.0, -1.0 /)
+         VERT(2,:) = (/ 1.0, -1.0 /)
+         VERT(3,:) = (/ -1.0, 1.0 /)
          ADDGP = 3
       elseif (ELEM .eq. 2 .and. DIM .eq. 2) then
          Allocate( VERT(4,DIM) )
-         BARY(:) = (/ 0.D0, 0.D0 /)
-         VERT(1,:) = (/ -1.D0, -1.D0 /)
-         VERT(2,:) = (/ 1.D0, -1.D0 /)
-         VERT(3,:) = (/ 1.D0, 1.D0 /)
-         VERT(4,:) = (/ -1.D0, 1.D0 /)
+         BARY(:) = (/ 0.0, 0.0 /)
+         VERT(1,:) = (/ -1.0, -1.0 /)
+         VERT(2,:) = (/ 1.0, -1.0 /)
+         VERT(3,:) = (/ 1.0, 1.0 /)
+         VERT(4,:) = (/ -1.0, 1.0 /)
          ADDGP = 4
       endif
 
@@ -717,7 +717,7 @@ c........For triangular elements
             do J = 0,P
                do I = 0,J
                   JJ = J - I
-                  M_INV(M,P) =((2.D0*I+1.D0)*(2.D0*JJ+2.D0*I+2.D0)/4.D0)
+                  M_INV(M,P) =((2.0*I+1.0)*(2.0*JJ+2.0*I+2.0)/4.0)
                   M = M+1
                enddo
             enddo
@@ -727,7 +727,7 @@ c........For rectangular elements
             do J = 0,P
                do I = 0,J
                   JJ = J - I
-                  M_INV(M,P) = ((2.D0*I+1.D0)*(2.D0*JJ+1.D0)/4.D0)
+                  M_INV(M,P) = ((2.0*I+1.0)*(2.0*JJ+1.0)/4.0)
                   M = M+1
                enddo
             enddo
@@ -738,8 +738,8 @@ c........For triangular prism elements
                do J = 0,P
                   do I = 0,J
                      JJ = J - I
-                     M_INV(M,P) = ((2.D0*I+1.D0)*(2.D0*JJ+2.D0*I+2.D0)*
-     &                   (2.D0*k+1.D0)/8.D0)
+                     M_INV(M,P) = ((2.0*I+1.0)*(2.0*JJ+2.0*I+2.0)*
+     &                   (2.0*k+1.0)/8.0)
                      M = M+1
                   enddo
                enddo
@@ -751,8 +751,8 @@ c........For rectangular hexahedron elements
                do J = 0,P
                   do I = 0,J
                      JJ = J - I
-                     M_INV(M,P) = ((2.D0*I+1.D0)*(2.D0*JJ+1.D0)*
-     &                   (2.D0*k+1.D0)/8.D0)
+                     M_INV(M,P) = ((2.0*I+1.0)*(2.0*JJ+1.0)*
+     &                   (2.0*k+1.0)/8.0)
                      M = M+1
                   enddo
                enddo
@@ -770,24 +770,24 @@ c..............Get edge gauss points (and midpoint) for triangle edges
                         PT(1) = -XEGP(Q,L)
                         PT(2) =  XEGP(Q,L)
                      else
-                        PT(1) = 0.D0
-                        PT(2) = 0.D0
+                        PT(1) = 0.0
+                        PT(2) = 0.0
                      endif
                   elseif (II.eq.2) then
                      if (Q.lt.(NEGP(L)+1)) then
-                        PT(1) = -1.D0
+                        PT(1) = -1.0
                         PT(2) = -XEGP(Q,L)
                      else
-                        PT(1) = -1.D0
-                        PT(2) =  0.D0
+                        PT(1) = -1.0
+                        PT(2) =  0.0
                      endif
                   elseif (II.eq.3) then
                      if (Q.lt.(NEGP(L)+1)) then
                         PT(1) = XEGP(Q,L)
-                        PT(2) = -1.D0
+                        PT(2) = -1.0
                      else
-                        PT(1) =  0.D0
-                        PT(2) = -1.D0
+                        PT(1) =  0.0
+                        PT(2) = -1.0
                      endif
                   endif
 c..............Get edge gauss points (and midpoint) for rectangle edges
@@ -795,34 +795,34 @@ c..............Get edge gauss points (and midpoint) for rectangle edges
                   if (II.eq.1) then
                      if (Q.lt.(NEGP(L)+1)) then
                         PT(1) = -XEGP(Q,L)
-                        PT(2) = 1.D0
+                        PT(2) = 1.0
                      else
-                        PT(1) = 0.D0
-                        PT(2) = 1.D0
+                        PT(1) = 0.0
+                        PT(2) = 1.0
                      endif
                   elseif (II.eq.2) then
                      if (Q.lt.(NEGP(L)+1)) then
-                        PT(1) = -1.D0
+                        PT(1) = -1.0
                         PT(2) = -XEGP(Q,L)
                      else
-                        PT(1) = -1.D0
-                        PT(2) =  0.D0
+                        PT(1) = -1.0
+                        PT(2) =  0.0
                      endif
                   elseif (II.eq.3) then
                      if (Q.lt.(NEGP(L)+1)) then
                         PT(1) = XEGP(Q,L)
-                        PT(2) = -1.D0
+                        PT(2) = -1.0
                      else
-                        PT(1) =  0.D0
-                        PT(2) = -1.D0
+                        PT(1) =  0.0
+                        PT(2) = -1.0
                      endif
                   elseif (II.eq.4) then
                      if (Q.lt.(NEGP(L)+1)) then
-                        PT(1) = 1.D0
+                        PT(1) = 1.0
                         PT(2) = XEGP(Q,L)
                      else
-                        PT(1) = 1.D0
-                        PT(2) = 0.D0
+                        PT(1) = 1.0
+                        PT(2) = 0.0
                      endif
                   endif
                endif
@@ -844,9 +844,9 @@ C..............point, order basis functions hierarchically
                do Q = 1,NEGP(L)+1
                   if (P.gt.1) then
                      if (Q.lt.(NEGP(L)+1)) then
-                        PSI_CHECK(1,III) = -1.D0/2.D0*(XP + YP )
-                        PSI_CHECK(2,III) =  1.D0/2.D0*(XP + 1.D0)
-                        PSI_CHECK(3,III) =  1.D0/2.D0*(YP + 1.D0)
+                        PSI_CHECK(1,III) = -1.0/2.0*(XP + YP )
+                        PSI_CHECK(2,III) =  1.0/2.0*(XP + 1.0)
+                        PSI_CHECK(3,III) =  1.0/2.0*(YP + 1.0)
                         III = III + 1
                      endif
                   endif
@@ -858,10 +858,10 @@ C..............point, order basis functions hierarchically
                do Q = 1,NEGP(L)+1
                   if (P.gt.1) then
                      if (Q.lt.(NEGP(L)+1)) then
-                        PSI_CHECK(1,III) =  1.D0/2.D0*(XP - 1.D0)
-                        PSI_CHECK(2,III) =  1.D0/2.D0*(YP - 1.D0)
-                        PSI_CHECK(3,III) =  1.D0/2.D0*(XP + 1.D0)
-                        PSI_CHECK(4,III) =  1.D0/2.D0*(YP + 1.D0)
+                        PSI_CHECK(1,III) =  1.0/2.0*(XP - 1.0)
+                        PSI_CHECK(2,III) =  1.0/2.0*(YP - 1.0)
+                        PSI_CHECK(3,III) =  1.0/2.0*(XP + 1.0)
+                        PSI_CHECK(4,III) =  1.0/2.0*(YP + 1.0)
                         III = III + 1
                      endif
                   endif
@@ -874,12 +874,12 @@ C***********************************************************************
 
 C.....Do the L2-projection of the initial conditions
 
-      hb = 0.D0
-      qx = 0.D0
-      qy = 0.D0
-      ze = 0.D0
-      ydub = 0.d0
-      hb1 = 0.D0
+      hb = 0.0
+      qx = 0.0
+      qy = 0.0
+      ze = 0.0
+      ydub = 0.0
+      hb1 = 0.0
  
       hb(1:dofh,:,1) = hbo(1:dofh,:,1)
       ze(1:dofh,:,1) = zeo(1:dofh,:,1)
@@ -903,22 +903,22 @@ C....adapt for higher order initial data
 
 #ifdef ARTDIF
       !Set up the artificial diffusion stuff
-      e1(:) = 0.D0
-      balance(:) = 0.D0
-      entrop(:,:) = -100.D0
+      e1(:) = 0.0
+      balance(:) = 0.0
+      entrop(:,:) = -100.0
 
       if (tune_by_hand.eq.1) then
 
-         balance(4) = 0.D0     
+         balance(4) = 0.0     
          
-         s0    =  0.0D0       
-         kappa =   -1.D0      
+         s0    =  0.0       
+         kappa =   -1.0      
          
-         e1(1) = 0.D0
-         e1(2) = 0.D0
-         e1(3) = 0.D0
+         e1(1) = 0.0
+         e1(2) = 0.0
+         e1(3) = 0.0
          e1(4) = 2.5e-6       
-         e1(5) = 0.D0
+         e1(5) = 0.0
          
       else
          
@@ -939,20 +939,20 @@ C.....area gauss quadrature points, at every p level chi
 
       do chi = 1,ph
          do I = 1,NAGP(chi)
-            PSI1(I,chi) = -1.D0/2.D0*(XAGP(I,chi) + YAGP(I,chi))
-            PSI2(I,chi) =  1.D0/2.D0*(XAGP(I,chi) + 1.D0)
-            PSI3(I,chi) =  1.D0/2.D0*(YAGP(I,chi) + 1.D0)
+            PSI1(I,chi) = -1.0/2.0*(XAGP(I,chi) + YAGP(I,chi))
+            PSI2(I,chi) =  1.0/2.0*(XAGP(I,chi) + 1.0)
+            PSI3(I,chi) =  1.0/2.0*(YAGP(I,chi) + 1.0)
          enddo
       enddo
       
 C.....Store the derivatives of the (linear) nodal basis functions
 
-      DRPSI(1) = -1.D0/2.D0
-      DRPSI(2) =  1.D0/2.D0
-      DRPSI(3) =  0.D0
-      DSPSI(1) = -1.D0/2.D0
-      DSPSI(2) =  0.D0
-      DSPSI(3) =  1.D0/2.D0
+      DRPSI(1) = -1.0/2.0
+      DRPSI(2) =  1.0/2.0
+      DRPSI(3) =  0.0
+      DSPSI(1) = -1.0/2.0
+      DSPSI(2) =  0.0
+      DSPSI(3) =  1.0/2.0
       
 
 C.....Pre-compute the derivatives of the coordinate transformation for
@@ -972,26 +972,26 @@ C.....Retrieve the global node numbers for the element
          x3=x(n3)
          y3=y(n3)
          AREA = (X1 - X3)*(Y2 - Y3) + (X3 - X2)*(Y1 - Y3)
-         area=area*.5d0
+         area=area*.50
 
 C.....Compute the derivatives of the coordinate transformation
 
-         DRDX(J) = 1.D0/AREA*(Y(N3) - Y(N1))
-         DSDX(J) = 1.D0/AREA*(Y(N1) - Y(N2))
+         DRDX(J) = 1.0/AREA*(Y(N3) - Y(N1))
+         DSDX(J) = 1.0/AREA*(Y(N1) - Y(N2))
 
-         DRDY(J) = 1.D0/AREA*(X(N1) - X(N3))
-         DSDY(J) = 1.D0/AREA*(X(N2) - X(N1))
+         DRDY(J) = 1.0/AREA*(X(N1) - X(N3))
+         DSDY(J) = 1.0/AREA*(X(N2) - X(N1))
          
 C.......Compute elemental Coriolis and friction terms
 
-         CORI_EL(J) = (CORIF(N1) + CORIF(N2) + CORIF(N3))/3.D0
-         FRIC_EL(J) = (FRIC(N1) + FRIC(N2) + FRIC(N3))/3.D0
+         CORI_EL(J) = (CORIF(N1) + CORIF(N2) + CORIF(N3))/3.0
+         FRIC_EL(J) = (FRIC(N1) + FRIC(N2) + FRIC(N3))/3.0
 
 C.......Pre-compute the bathymetry and the gradient of the bathymetry at
 C.......the quadrature points and compute volume of water
 
-         DP_VOL(J,:) = 0.D0
-         SFAC_ELEM(:,J,:) = 0.D0
+         DP_VOL(J,:) = 0.0
+         SFAC_ELEM(:,J,:) = 0.0
 
          do chi = 1,ph
 
@@ -999,10 +999,10 @@ C.......the quadrature points and compute volume of water
 
                do I = 1,NAGP(chi) ! Forced for wetting and drying's sake
 
-                  BATH(I,J,chi) = 0.D0
-                  DBATHDX(I,J,chi) = 0.D0
-                  DBATHDY(I,J,chi) = 0.D0
-                  YELEM(chi) = 0.d0
+                  BATH(I,J,chi) = 0.0
+                  DBATHDX(I,J,chi) = 0.0
+                  DBATHDY(I,J,chi) = 0.0
+                  YELEM(chi) = 0.0
 
                   DO K = 1,(chi+1)*(chi+2)/2 
 
@@ -1018,7 +1018,7 @@ C.......the quadrature points and compute volume of water
      &                  PHI_AREA(K,I,chi)
                      
                      IF (ICS.EQ.1) THEN
-                        SFAC_ELEM(I,J,chi)=1.0D0
+                        SFAC_ELEM(I,J,chi)=1.0
                      ELSE
                         SFAC_ELEM(I,J,chi)=COS(SFEA0)/COS(YELEM(chi)/R)
                      ENDIF
@@ -1036,10 +1036,10 @@ C.......the quadrature points and compute volume of water
 
                do I = 1,NAGP(chi) ! Area quadrature points
 
-                  BATH(I,J,chi) = 0.D0
-                  DBATHDX(I,J,chi) = 0.D0
-                  DBATHDY(I,J,chi) = 0.D0
-                  YELEM(chi) = 0.d0
+                  BATH(I,J,chi) = 0.0
+                  DBATHDX(I,J,chi) = 0.0
+                  DBATHDY(I,J,chi) = 0.0
+                  YELEM(chi) = 0.0
 
                   DO K = 1,(chi+1)*(chi+2)/2 
 
@@ -1055,7 +1055,7 @@ C.......the quadrature points and compute volume of water
      &                  PHI_AREA(K,I,chi)
                      
                      IF (ICS.EQ.1) THEN
-                        SFAC_ELEM(I,J,chi)=1.0D0
+                        SFAC_ELEM(I,J,chi)=1.0
                      ELSE
                         SFAC_ELEM(I,J,chi)=COS(SFEA0)/COS(YELEM(chi)/R)
                      ENDIF
@@ -1074,7 +1074,7 @@ C.......the quadrature points and compute volume of water
          enddo 
 
          do chi = 1,ph
-            DP_VOL(J,chi) = 0.25D0*AREAS(J)*DP_VOL(J,chi)
+            DP_VOL(J,chi) = 0.250*AREAS(J)*DP_VOL(J,chi)
          enddo
 
          do chi = 1,ph
@@ -1084,8 +1084,8 @@ C.......the quadrature points and compute volume of water
                DO L = 1,3
                   do I = 1,NEGP(chi) ! Edge quadrature points
 
-                     BATHED(I,L,J,chi) = 0.D0
-                     yed(chi) = 0.d0
+                     BATHED(I,L,J,chi) = 0.0
+                     yed(chi) = 0.0
 
                      DO K = 1,(chi+1)*(chi+2)/2
                         
@@ -1096,12 +1096,12 @@ C.......the quadrature points and compute volume of water
      &                     PHI_EDGE(K,I,L,chi)
 
                         IF (ICS.EQ.1) THEN
-                           SFACED(I,L,J,chi)=1.0d0
+                           SFACED(I,L,J,chi)=1.0
                         ELSE
                            SFACED(I,L,J,chi)=COS(SFEA0)/COS(YED(chi)/R)
                         ENDIF
 
-                        EDGEQ(K,I,L,chi) = 2.0d0*M_INV(K,chi)*
+                        EDGEQ(K,I,L,chi) = 2.0*M_INV(K,chi)*
      &                     PHI_EDGE(K,I,L,chi)*WEGP(I,chi)
 
                      ENDDO
@@ -1113,8 +1113,8 @@ C.......the quadrature points and compute volume of water
                DO L = 1,3
                   do I = 1,NEGP(chi) ! Edge quadrature points
 
-                     BATHED(I,L,J,chi) = 0.D0
-                     yed(chi) = 0.d0
+                     BATHED(I,L,J,chi) = 0.0
+                     yed(chi) = 0.0
 
                      DO K = 1,(chi+1)*(chi+2)/2
                         
@@ -1125,12 +1125,12 @@ C.......the quadrature points and compute volume of water
      &                     PHI_EDGE(K,I,L,chi)
 
                         IF (ICS.EQ.1) THEN
-                           SFACED(I,L,J,chi)=1.0d0
+                           SFACED(I,L,J,chi)=1.0
                         ELSE
                            SFACED(I,L,J,chi)=COS(SFEA0)/COS(YED(chi)/R)
                         ENDIF
 
-                        EDGEQ(K,I,L,chi) = 2.0d0*M_INV(K,chi)*
+                        EDGEQ(K,I,L,chi) = 2.0*M_INV(K,chi)*
      &                     PHI_EDGE(K,I,L,chi)*WEGP(I,chi)
 
                      ENDDO
@@ -1166,18 +1166,18 @@ C........for wet-dry
       
       DO I = 1,3
          IF (I.EQ.1) THEN
-            XI = -1.D0
-            YI = -1.D0
+            XI = -1.0
+            YI = -1.0
          ELSEIF (I.EQ.2) THEN
-            XI =  1.D0 
-            YI = -1.D0
+            XI =  1.0 
+            YI = -1.0
          ELSE
-            XI = -1.D0
-            YI =  1.D0
+            XI = -1.0
+            YI =  1.0
          ENDIF
-         PSI_CHECK(1,I) = -1.D0/2.D0*(XI + YI)
-         PSI_CHECK(2,I) =  1.D0/2.D0*(XI + 1.D0)
-         PSI_CHECK(3,I) =  1.D0/2.D0*(YI + 1.D0)
+         PSI_CHECK(1,I) = -1.0/2.0*(XI + YI)
+         PSI_CHECK(2,I) =  1.0/2.0*(XI + 1.0)
+         PSI_CHECK(3,I) =  1.0/2.0*(YI + 1.0)
          do chi = 1,ph
             DO K = 1,(chi+1)*(chi+2)/2 
                PHI_CHECK(K,I,chi) = PHI_CORNER(K,I,chi)
@@ -1202,7 +1202,7 @@ C........for wet-dry
       enddo
 C.....Integrate the basis functions
 
-      PHI_INTEGRATED = 0.D0
+      PHI_INTEGRATED = 0.0
       do chi = 1,ph
          DO I = 1,NAGP(chi)
             DO K = 1,(chi+1)*(chi+2)/2
@@ -1228,9 +1228,9 @@ C.....geoid
             
 C.........Check to see if there are initially any dry nodes
 
-                                !ZE1 = 0.D0
-                                !ZE2 = 0.D0
-                                !ZE3 = 0.D0 
+                                !ZE1 = 0.0
+                                !ZE2 = 0.0
+                                !ZE3 = 0.0 
 
             ZE1 = ze(1,J,1)
             ZE2 = ze(1,J,1)
@@ -1241,24 +1241,24 @@ C.........Check to see if there are initially any dry nodes
             
 C.........If so set initial surface elevation values
             
-            IF ((ZE1 + ZE2 + ZE3)/3.D0.NE.ze(1,J,1)) THEN
+            IF ((ZE1 + ZE2 + ZE3)/3.0.NE.ze(1,J,1)) THEN
                IF (p_0.EQ.0) THEN
                   DP_MIN = MIN(DP(NM(J,1)),DP(NM(J,2)),DP(NM(J,3)))
                   ze(1,J,1) = max(ze(1,j,1),H0 - DP_MIN)
                ELSE
-                  IF (ze(1,J,1).GT.(ZE1+ZE2+ZE3)/3.d0) THEN
+                  IF (ze(1,J,1).GT.(ZE1+ZE2+ZE3)/3.0) THEN
                      IF (dof_0.NE.1) THEN
-                        ze(2,J,1)=0.d0
-                        ze(3,J,1)=0.d0
-                        ze(4:dofh,J,1) = 0.D0 ! forced again for
+                        ze(2,J,1)=0.0
+                        ze(3,J,1)=0.0
+                        ze(4:dofh,J,1) = 0.0 ! forced again for
                                               ! transparency
                      ENDIF
                   ELSE
-                     ze(1,J,1)=(ZE1+ZE2+ZE3)/3.D0
+                     ze(1,J,1)=(ZE1+ZE2+ZE3)/3.0
                      IF (DOF_0.NE.1) THEN
-                        ze(2,J,1) = -1.D0/6.D0*(ZE1 + ZE2)+1.D0/3.D0*ZE3
-                        ze(3,J,1) = -0.5D0*ZE1 + 0.5D0*ZE2
-                        ze(4:dofh,J,1) = 0.D0 ! forced again for 
+                        ze(2,J,1) = -1.0/6.0*(ZE1 + ZE2)+1.0/3.0*ZE3
+                        ze(3,J,1) = -0.50*ZE1 + 0.50*ZE2
+                        ze(4:dofh,J,1) = 0.0 ! forced again for 
                                               ! transparency
                      ENDIF
                   ENDIF
@@ -1292,9 +1292,9 @@ C........Retrieve global node numbers for element
 
 C........Check to see if nodes are initially dry
 
-            ZE1 = 0.d0
-            ZE2 = 0.d0
-            ZE3 = 0.d0
+            ZE1 = 0.0
+            ZE2 = 0.0
+            ZE3 = 0.0
             IF (STARTDRY(N1).EQ.1) ZE1 = H0 - DP(N1)
             IF (DP(N1).LT.H0) ZE1 = H0 - DP(N1)
             IF (STARTDRY(N2).EQ.1) ZE2 = H0 - DP(N2)
@@ -1327,19 +1327,19 @@ C.........If so set initial surface elevation values
                   DP_MIN = MIN(DP(NM(J,1)),DP(NM(J,2)),DP(NM(J,3)))
                   ze(1,J,1) = max(ze(1,j,1),H0 - DP_MIN)
                ELSE
-                  IF (ze(1,J,1).GT.(ZE1+ZE2+ZE3)/3.d0) THEN
+                  IF (ze(1,J,1).GT.(ZE1+ZE2+ZE3)/3.0) THEN
                      IF (DOF_0.NE.1) THEN
-                        ze(2,J,1)=0.d0
-                        ze(3,J,1)=0.d0
-                        ze(4:dofh,J,1) = 0.D0 ! forced again for 
+                        ze(2,J,1)=0.0
+                        ze(3,J,1)=0.0
+                        ze(4:dofh,J,1) = 0.0 ! forced again for 
                                               ! transparency
                      ENDIF
                   ELSE
-                     ze(1,J,1)=(ZE1+ZE2+ZE3)/3.D0
+                     ze(1,J,1)=(ZE1+ZE2+ZE3)/3.0
                      IF (DOF_0.NE.1) THEN
-                        ze(2,J,1) = -1.D0/6.D0*(ZE1 + ZE2)+1.D0/3.D0*ZE3
-                        ze(3,J,1) = -0.5D0*ZE1 + 0.5D0*ZE2
-                        ze(4:dofh,J,1) = 0.D0 ! forced again for 
+                        ze(2,J,1) = -1.0/6.0*(ZE1 + ZE2)+1.0/3.0*ZE3
+                        ze(3,J,1) = -0.50*ZE1 + 0.50*ZE2
+                        ze(4:dofh,J,1) = 0.0 ! forced again for 
                                               ! transparency
                      ENDIF
                   ENDIF
@@ -1571,13 +1571,13 @@ C.....The forward Euler method
 
       IF ((RK_STAGE.EQ.1).AND.(RK_ORDER.EQ.1)) THEN
 
-         ATVD(:,:) = 0.D0
-         BTVD(:,:) = 0.D0
-         CTVD(:,:) = 0.D0
-         DTVD(:)   = 0.D0
+         ATVD(:,:) = 0.0
+         BTVD(:,:) = 0.0
+         CTVD(:,:) = 0.0
+         DTVD(:)   = 0.0
 
-         ATVD(1,1) = 1.D0
-         BTVD(1,1) = 1.D0
+         ATVD(1,1) = 1.0
+         BTVD(1,1) = 1.0
 
 C.....SSP(s,2) schemes
 C.....THESE ARE DG-OPTIMIZED METHODS!
@@ -1586,84 +1586,84 @@ C....."Optimal strong-stability-preserving Runge–Kutta time
 C..... discretizations for discontinuous Galerkin methods." 
 C..... Journal of Scientific Computing 60.2 (2014): 313-344.
       ELSEIF (RK_ORDER.EQ.2) THEN
-        ATVD(:,:) = 0.D0
-        BTVD(:,:) = 0.D0
-        CTVD(:,:) = 0.D0
-        DTVD(:)   = 0.D0
+        ATVD(:,:) = 0.0
+        BTVD(:,:) = 0.0
+        CTVD(:,:) = 0.0
+        DTVD(:)   = 0.0
         IF (RK_STAGE.EQ.3) THEN
 
-          ATVD(1,1) =  1.000000000000000D0
-          ATVD(2,1) =  0.087353119859156D0
-          ATVD(3,1) =  0.344956917166841D0
-          ATVD(2,2) =  0.912646880140844D0
-          ATVD(3,3) =  0.655043082833159D0
+          ATVD(1,1) =  1.000000000000000
+          ATVD(2,1) =  0.0873531198591560
+          ATVD(3,1) =  0.3449569171668410
+          ATVD(2,2) =  0.9126468801408440
+          ATVD(3,3) =  0.6550430828331590
 
-          BTVD(1,1) =  0.528005024856522D0
-          BTVD(3,1) =  0.022826837460491D0
-          BTVD(2,2) =  0.481882138633993D0
-          BTVD(3,3) =  0.345866039233415D0
+          BTVD(1,1) =  0.5280050248565220
+          BTVD(3,1) =  0.0228268374604910
+          BTVD(2,2) =  0.4818821386339930
+          BTVD(3,3) =  0.3458660392334150
 
         ELSEIF (RK_STAGE.EQ.4) THEN
 
-          ATVD(1,1) =  1.000000000000000D0
-          ATVD(2,1) =  0.394806441339829D0
-          ATVD(3,1) =  0.002797307087390D0
-          ATVD(4,1) =  0.252860909354373D0
-          ATVD(2,2) =  0.605193558660171D0
-          ATVD(3,3) =  0.997202692912610D0
-          ATVD(4,4) =  0.747139090645627D0
+          ATVD(1,1) =  1.000000000000000
+          ATVD(2,1) =  0.3948064413398290
+          ATVD(3,1) =  0.002797307087390
+          ATVD(4,1) =  0.2528609093543730
+          ATVD(2,2) =  0.6051935586601710
+          ATVD(3,3) =  0.997202692912610
+          ATVD(4,4) =  0.7471390906456270
 
-          BTVD(1,1) =  0.406584463657504D0
-          BTVD(3,1) =  0.013637216641451D0
-          BTVD(4,1) =  0.016453567333598D0
-          BTVD(2,2) =  0.246062298456822D0
-          BTVD(3,3) =  0.405447122055692D0
-          BTVD(4,4) =  0.303775146447707D0
+          BTVD(1,1) =  0.4065844636575040
+          BTVD(3,1) =  0.0136372166414510
+          BTVD(4,1) =  0.0164535673335980
+          BTVD(2,2) =  0.2460622984568220
+          BTVD(3,3) =  0.4054471220556920
+          BTVD(4,4) =  0.3037751464477070
 
         ELSEIF (RK_STAGE.EQ.5) THEN
 
-          ATVD(1,1) = 1.000000000000000D0
-          ATVD(2,1) = 0.235593265061659D0
-          ATVD(3,1) = 0.174017972351526D0
-          ATVD(4,1) = 0.235264368870758D0
-          ATVD(5,1) = 0.141720372339803D0
-          ATVD(2,2) = 0.764406734938341D0
-          ATVD(4,2) = 0.000058643383967D0
-          ATVD(5,2) = 0.095374613155521D0
-          ATVD(3,3) = 0.825982027648475D0
-          ATVD(5,3) = 0.000311763705780D0
-          ATVD(4,4) = 0.764676987745275D0
-          ATVD(5,5) = 0.762593250798895D0
+          ATVD(1,1) = 1.000000000000000
+          ATVD(2,1) = 0.2355932650616590
+          ATVD(3,1) = 0.1740179723515260
+          ATVD(4,1) = 0.2352643688707580
+          ATVD(5,1) = 0.1417203723398030
+          ATVD(2,2) = 0.7644067349383410
+          ATVD(4,2) = 0.0000586433839670
+          ATVD(5,2) = 0.0953746131555210
+          ATVD(3,3) = 0.8259820276484750
+          ATVD(5,3) = 0.000311763705780
+          ATVD(4,4) = 0.7646769877452750
+          ATVD(5,5) = 0.7625932507988950
 
-          BTVD(1,1) = 0.324840618151514D0
-          BTVD(3,1) = 0.108822380501601D0
-          BTVD(4,1) = 0.054392262422093D0
-          BTVD(5,1) = 0.000000180291569D0
-          BTVD(2,2) = 0.248310356296551D0
-          BTVD(4,2) = 0.000019049753098D0
-          BTVD(5,2) = 0.030981548293401D0
-          BTVD(3,3) = 0.268312512443371D0
-          BTVD(5,3) = 0.000101273514903D0
-          BTVD(4,4) = 0.248398145385413D0
-          BTVD(5,5) = 0.247721262987686D0
+          BTVD(1,1) = 0.3248406181515140
+          BTVD(3,1) = 0.1088223805016010
+          BTVD(4,1) = 0.0543922624220930
+          BTVD(5,1) = 0.0000001802915690
+          BTVD(2,2) = 0.2483103562965510
+          BTVD(4,2) = 0.0000190497530980
+          BTVD(5,2) = 0.0309815482934010
+          BTVD(3,3) = 0.2683125124433710
+          BTVD(5,3) = 0.0001012735149030
+          BTVD(4,4) = 0.2483981453854130
+          BTVD(5,5) = 0.2477212629876860
         ELSE
 
-          ATVD(:,:) = 0.D0
-          BTVD(:,:) = 0.D0
-          CTVD(:,:) = 0.D0
-          DTVD(:)   = 0.D0
+          ATVD(:,:) = 0.0
+          BTVD(:,:) = 0.0
+          CTVD(:,:) = 0.0
+          DTVD(:)   = 0.0
 
           DO I = 1,NRK
             DO J = 0,NRK-1
 
                IF ((J.EQ.(I-1)).AND.(I.LT.NRK)) THEN
-                  ATVD(I,J+1) = 1.D0
-                  BTVD(I,J+1) = 1.D0/(NRK-1)
+                  ATVD(I,J+1) = 1.0
+                  BTVD(I,J+1) = 1.0/(NRK-1)
                ELSEIF ((J.EQ.0).AND.(I.EQ.NRK)) THEN
-                  ATVD(I,J+1) = 1.D0/NRK
+                  ATVD(I,J+1) = 1.0/NRK
                ELSEIF ((J.EQ.(NRK-1)).AND.(I.EQ.NRK)) THEN
-                  ATVD(I,J+1) = (NRK-1.D0)/NRK
-                  BTVD(I,J+1) = 1.D0/NRK
+                  ATVD(I,J+1) = (NRK-1.0)/NRK
+                  BTVD(I,J+1) = 1.0/NRK
                ENDIF
 
             ENDDO
@@ -1673,284 +1673,284 @@ C.....SSP(3,3) scheme
 
       ELSEIF ((RK_STAGE.EQ.3).AND.(RK_ORDER.EQ.3)) THEN
 
-         ATVD(:,:) = 0.D0
-         BTVD(:,:) = 0.D0
-         CTVD(:,:) = 0.D0
-         DTVD(:)   = 0.D0
+         ATVD(:,:) = 0.0
+         BTVD(:,:) = 0.0
+         CTVD(:,:) = 0.0
+         DTVD(:)   = 0.0
 
-         ATVD(1,1) = 1.D0
-         ATVD(2,1) = 3.D0/4.D0
-         ATVD(2,2) = 1.D0/4.D0
-         ATVD(3,1) = 1.D0/3.D0
-         ATVD(3,3) = 2.D0/3.D0
+         ATVD(1,1) = 1.0
+         ATVD(2,1) = 3.0/4.0
+         ATVD(2,2) = 1.0/4.0
+         ATVD(3,1) = 1.0/3.0
+         ATVD(3,3) = 2.0/3.0
 
-         BTVD(1,1) = 1.D0
-         BTVD(2,2) = 1.D0/4.D0
-         BTVD(3,3) = 2.D0/3.D0
+         BTVD(1,1) = 1.0
+         BTVD(2,2) = 1.0/4.0
+         BTVD(3,3) = 2.0/3.0
 
 C.....SSP(4,3) scheme
 
       ELSEIF ((RK_STAGE.EQ.4).AND.(RK_ORDER.EQ.3)) THEN
 
-         ATVD(:,:) = 0.D0
-         BTVD(:,:) = 0.D0
-         CTVD(:,:) = 0.D0
-         DTVD(:)   = 0.D0
+         ATVD(:,:) = 0.0
+         BTVD(:,:) = 0.0
+         CTVD(:,:) = 0.0
+         DTVD(:)   = 0.0
 
-         ATVD(1,1) = 1.D0
-         ATVD(2,2) = 1.D0
-         ATVD(3,1) = 2.D0/3.D0
-         ATVD(3,3) = 1.D0/3.D0
-         ATVD(4,4) = 1.D0
+         ATVD(1,1) = 1.0
+         ATVD(2,2) = 1.0
+         ATVD(3,1) = 2.0/3.0
+         ATVD(3,3) = 1.0/3.0
+         ATVD(4,4) = 1.0
 
-         BTVD(1,1) = 1.D0/2.D0
-         BTVD(2,2) = 1.D0/2.D0
-         BTVD(3,3) = 1.D0/6.D0
-         BTVD(4,4) = 1.D0/2.D0
+         BTVD(1,1) = 1.0/2.0
+         BTVD(2,2) = 1.0/2.0
+         BTVD(3,3) = 1.0/6.0
+         BTVD(4,4) = 1.0/2.0
 
 C.....SSP(5,3) scheme
 
       ELSEIF ((RK_STAGE.EQ.5).AND.(RK_ORDER.EQ.3)) THEN
 
-         ATVD(:,:) = 0.D0
-         BTVD(:,:) = 0.D0
-         CTVD(:,:) = 0.D0
-         DTVD(:)   = 0.D0
+         ATVD(:,:) = 0.0
+         BTVD(:,:) = 0.0
+         CTVD(:,:) = 0.0
+         DTVD(:)   = 0.0
 
-         ATVD(1,1) = 1.D0
-         ATVD(2,2) = 1.D0
-         ATVD(3,1) = 0.355909775063327D0
-         ATVD(3,3) = 0.644090224936674D0
-         ATVD(4,1) = 0.367933791638137D0
-         ATVD(4,4) = 0.632066208361863D0
-         ATVD(5,3) = 0.237593836598569D0
-         ATVD(5,5) = 0.762406163401431D0
+         ATVD(1,1) = 1.0
+         ATVD(2,2) = 1.0
+         ATVD(3,1) = 0.3559097750633270
+         ATVD(3,3) = 0.6440902249366740
+         ATVD(4,1) = 0.3679337916381370
+         ATVD(4,4) = 0.6320662083618630
+         ATVD(5,3) = 0.2375938365985690
+         ATVD(5,5) = 0.7624061634014310
 
-         BTVD(1,1) = 0.377268915331368D0
-         BTVD(2,2) = 0.377268915331368D0
-         BTVD(3,3) = 0.242995220537396D0
-         BTVD(4,4) = 0.238458932846290D0
-         BTVD(5,5) = 0.287632146308408D0
+         BTVD(1,1) = 0.3772689153313680
+         BTVD(2,2) = 0.3772689153313680
+         BTVD(3,3) = 0.2429952205373960
+         BTVD(4,4) = 0.238458932846290
+         BTVD(5,5) = 0.2876321463084080
 
 C.....SSP(6,3) scheme
 
       ELSEIF ((RK_STAGE.EQ.6).AND.(RK_ORDER.EQ.3)) THEN
 
-         ATVD(:,:) = 0.D0
-         BTVD(:,:) = 0.D0
-         CTVD(:,:) = 0.D0
-         DTVD(:)   = 0.D0
+         ATVD(:,:) = 0.0
+         BTVD(:,:) = 0.0
+         CTVD(:,:) = 0.0
+         DTVD(:)   = 0.0
 
-         ATVD(1,1) = 1.D0
-         ATVD(2,2) = 1.D0
-         ATVD(3,3) = 1.D0
-         ATVD(4,1) = 0.476769811285196D0
-         ATVD(4,2) = 0.098511733286064D0
-         ATVD(4,4) = 0.424718455428740D0
-         ATVD(5,5) = 1.D0
-         ATVD(6,3) = 0.155221702560091D0
-         ATVD(6,6) = 0.844778297439909D0
+         ATVD(1,1) = 1.0
+         ATVD(2,2) = 1.0
+         ATVD(3,3) = 1.0
+         ATVD(4,1) = 0.4767698112851960
+         ATVD(4,2) = 0.0985117332860640
+         ATVD(4,4) = 0.424718455428740
+         ATVD(5,5) = 1.0
+         ATVD(6,3) = 0.1552217025600910
+         ATVD(6,6) = 0.8447782974399090
 
-         BTVD(1,1) = 0.284220721334261D0
-         BTVD(2,2) = 0.284220721334261D0
-         BTVD(3,3) = 0.284220721334261D0
-         BTVD(4,4) = 0.120713785765930D0
-         BTVD(5,5) = 0.284220721334261D0
-         BTVD(6,6) = 0.240103497065900D0
+         BTVD(1,1) = 0.2842207213342610
+         BTVD(2,2) = 0.2842207213342610
+         BTVD(3,3) = 0.2842207213342610
+         BTVD(4,4) = 0.120713785765930
+         BTVD(5,5) = 0.2842207213342610
+         BTVD(6,6) = 0.240103497065900
 
 C.....SSP(7,3) scheme
 
       ELSEIF ((RK_STAGE.EQ.7).AND.(RK_ORDER.EQ.3)) THEN
 
-         ATVD(:,:) = 0.D0
-         BTVD(:,:) = 0.D0
-         CTVD(:,:) = 0.D0
-         DTVD(:)   = 0.D0
+         ATVD(:,:) = 0.0
+         BTVD(:,:) = 0.0
+         CTVD(:,:) = 0.0
+         DTVD(:)   = 0.0
 
-         ATVD(1,1) = 1.D0
-         ATVD(2,2) = 1.D0
-         ATVD(3,3) = 1.D0
-         ATVD(4,1) = 0.184962588071072D0
-         ATVD(4,4) = 0.815037411928928D0
-         ATVD(5,1) = 0.180718656570380D0
-         ATVD(5,2) = 0.314831034403793D0
-         ATVD(5,5) = 0.504450309025826D0
-         ATVD(6,6) = 1.D0
-         ATVD(7,4) = 0.120199000000000D0
-         ATVD(7,7) = 0.879801000000000D0
+         ATVD(1,1) = 1.0
+         ATVD(2,2) = 1.0
+         ATVD(3,3) = 1.0
+         ATVD(4,1) = 0.1849625880710720
+         ATVD(4,4) = 0.8150374119289280
+         ATVD(5,1) = 0.180718656570380
+         ATVD(5,2) = 0.3148310344037930
+         ATVD(5,5) = 0.5044503090258260
+         ATVD(6,6) = 1.0
+         ATVD(7,4) = 0.120199000000000
+         ATVD(7,7) = 0.879801000000000
 
-         BTVD(1,1) = 0.233213863663009D0
-         BTVD(2,2) = 0.233213863663009D0
-         BTVD(3,3) = 0.233213863663009D0
-         BTVD(4,4) = 0.190078023865845D0
-         BTVD(5,5) = 0.117644805593912D0
-         BTVD(6,6) = 0.233213863663009D0
-         BTVD(7,7) = 0.205181790464579D0
+         BTVD(1,1) = 0.2332138636630090
+         BTVD(2,2) = 0.2332138636630090
+         BTVD(3,3) = 0.2332138636630090
+         BTVD(4,4) = 0.1900780238658450
+         BTVD(5,5) = 0.1176448055939120
+         BTVD(6,6) = 0.2332138636630090
+         BTVD(7,7) = 0.2051817904645790
 
 C.....SSP(8,3) scheme
 
       ELSEIF ((RK_STAGE.EQ.8).AND.(RK_ORDER.EQ.3)) THEN
 
-         ATVD(:,:) = 0.D0
-         BTVD(:,:) = 0.D0
-         CTVD(:,:) = 0.D0
-         DTVD(:)   = 0.D0
+         ATVD(:,:) = 0.0
+         BTVD(:,:) = 0.0
+         CTVD(:,:) = 0.0
+         DTVD(:)   = 0.0
 
-         ATVD(1,1) = 1.D0
-         ATVD(2,2) = 1.D0
-         ATVD(3,3) = 1.D0
-         ATVD(4,4) = 1.D0
-         ATVD(5,1) = 0.421366967085359D0
-         ATVD(5,2) = 0.005949401107575D0
-         ATVD(5,5) = 0.572683631807067D0
-         ATVD(6,2) = 0.004254010666365D0
-         ATVD(6,6) = 0.995745989333635D0
-         ATVD(7,3) = 0.104380143093325D0
-         ATVD(7,4) = 0.243265240906726D0
-         ATVD(7,7) = 0.652354615999950D0
-         ATVD(8,8) = 1.D0
+         ATVD(1,1) = 1.0
+         ATVD(2,2) = 1.0
+         ATVD(3,3) = 1.0
+         ATVD(4,4) = 1.0
+         ATVD(5,1) = 0.4213669670853590
+         ATVD(5,2) = 0.0059494011075750
+         ATVD(5,5) = 0.5726836318070670
+         ATVD(6,2) = 0.0042540106663650
+         ATVD(6,6) = 0.9957459893336350
+         ATVD(7,3) = 0.1043801430933250
+         ATVD(7,4) = 0.2432652409067260
+         ATVD(7,7) = 0.652354615999950
+         ATVD(8,8) = 1.0
 
-         BTVD(1,1) = 0.195804015330143D0
-         BTVD(2,2) = 0.195804015330143D0
-         BTVD(3,3) = 0.195804015330143D0
-         BTVD(4,4) = 0.195804015330143D0
-         BTVD(5,5) = 0.112133754621673D0
-         BTVD(6,6) = 0.194971062960412D0
-         BTVD(7,7) = 0.127733653231944D0
-         BTVD(8,8) = 0.195804015330143D0
+         BTVD(1,1) = 0.1958040153301430
+         BTVD(2,2) = 0.1958040153301430
+         BTVD(3,3) = 0.1958040153301430
+         BTVD(4,4) = 0.1958040153301430
+         BTVD(5,5) = 0.1121337546216730
+         BTVD(6,6) = 0.1949710629604120
+         BTVD(7,7) = 0.1277336532319440
+         BTVD(8,8) = 0.1958040153301430
 
 C.....SSP(5,4) scheme
 
       ELSEIF ((RK_STAGE.EQ.5).AND.(RK_ORDER.EQ.4)) THEN
 
-         ATVD(:,:) = 0.D0
-         BTVD(:,:) = 0.D0
-         CTVD(:,:) = 0.D0
-         DTVD(:)   = 0.D0
+         ATVD(:,:) = 0.0
+         BTVD(:,:) = 0.0
+         CTVD(:,:) = 0.0
+         DTVD(:)   = 0.0
 
-         ATVD(1,1) = 1.D0
-         ATVD(2,1) = 0.44437049406734D0
-         ATVD(2,2) = 0.55562950593266D0
-         ATVD(3,1) = 0.62010185138540D0
-         ATVD(3,3) = 0.37989814861460D0
-         ATVD(4,1) = 0.17807995410773D0
-         ATVD(4,4) = 0.82192004589227D0
-         ATVD(5,1) = 0.00683325884039D0
-         ATVD(5,3) = 0.51723167208978D0
-         ATVD(5,4) = 0.12759831133288D0
-         ATVD(5,5) = 0.34833675773694D0
+         ATVD(1,1) = 1.0
+         ATVD(2,1) = 0.444370494067340
+         ATVD(2,2) = 0.555629505932660
+         ATVD(3,1) = 0.62010185138540
+         ATVD(3,3) = 0.37989814861460
+         ATVD(4,1) = 0.178079954107730
+         ATVD(4,4) = 0.821920045892270
+         ATVD(5,1) = 0.006833258840390
+         ATVD(5,3) = 0.517231672089780
+         ATVD(5,4) = 0.127598311332880
+         ATVD(5,5) = 0.348336757736940
 
-         BTVD(1,1) = 0.39175222700392D0
-         BTVD(2,2) = 0.36841059262959D0
-         BTVD(3,3) = 0.25189177424738D0
-         BTVD(4,4) = 0.54497475021237D0
-         BTVD(5,4) = 0.08460416338212D0
-         BTVD(5,5) = 0.22600748319395D0
+         BTVD(1,1) = 0.391752227003920
+         BTVD(2,2) = 0.368410592629590
+         BTVD(3,3) = 0.251891774247380
+         BTVD(4,4) = 0.544974750212370
+         BTVD(5,4) = 0.084604163382120
+         BTVD(5,5) = 0.226007483193950
 
 C.....SSP(6,4) scheme
 
       ELSEIF ((RK_STAGE.EQ.6).AND.(RK_ORDER.EQ.4)) THEN
 
-         ATVD(:,:) = 0.D0
-         BTVD(:,:) = 0.D0
-         CTVD(:,:) = 0.D0
-         DTVD(:)   = 0.D0
+         ATVD(:,:) = 0.0
+         BTVD(:,:) = 0.0
+         CTVD(:,:) = 0.0
+         DTVD(:)   = 0.0
 
-         ATVD(1,1) = 1.00000000000000D0
-         ATVD(2,1) = 0.30948026455053D0
-         ATVD(2,2) = 0.69051973544947D0
-         ATVD(3,1) = 0.54205244285557D0
-         ATVD(3,3) = 0.45794755714443D0
-         ATVD(4,1) = 0.35984960863377D0
-         ATVD(4,4) = 0.64015039136623D0
-         ATVD(5,5) = 1.00000000000000D0
-         ATVD(6,1) = 0.05776282890116D0
-         ATVD(6,3) = 0.44216432622405D0
-         ATVD(6,5) = 0.10115567086469D0
-         ATVD(6,6) = 0.39891717401009D0
+         ATVD(1,1) = 1.00000000000000
+         ATVD(2,1) = 0.309480264550530
+         ATVD(2,2) = 0.690519735449470
+         ATVD(3,1) = 0.542052442855570
+         ATVD(3,3) = 0.457947557144430
+         ATVD(4,1) = 0.359849608633770
+         ATVD(4,4) = 0.640150391366230
+         ATVD(5,5) = 1.00000000000000
+         ATVD(6,1) = 0.057762828901160
+         ATVD(6,3) = 0.442164326224050
+         ATVD(6,5) = 0.101155670864690
+         ATVD(6,6) = 0.398917174010090
 
-         BTVD(1,1) = 0.39270746575722D0
-         BTVD(2,2) = 0.30154043149172D0
-         BTVD(3,3) = 0.19997937335132D0
-         BTVD(4,4) = 0.27954483459696D0
-         BTVD(5,5) = 0.43668618869443D0
-         BTVD(6,3) = 0.09150931531680D0
-         BTVD(6,5) = 0.04417328437472D0
-         BTVD(6,6) = 0.14911300530736D0
+         BTVD(1,1) = 0.392707465757220
+         BTVD(2,2) = 0.301540431491720
+         BTVD(3,3) = 0.199979373351320
+         BTVD(4,4) = 0.279544834596960
+         BTVD(5,5) = 0.436686188694430
+         BTVD(6,3) = 0.09150931531680
+         BTVD(6,5) = 0.044173284374720
+         BTVD(6,6) = 0.149113005307360
 
 C.....SSP(7,4) scheme
 
       ELSEIF ((RK_STAGE.EQ.7).AND.(RK_ORDER.EQ.4)) THEN
 
-         ATVD(:,:) = 0.D0
-         BTVD(:,:) = 0.D0
-         CTVD(:,:) = 0.D0
-         DTVD(:)   = 0.D0
+         ATVD(:,:) = 0.0
+         BTVD(:,:) = 0.0
+         CTVD(:,:) = 0.0
+         DTVD(:)   = 0.0
 
-         ATVD(1,1) = 1.D0
-         ATVD(2,1) = 0.20161507213829D0
-         ATVD(2,2) = 0.79838492786171D0
-         ATVD(3,1) = 0.19469598207921D0
-         ATVD(3,3) = 0.80530401792079D0
-         ATVD(4,1) = 0.58143386885601D0
-         ATVD(4,4) = 0.41856613114399D0
-         ATVD(5,1) = 0.01934367892154D0
-         ATVD(5,5) = 0.98065632107846D0
-         ATVD(6,6) = 1.D0
-         ATVD(7,1) = 0.06006304558847D0
-         ATVD(7,3) = 0.30152730794242D0
-         ATVD(7,4) = 0.10518998496676D0
-         ATVD(7,5) = 0.01483791154585D0
-         ATVD(7,7) = 0.51838174995650D0
+         ATVD(1,1) = 1.0
+         ATVD(2,1) = 0.201615072138290
+         ATVD(2,2) = 0.798384927861710
+         ATVD(3,1) = 0.194695982079210
+         ATVD(3,3) = 0.805304017920790
+         ATVD(4,1) = 0.581433868856010
+         ATVD(4,4) = 0.418566131143990
+         ATVD(5,1) = 0.019343678921540
+         ATVD(5,5) = 0.980656321078460
+         ATVD(6,6) = 1.0
+         ATVD(7,1) = 0.060063045588470
+         ATVD(7,3) = 0.301527307942420
+         ATVD(7,4) = 0.105189984966760
+         ATVD(7,5) = 0.014837911545850
+         ATVD(7,7) = 0.51838174995650
 
-         BTVD(1,1) = 0.30111872706068D0
-         BTVD(2,2) = 0.24040865318216D0
-         BTVD(3,3) = 0.24249212077315D0
-         BTVD(4,4) = 0.12603810060080D0
-         BTVD(5,5) = 0.29529398308716D0
-         BTVD(6,6) = 0.30111872706068D0
-         BTVD(7,3) = 0.09079551914158D0
-         BTVD(7,4) = 0.02888359354880D0
-         BTVD(7,7) = 0.15609445267839D0
+         BTVD(1,1) = 0.301118727060680
+         BTVD(2,2) = 0.240408653182160
+         BTVD(3,3) = 0.242492120773150
+         BTVD(4,4) = 0.12603810060080
+         BTVD(5,5) = 0.295293983087160
+         BTVD(6,6) = 0.301118727060680
+         BTVD(7,3) = 0.090795519141580
+         BTVD(7,4) = 0.02888359354880
+         BTVD(7,7) = 0.156094452678390
 
 C.....SSP(8,4) scheme
 
       ELSEIF ((RK_STAGE.EQ.8).AND.(RK_ORDER.EQ.4)) THEN
 
-         ATVD(:,:) = 0.D0
-         BTVD(:,:) = 0.D0
-         CTVD(:,:) = 0.D0
-         DTVD(:)   = 0.D0
+         ATVD(:,:) = 0.0
+         BTVD(:,:) = 0.0
+         CTVD(:,:) = 0.0
+         DTVD(:)   = 0.0
 
-         ATVD(1,1) = 1.D0
-         ATVD(2,1) = 0.10645325745007D0
-         ATVD(2,2) = 0.89354674254993D0
-         ATVD(3,3) = 1.D0
-         ATVD(4,1) = 0.57175518477257D0
-         ATVD(4,4) = 0.42824481522743D0
-         ATVD(5,1) = 0.19161667219044D0
-         ATVD(5,5) = 0.80838332780956D0
-         ATVD(6,6) = 1.D0
-         ATVD(7,7) = 1.D0
-         ATVD(8,1) = 0.02580435327923D0
-         ATVD(8,3) = 0.03629901341774D0
-         ATVD(8,4) = 0.31859181340256D0
-         ATVD(8,5) = 0.05186768980103D0
-         ATVD(8,6) = 0.03944076217320D0
-         ATVD(8,7) = 0.00511633747411D0
-         ATVD(8,8) = 0.52288003045213D0
+         ATVD(1,1) = 1.0
+         ATVD(2,1) = 0.106453257450070
+         ATVD(2,2) = 0.893546742549930
+         ATVD(3,3) = 1.0
+         ATVD(4,1) = 0.571755184772570
+         ATVD(4,4) = 0.428244815227430
+         ATVD(5,1) = 0.191616672190440
+         ATVD(5,5) = 0.808383327809560
+         ATVD(6,6) = 1.0
+         ATVD(7,7) = 1.0
+         ATVD(8,1) = 0.025804353279230
+         ATVD(8,3) = 0.036299013417740
+         ATVD(8,4) = 0.318591813402560
+         ATVD(8,5) = 0.051867689801030
+         ATVD(8,6) = 0.03944076217320
+         ATVD(8,7) = 0.005116337474110
+         ATVD(8,8) = 0.522880030452130
 
-         BTVD(1,1) = 0.24120020561311D0
-         BTVD(2,2) = 0.21552365802797D0
-         BTVD(3,3) = 0.24120020561311D0
-         BTVD(4,4) = 0.10329273748560D0
-         BTVD(5,5) = 0.19498222488188D0
-         BTVD(6,6) = 0.24120020561311D0
-         BTVD(7,7) = 0.24120020561311D0
-         BTVD(8,3) = 0.00875532949991D0
-         BTVD(8,4) = 0.06195575835101D0
-         BTVD(8,6) = 0.00951311994571D0
-         BTVD(8,8) = 0.12611877085604D0
+         BTVD(1,1) = 0.241200205613110
+         BTVD(2,2) = 0.215523658027970
+         BTVD(3,3) = 0.241200205613110
+         BTVD(4,4) = 0.10329273748560
+         BTVD(5,5) = 0.194982224881880
+         BTVD(6,6) = 0.241200205613110
+         BTVD(7,7) = 0.241200205613110
+         BTVD(8,3) = 0.008755329499910
+         BTVD(8,4) = 0.061955758351010
+         BTVD(8,6) = 0.009513119945710
+         BTVD(8,8) = 0.126118770856040
 
       ENDIF
 
@@ -1958,7 +1958,7 @@ C.....Compute the time dependent parameters
 
       DO K = 0,RK_STAGE-1
          DO I = 1,RK_STAGE
-            CASUM = 0.D0
+            CASUM = 0.0
             DO L = K+1,I-1
                CASUM = CASUM + CTVD(L,K+1)*ATVD(I,L+1)
             ENDDO
@@ -1967,7 +1967,7 @@ C.....Compute the time dependent parameters
       ENDDO
 
       DO K = 1,RK_STAGE-1
-         DTVD(K+1) = 0.D0
+         DTVD(K+1) = 0.0
          DO L = 0,K-1
             DTVD(K+1) = DTVD(K+1) + CTVD(K,L+1)
          ENDDO
@@ -1976,11 +1976,11 @@ C.....Compute the time dependent parameters
 C.....Compute the maximum beta over alpha ratio at each stage
 
       DO IRK = 1,RK_STAGE
-         MAX_BOA = 0.D0
+         MAX_BOA = 0.0
          DO I = 1,IRK
             ARK = ATVD(IRK,I)
             BRK = BTVD(IRK,I)
-            IF (ARK.NE.0.D0) THEN
+            IF (ARK.NE.0.0) THEN
                IF (MAX_BOA.LT.BRK/ARK) MAX_BOA = BRK/ARK
             ENDIF
          ENDDO
@@ -1994,27 +1994,27 @@ C.... Compute the Runge-Kutta Chebyshev (RKC) version
 
 #ifdef RKC
          
-         RKC_omega0 = 0.D0
-         RKC_omega1 = 0.D0
+         RKC_omega0 = 0.0
+         RKC_omega1 = 0.0
 
-         eps_const = 0.153846154D0 
+         eps_const = 0.1538461540 
 
                                 !Compute the RKC version
 
-         RKC_T(0) = 1.D0
-         RKC_U(0) = 1.D0
+         RKC_T(0) = 1.0
+         RKC_U(0) = 1.0
          
-         RKC_omega0 = 1.D0 + eps_const*nrk**(-2.D0)
+         RKC_omega0 = 1.0 + eps_const*nrk**(-2.0)
 
-         RKC_c(0) = 0.D0
-         RKC_b(0) = 0.D0
-         RKC_b(1) = 1.D0/RKC_omega0
+         RKC_c(0) = 0.0
+         RKC_b(0) = 0.0
+         RKC_b(1) = 1.0/RKC_omega0
 
          RKC_T(1) = RKC_omega0
-         RKC_U(1) = 2.D0*RKC_omega0
+         RKC_U(1) = 2.0*RKC_omega0
 
-         RKC_Tprime(1) = nrk**(2.D0)
-         RKC_Tdprime(1) = 1.D0/3.D0 * (nrk**(2.D0)*(nrk**(2.D0) - 1.D0))
+         RKC_Tprime(1) = nrk**(2.0)
+         RKC_Tdprime(1) = 1.0/3.0 * (nrk**(2.0)*(nrk**(2.0) - 1.0))
 
 
          do j = 0,nrk
@@ -2032,12 +2032,12 @@ C.... Compute the Runge-Kutta Chebyshev (RKC) version
 
                RKC_Tprime(j) = j*RKC_U(j-1)
                RKC_Tdprime(j) = (j*(j*RKC_T(j) - RKC_omega0*RKC_U(j-1))/
-     &            ( RKC_omega0**(2.D0) - 1.D0 ) )
-               RKC_b(j) = RKC_Tdprime(j)*RKC_Tprime(j)**(-2.D0)
+     &            ( RKC_omega0**(2.0) - 1.0 ) )
+               RKC_b(j) = RKC_Tdprime(j)*RKC_Tprime(j)**(-2.0)
 
             endif
             
-            RKC_a(j)  = 1.D0 - RKC_b(j)*RKC_T(j)
+            RKC_a(j)  = 1.0 - RKC_b(j)*RKC_T(j)
             
          enddo
 
@@ -2051,26 +2051,26 @@ C.... Compute the Runge-Kutta Chebyshev (RKC) version
 
          RKC_omega1 =  RKC_Tprime(nrk)/RKC_Tdprime(nrk)
 
-         RKC_tildemu(1)= nrk**(-1.D0) * RKC_omega1
+         RKC_tildemu(1)= nrk**(-1.0) * RKC_omega1
          
          do j=2,nrk
 
-            RKC_mu(j) = 2.D0*RKC_b(j)*RKC_omega0/RKC_b(j-1)
+            RKC_mu(j) = 2.0*RKC_b(j)*RKC_omega0/RKC_b(j-1)
             
-            RKC_tildemu(j) = 2.D0*RKC_b(j)*RKC_omega1/RKC_b(j-1)
+            RKC_tildemu(j) = 2.0*RKC_b(j)*RKC_omega1/RKC_b(j-1)
             
             RKC_nu(j) = - RKC_b(j)/RKC_b(j-2)
             
             RKC_gamma(j) = -RKC_a(j-1)*RKC_tildemu(j)
             
-            RKC_c(j) = (j**(2.D0)-1.0) / ( nrk**(2.D0) - 1.D0 )
+            RKC_c(j) = (j**(2.0)-1.0) / ( nrk**(2.0) - 1.0 )
 
          enddo
 
-         RKC_c(1) = (RKC_c(2)) / (4.D0*RKC_omega0)
+         RKC_c(1) = (RKC_c(2)) / (4.0*RKC_omega0)
 
-         RKC_c(RK_stage) = 0.D0
-         RKC_c(RK_stage) = 1.D0
+         RKC_c(RK_stage) = 0.0
+         RKC_c(RK_stage) = 1.0
 
 #endif
 

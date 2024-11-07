@@ -38,14 +38,14 @@ C.....Declare local variables
 
 C.....Initialize for viscosity/diffusion
 #ifdef WAVE_DIF
-      HZ = 0.D0
+      HZ = 0.0
 #endif 
-      LZ = 0.D0
+      LZ = 0.0
 #ifdef TRACE
-      TZ = 0.d0
+      TZ = 0.0
 #endif
 #ifdef SED_LAY
-      MZ = 0.d0
+      MZ = 0.0
 #endif
      
 C.....Compute elevation specified edges
@@ -77,14 +77,14 @@ C.....Loop over interior elements
          N1 = NM(L,1)
          N2 = NM(L,2)
          N3 = NM(L,3)
-         if (EVMSUM.NE.0.D0) then
-            EVMAvg = (EVM(N1)+EVM(N2)+EVM(N3))/3.d0
+         if (EVMSUM.NE.0.0) then
+            EVMAvg = (EVM(N1)+EVM(N2)+EVM(N3))/3.0
          else
-            EVMAvg = 0.D0
+            EVMAvg = 0.0
          endif
 
-         bg_dif = 0.D0 
-         trc_dif = 0.D0 
+         bg_dif = 0.0 
+         trc_dif = 0.0 
           
 #ifdef SED_LAY
          SEVDMAvg = SEVDM 
@@ -92,7 +92,7 @@ C.....Loop over interior elements
  
 #ifdef ARTDIF
 
-         lim_by = 1.D0
+         lim_by = 1.0
          
 #ifdef WAVE_DIF
          if (entrop(1,L).gt.s0+kappa) then
@@ -282,25 +282,25 @@ C.....Compute ZE, QX, QY, and HB at each edge Gauss quadrature point
          DO I = 1,NEGP(pa)
 
 #ifdef WAVE_DIF
-            ZE_IN = 0.D0
-            ZE_EX = 0.D0
+            ZE_IN = 0.0
+            ZE_EX = 0.0
 #endif
-            QX_IN = 0.D0
-            QY_IN = 0.D0
+            QX_IN = 0.0
+            QY_IN = 0.0
 
-            QX_EX = 0.D0
-            QY_EX = 0.D0
+            QX_EX = 0.0
+            QY_EX = 0.0
 
 #ifdef TRACE
-            iota_IN = 0.D0
-            iota_EX = 0.D0
+            iota_IN = 0.0
+            iota_EX = 0.0
 #endif
 
             !deal with sediment
 #ifdef SED_LAY
              do ll=1,layers
-               bed_IN(ll) = 0.D0
-               bed_EX(ll) = 0.D0
+               bed_IN(ll) = 0.0
+               bed_EX(ll) = 0.0
             enddo
 #endif
            
@@ -338,14 +338,14 @@ C.....Take the average
 #ifdef WAVE_DIF
             ZE_AVG = ZE_IN
 #endif
-            QX_AVG = 0.5D0*(QX_IN + QX_EX)*SFACED(I,LED,EL_IN,pa)
-            QY_AVG = 0.5D0*(QY_IN + QY_EX)
+            QX_AVG = 0.50*(QX_IN + QX_EX)*SFACED(I,LED,EL_IN,pa)
+            QY_AVG = 0.50*(QY_IN + QY_EX)
 #ifdef TRACE
             iota_AVG = iota_IN
 #endif
 #ifdef SED_LAY
             do ll=1,layers
-               bed_AVG(ll) = 0.5D0*( bed_IN(ll) + bed_EX(ll) )
+               bed_AVG(ll) = 0.50*( bed_IN(ll) + bed_EX(ll) )
             enddo
 #endif
 
@@ -436,16 +436,16 @@ C.....Compute ZE, QX, QY, and HB at each Gauss point
 
          DO I = 1,NEGP(pa)
 #ifdef WAVE_DIF
-            ZE_IN = 0.D0
+            ZE_IN = 0.0
 #endif
-            QX_IN = 0.D0
-            QY_IN = 0.D0
+            QX_IN = 0.0
+            QY_IN = 0.0
 #ifdef TRACE
-            iota_IN = 0.d0
+            iota_IN = 0.0
 #endif
 #ifdef SED_LAY
             do ll=1,layers
-               bed_IN(ll) = 0.D0
+               bed_IN(ll) = 0.0
             enddo
 #endif
 
@@ -494,14 +494,14 @@ C.....Take the average
 #ifdef WAVE_DIF
             ZE_AVG = ZE_IN
 #endif
-            QX_AVG = 0.5D0*(QX_IN + QX_EX)*SFACED(I,LED,EL_IN,pa)
-            QY_AVG = 0.5D0*(QY_IN + QY_EX)
+            QX_AVG = 0.50*(QX_IN + QX_EX)*SFACED(I,LED,EL_IN,pa)
+            QY_AVG = 0.50*(QY_IN + QY_EX)
 #ifdef TRACE
             iota_AVG = iota_IN
 #endif
 #ifdef SED_LAY
             do ll=1,layers !take the Fronenius norm
-               bed_AVG(ll) = 0.5D0*( bed_IN(ll) + bed_EX(ll) )
+               bed_AVG(ll) = 0.50*( bed_IN(ll) + bed_EX(ll) )
             enddo
 #endif
 
@@ -592,36 +592,36 @@ C.....Compute ZE, QX, QY, and HB at each edge Gauss quadrature point
          DO I = 1,NEGP(pa)
 
 #ifdef WAVE_DIF
-            ZE_IN = 0.D0
-            ZE_EX = 0.D0
+            ZE_IN = 0.0
+            ZE_EX = 0.0
 #endif
 
-            QX_IN = 0.D0
-            QY_IN = 0.D0
+            QX_IN = 0.0
+            QY_IN = 0.0
 
-            QX_EX = 0.D0
-            QY_EX = 0.D0
+            QX_EX = 0.0
+            QY_EX = 0.0
 #ifdef TRACE
-            iota_IN = 0.D0
-            iota_EX = 0.D0
+            iota_IN = 0.0
+            iota_EX = 0.0
 #endif
 #ifdef SED_LAY
              do ll=1,layers
-               bed_IN(ll) = 0.D0
-               bed_EX(ll) = 0.D0
+               bed_IN(ll) = 0.0
+               bed_EX(ll) = 0.0
             enddo
 #endif
             
 C.....Compute the specified flow boundaries for the exterior state
 
-            Q_N_EXT = 0.D0
+            Q_N_EXT = 0.0
             DO JJ = 1,MNFFR
                IF (NFFR.EQ.0) THEN
-                  NCYC = 0.D0
-                  ARGJ = 0.D0
+                  NCYC = 0.0
+                  ARGJ = 0.0
                   RFF = RAMPExtFlux
-               ELSEIF (FPER(JJ).EQ.0.D0) THEN
-                  NCYC = 0.D0
+               ELSEIF (FPER(JJ).EQ.0.0) THEN
+                  NCYC = 0.0
                   ARGJ = FAMIG(JJ)*(TIMEDG - NCYC*FPER(JJ)) + FFACE(JJ)
                   RFF  = FFF(JJ)*RAMPExtFlux
                ELSE
@@ -630,15 +630,15 @@ C.....Compute the specified flow boundaries for the exterior state
                   RFF  = FFF(JJ)*RAMPExtFlux
                ENDIF
                
-               QNAM_GP = 0.5D0*(QNAM_DG(JJ,L,1) + QNAM_DG(JJ,L,2))
-     &            + 0.5D0*(QNAM_DG(JJ,L,2) - QNAM_DG(JJ,L,1))*XEGP(I,pa)
-               QNPH_GP = 0.5D0*(QNPH_DG(JJ,L,1) + QNPH_DG(JJ,L,2))
-     &            + 0.5D0*(QNPH_DG(JJ,L,2) - QNPH_DG(JJ,L,1))*XEGP(I,pa)
+               QNAM_GP = 0.50*(QNAM_DG(JJ,L,1) + QNAM_DG(JJ,L,2))
+     &            + 0.50*(QNAM_DG(JJ,L,2) - QNAM_DG(JJ,L,1))*XEGP(I,pa)
+               QNPH_GP = 0.50*(QNPH_DG(JJ,L,1) + QNPH_DG(JJ,L,2))
+     &            + 0.50*(QNPH_DG(JJ,L,2) - QNPH_DG(JJ,L,1))*XEGP(I,pa)
                
                ARG = ARGJ - QNPH_GP
                
                Q_N_EXT = Q_N_EXT + QNAM_GP*RFF*COS(ARG)
-               Q_T_EXT =  0.D0
+               Q_T_EXT =  0.0
 
 
             ENDDO
@@ -679,7 +679,7 @@ C.....Take the average
 
 #ifdef SED_LAY
                do ll=1,layers
-                  bed_AVG(ll) = 0.5D0*( bed_IN(ll) + bed_EX(ll) )
+                  bed_AVG(ll) = 0.50*( bed_IN(ll) + bed_EX(ll) )
                enddo
 #endif
 
@@ -763,16 +763,16 @@ C.....Compute ZE, QX, QY, and HB at each Gauss point
          DO I = 1,NEGP(pa)
             
 #ifdef WAVE_DIF
-            ZE_IN = 0.D0
+            ZE_IN = 0.0
 #endif
-            QX_IN = 0.D0
-            QY_IN = 0.D0
+            QX_IN = 0.0
+            QY_IN = 0.0
 #ifdef TRACE
-            iota_IN = 0.d0
+            iota_IN = 0.0
 #endif
 #ifdef SED_LAY
             do ll=1,layers
-               bed_IN(ll) = 0.D0
+               bed_IN(ll) = 0.0
             enddo
 #endif
 
@@ -892,25 +892,25 @@ C.....Compute ZE, QX, QY, and HB at each edge Gauss quadrature point
             GP_EX = NEGP(pa) - I + 1
             
 #ifdef WAVE_DIF
-            ZE_IN = 0.D0
+            ZE_IN = 0.0
 #endif
-            QX_IN = 0.D0
-            QY_IN = 0.D0
+            QX_IN = 0.0
+            QY_IN = 0.0
 #ifdef WAVE_DIF
-            ZE_EX = 0.D0
+            ZE_EX = 0.0
 #endif
-            QX_EX = 0.D0
-            QY_EX = 0.D0
+            QX_EX = 0.0
+            QY_EX = 0.0
 #ifdef TRACE
-            iota_IN = 0.D0
-            iota_EX = 0.D0
+            iota_IN = 0.0
+            iota_EX = 0.0
 #endif
 
 !deal with sediment
 #ifdef SED_LAY
             do ll=1,layers
-               bed_IN(ll) = 0.D0
-               bed_EX(ll) = 0.D0
+               bed_IN(ll) = 0.0
+               bed_EX(ll) = 0.0
             enddo
 #endif
 
@@ -945,15 +945,15 @@ C.....Compute ZE, QX, QY, and HB at each edge Gauss quadrature point
 C.....Take the average
 
 #ifdef WAVE_DIF
-            ZE_AVG = 0.5D0*(ZE_IN + ZE_EX)
+            ZE_AVG = 0.50*(ZE_IN + ZE_EX)
 #endif
 
-            QX_AVG = 0.5D0*(QX_IN*SFACED(GP_IN,LED_IN,EL_IN,pa) 
+            QX_AVG = 0.50*(QX_IN*SFACED(GP_IN,LED_IN,EL_IN,pa) 
      &           + QX_EX*SFACED(GP_EX,LED_EX,EL_EX,pa))
-            QY_AVG = 0.5D0*(QY_IN + QY_EX)
+            QY_AVG = 0.50*(QY_IN + QY_EX)
 
 #ifdef TRACE
-            iota_AVG = 0.5D0*(iota_IN + iota_EX)
+            iota_AVG = 0.50*(iota_IN + iota_EX)
 #endif
 
 #ifdef SED_LAY
@@ -1049,11 +1049,11 @@ C.....Declare local variables
       
 C.....Retrieve the element area
       
-      AREA = 0.5D0*AREAS(EL)
+      AREA = 0.50*AREAS(EL)
 
 C.....Comput the edge integral
 
-      IMASS = M_INV(K,pa)/(0.5D0*AREA)
+      IMASS = M_INV(K,pa)/(0.50*AREA)
 
 #ifdef WAVE_DIF
       HZ(K,1,1,EL) = HZ(K,1,1,EL)
@@ -1072,9 +1072,9 @@ C.....Comput the edge integral
 
 #ifdef TRACE
       TZ(K,1,1,EL) = TZ(K,1,1,EL)  - IMASS*XLEN(GED)
-     &    *0.5D0*iota_Avg*PHI_EDGE(K,GP,LED,pa)*NX*WEGP(GP,pa)
+     &    *0.50*iota_Avg*PHI_EDGE(K,GP,LED,pa)*NX*WEGP(GP,pa)
       TZ(K,2,2,EL) = TZ(K,2,2,EL) - IMASS*XLEN(GED)
-     &     *0.5D0*iota_Avg*PHI_EDGE(K,GP,LED,pa)*NY*WEGP(GP,pa)
+     &     *0.50*iota_Avg*PHI_EDGE(K,GP,LED,pa)*NY*WEGP(GP,pa)
 
 #endif
       
@@ -1111,11 +1111,11 @@ C.....Declare local variables
       
 C.....Retrieve the element area
       
-      AREA = 0.5D0*AREAS(EL)
+      AREA = 0.50*AREAS(EL)
 
 C.....Comput the edge integral
 
-      IMASS = M_INV(K,pa)/(0.5D0*AREA)
+      IMASS = M_INV(K,pa)/(0.50*AREA)
 
       MZ(K,1,ll,EL) = MZ(K,1,ll,EL)
      &- IMASS*XLEN(GED)*0.5*bed_avg*PHI_EDGE(K,GP,LED,pa)*NX*WEGP(GP,pa)
@@ -1182,17 +1182,17 @@ C.....Compute ZE, QX, QY, and HB at each area Gauss quadrature point
          DO I = 1,NAGP(pa)
             
 #ifdef WAVE_DIF
-            ZE_IN = 0.D0
+            ZE_IN = 0.0
 #endif
-            QX_IN = 0.D0
-            QY_IN = 0.D0
+            QX_IN = 0.0
+            QY_IN = 0.0
 #ifdef TRACE
-            iota_IN = 0.D0
+            iota_IN = 0.0
 #endif
 
 #ifdef SED_LAY
             do ll=1,layers
-               bed_IN(ll) = 0.D0
+               bed_IN(ll) = 0.0
             enddo
 #endif
             
@@ -1276,32 +1276,32 @@ C.....Build the rhs
 
 #ifdef ARTDIF
 
-         slimit1 = -100.D0
-         slimit2 = -100.D0
-         slimit3 = -100.D0
+         slimit1 = -100.0
+         slimit2 = -100.0
+         slimit3 = -100.0
 
-         entrop(:,L) = -100.D0
+         entrop(:,L) = -100.0
            
 #ifdef WAVE_DIF 
-         ze_sensor1 = 0.d0
-         ze_sensor2 = 0.d0  
+         ze_sensor1 = 0.0
+         ze_sensor2 = 0.0  
 #endif             
-         qx_sensor1 = 0.d0
-         qy_sensor1 = 0.d0
+         qx_sensor1 = 0.0
+         qy_sensor1 = 0.0
            
-         qx_sensor2 = 0.d0
-         qy_sensor2 = 0.d0
+         qx_sensor2 = 0.0
+         qy_sensor2 = 0.0
 
 #ifdef TRACE
-         slimit4 = -100.D0 
-         iota_sensor1 = 0.d0
-         iota_sensor2 = 0.d0
+         slimit4 = -100.0 
+         iota_sensor1 = 0.0
+         iota_sensor2 = 0.0
 #endif
          
 #ifdef SED_LAY
-         slimit5 = -100.D0
-         tbed_sensor1 = 0.d0
-         tbed_sensor2 = 0.d0
+         slimit5 = -100.0
+         tbed_sensor1 = 0.0
+         tbed_sensor2 = 0.0
 #endif
          
          do I = 1,NAGP(pa)
@@ -1309,21 +1309,21 @@ C.....Build the rhs
             do kk = 2, dofs(L)  !Compute the first sensor
 #ifdef WAVE_DIF 
                ze_sensor1 = ze_sensor1 + (ze(kk,L,irk)* 
-     &              phi_area(kk,I,pa))**2.D0 * wagp(I,pa)
+     &              phi_area(kk,I,pa))**2.0 * wagp(I,pa)
 #endif
                qx_sensor1 = qx_sensor1 + (qx(kk,L,irk)* 
-     &              phi_area(kk,I,pa))**2.D0 * wagp(I,pa)
+     &              phi_area(kk,I,pa))**2.0 * wagp(I,pa)
                qy_sensor1 = qy_sensor1 + (qy(kk,L,irk)* 
-     &              phi_area(kk,I,pa))**2.D0 * wagp(I,pa)
+     &              phi_area(kk,I,pa))**2.0 * wagp(I,pa)
 #ifdef TRACE
                iota_sensor1 = iota_sensor1 + (iota(kk,L,irk)
-     &              * phi_area(kk,I,pa))**2.D0 * wagp(I,pa)
+     &              * phi_area(kk,I,pa))**2.0 * wagp(I,pa)
 #endif
                
 #ifdef SED_LAY       
                do ll=1,layers
                   tbed_sensor1 = tbed_sensor1 + (bed(kk,L,irk,ll)* 
-     &                 phi_area(kk,I,pa))**2.D0 * wagp(I,pa)
+     &                 phi_area(kk,I,pa))**2.0 * wagp(I,pa)
                enddo
 #endif
 
@@ -1332,21 +1332,21 @@ C.....Build the rhs
             do kk = 1,dofs(L) !Compute the second sensor
 #ifdef WAVE_DIF 
                ze_sensor2 = ze_sensor2 + (ze(kk,L,irk)* 
-     &              phi_area(kk,I,pa))**2.D0 * wagp(I,pa)
+     &              phi_area(kk,I,pa))**2.0 * wagp(I,pa)
 #endif
                qx_sensor2 = qx_sensor2 + (qx(kk,L,irk)* 
-     &              phi_area(kk,I,pa))**2.D0 * wagp(I,pa)
+     &              phi_area(kk,I,pa))**2.0 * wagp(I,pa)
                qy_sensor2 = qy_sensor2 + (qy(kk,L,irk)* 
-     &              phi_area(kk,I,pa))**2.D0 * wagp(I,pa)
+     &              phi_area(kk,I,pa))**2.0 * wagp(I,pa)
 #ifdef TRACE
                iota_sensor2 = iota_sensor2 + (iota(kk,L,irk)
-     &              * phi_area(kk,I,pa))**2.D0 * wagp(I,pa)
+     &              * phi_area(kk,I,pa))**2.0 * wagp(I,pa)
 #endif
                
 #ifdef SED_LAY       
                do ll=1,layers
                   tbed_sensor2 = tbed_sensor2 + (bed(kk,L,irk,ll)* !Adjust sensor for multilayers!
-     &                 phi_area(kk,I,pa))**2.D0 * wagp(I,pa)
+     &                 phi_area(kk,I,pa))**2.0 * wagp(I,pa)
                enddo
 #endif
 

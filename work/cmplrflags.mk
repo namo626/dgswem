@@ -340,18 +340,19 @@ ifeq ($(compiler),intel-lonestar)
 endif
 
 ifeq ($(compiler),nvhpc)   # NVIDIA
+  lvl     := 3 # optimization level
+  sz      := 8
   PPFC	        :=  nvfortran
   FC	        :=  nvfortran
   PFC	        :=  mpif90
-  OLEVEL     := -O0
-  FFLAGS1	:=  -Mextend -Mstack_arrays -Mpreprocess -Minfo=all -traceback -g $(OLEVEL) -cuda  -gpu=lineinfo -r8 -lnvhpcwrapnvtx
+  FFLAGS1	:=  -Mextend -Mstack_arrays -Mpreprocess -Minfo=all -traceback -g -O$(lvl) -cuda  -gpu=lineinfo -r$(sz) -lnvhpcwrapnvtx
   FFLAGS2	:=  $(FFLAGS1)
   FFLAGS3	:=  $(FFLAGS1)
   FFLAGS4	:=  $(FFLAGS1)
-  DA  	        :=  -DREAL8 -DLINUX -DCSCA -DRKSSP -DSLOPE5
-  DP  	        :=  -DREAL8 -DLINUX -DCSCA -DCMPI -DRKSSP -DSLOPE5
-  DPRE	        :=  -DREAL8 -DLINUX -DRKSSP -DSLOPE5
-  DPRE2         :=  -DREAL8 -DLINUX -DCMPI
+  DA  	        :=  -DREAL$(sz) -DLINUX -DCSCA -DRKSSP -DSLOPE5
+  DP  	        :=  -DREAL$(sz) -DLINUX -DCSCA -DCMPI -DRKSSP -DSLOPE5
+  DPRE	        :=  -DREAL$(sz) -DLINUX -DRKSSP -DSLOPE5
+  DPRE2         :=  -DREAL$(sz) -DLINUX -DCMPI
   IMODS 	:=  -I
   CC            :=  nvc
   CFLAGS        :=  -O3 -I. -fastsse -DLINUX
