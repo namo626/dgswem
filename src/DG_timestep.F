@@ -17,6 +17,7 @@ C.....Use appropriate modules
       use dg, only : dofh, ph
       use output_dg, only : write_results, modal2nodal
       use nvtx
+      use cudafor
 
 #ifdef CMPI
       USE MESSENGER_ELEM
@@ -26,7 +27,7 @@ C.....Use appropriate modules
 
 C.....Declare local variables
 
-      INTEGER IT
+      INTEGER :: IT, istat
       logical :: result
       logical, device :: result_d
       
@@ -44,6 +45,7 @@ C.....Write out results
 #endif
 #endif
       call modal2nodal<<<MNP/128+1,128>>>(MNP,IT,maxel,nleq,leq, dofh, ph, sedflag)
+      istat = cudaDeviceSynchronize()
       call nvtxStartRange("WRITE_RESULTS", 1)
       !call modal2nodal(NE,IT,maxel,nleq,leq,modetonode, dofh, ph, sedflag)
       CALL WRITE_RESULTS(IT,.FALSE.)
