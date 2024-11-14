@@ -70,7 +70,7 @@ c     nd
         CALL alloc_precipitation() 
       end if
 
-      if (rainfall.eq.3) then
+      if (rainfall.eq.2) then
         CRAIN_TIMINC = 3600
         call ncrain1_init(PREC2, NP)
         call ncrain_get(PREC2, NP)
@@ -349,7 +349,7 @@ c$$$         endif
          CALL DG_TIMESTEP(ITIME_A)
 
 C-------! OWI rainfall-------------------------------------
-         IF (rainfall.eq.2) then
+         IF (rainfall.eq.4) then
            if(itime_A*DTDP.GT.crain_time2) then
              crain_time1 = crain_time2
              crain_time2 = crain_time2 + crain_timinc

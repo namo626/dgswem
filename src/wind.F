@@ -3805,8 +3805,7 @@ c      endif
          ! elevation (meters).
          !-------------------------------------------
          ! namo - add rain
-
-         if (rainfall > 0) then
+         if (rainfall > 2) then
            call UPDATE_PREC(irk, dtdp, i, ycoor(i), xcoor(i), cLon, cLat, Pn, Pc, Rmax, Vmax, rainfall)
          end if
 
