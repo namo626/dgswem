@@ -3,7 +3,7 @@
        MODULE WIND
        use cudafor
        USE SIZES, ONLY : SZ, LOCALDIR
-       USE GLOBAL, ONLY : ScreenUnit, dragDefault, dragPowell, sfea, slam, np
+       USE GLOBAL, ONLY : ScreenUnit, dragDefault, dragPowell, sfea, slam, np, dtdp
 #ifdef CMPI
 C      use messenger, only : msg_fini
 #endif
@@ -3077,7 +3077,7 @@ C     &      "The simulation has run out of meteorological data.")
          press(i) = press(i) / RhoWatG
          ! parametric rain update 
          if (rainfall.eq.1) then
-           call UPDATE_PREC(i, ycoor(i), xcoor(i), cLon, cLat, Pn, Pc,crmaxw(i),Vmax,1)
+           !call UPDATE_PREC(i, ycoor(i), xcoor(i), cLon, cLat, Pn, Pc,crmaxw(i),Vmax,1)
          end if
 
          if (writeFullCircleRmaxes.eqv..true.) then
@@ -3190,7 +3190,7 @@ C***********************************************************************
       !
       !     http://www.unc.edu/~cmattock/ncfs/NCFSreport.pdf
       !=================================================================
-      SUBROUTINE NWS20GET(slam,sfea, wvnx,wvny, press, np, TIMELOC, ics)
+      SUBROUTINE NWS20GET(irk, slam,sfea, wvnx,wvny, press, np, TIMELOC, ics)
       USE VORTEX, ONLY : setVortex, fitRmaxes4,  uvpr, spInterp,
      &                   Rmaxes4, QuadFlag4, QuadIr4, Bs4, VmBL4
       USE GLOBAL, ONLY : ScreenUnit,
@@ -3201,6 +3201,7 @@ C***********************************************************************
       USE DG, only : rainfall
       IMPLICIT NONE
 
+      integer, intent(in) :: irk
       INTEGER  :: np, ics
       INTEGER  :: ient
       INTEGER  :: i, j
@@ -3297,7 +3298,6 @@ C***********************************************************************
       LOGICAL :: writeSpatialVandP = .false.
       LOGICAL :: writeSpatialuvp = .false.
 
-      integer :: istat
 C
 C      call setMessageSource("nws20get")
 #if defined(WIND_TRACE) || defined(ALL_TRACE)
@@ -3805,15 +3805,10 @@ c      endif
          ! elevation (meters).
          !-------------------------------------------
          ! namo - add rain
-#if 0
 
-         if (rainfall.eq.1) then
-           call UPDATE_PREC(i, ycoor(i), xcoor(i), cLon, cLat, Pn, Pc, Rmax, Vmax, 1)
-        elseif (rainfall.eq.3)then
-           call UPDATE_PREC(i, ycoor(i), xcoor(i), cLon, cLat, Pn, Pc, Rmax, Vmax, 3)
-
+         if (rainfall > 0) then
+           call UPDATE_PREC(irk, dtdp, i, ycoor(i), xcoor(i), cLon, cLat, Pn, Pc, Rmax, Vmax, rainfall)
          end if
-#endif
 
          press(i) = press(i) / RhoWatG
       END DO

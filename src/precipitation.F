@@ -12,7 +12,7 @@ C
 C***********************************************************************
 
       MODULE PRECIPITATION
-        use global, only : sz, NP, NM
+        use global, only : sz, NP, NM, Rearth, deg2rad, DTDP, rad2deg
         !use DG
         implicit none
 
@@ -41,8 +41,7 @@ C***********************************************************************
         ENDIF
       END FUNCTION
 
-      function computeTRR_IPET(dist, LatestRmax, Pn, Pc) result(TRR)
-        use global, only : sz
+      attributes(device) pure function computeTRR_IPET(dist, LatestRmax, Pn, Pc) result(TRR)
         implicit none
         real(sz) :: TRR
         real(sz), intent(in) :: dist, Pn, Pc
@@ -62,8 +61,7 @@ C***********************************************************************
         TRR = TRR * 1e-3 / 3600.0
       END FUNCTION
 
-      function computeTRR_RCLIPER(dist, Vmax) result(TRR)
-        use global, only : sz
+      attributes(device) pure function computeTRR_RCLIPER(dist, Vmax) result(TRR)
 
         implicit none
         real(sz), intent(in) :: dist  ! must be in km
@@ -111,14 +109,13 @@ C***********************************************************************
       end function  
 
 
-      SUBROUTINE UPDATE_PREC(i, lat, lon, cLon, cLat, Pn, Pc, rmx, Vmax, model_type)
-        use global, only : Rearth, deg2rad, DTDP, rad2deg
-        use vortex
-        use DG, only : IRK
+      attributes(device) SUBROUTINE UPDATE_PREC(irk, dtdp, i, lat, lon, cLon, cLat, Pn, Pc, rmx, Vmax, model_type)
+        !use vortex
+
         implicit none
-        integer, intent(in) :: i, model_type
-        real(sz), intent(in) :: lon, lat, cLon, cLat, Pn, Pc, rmx, Vmax
-        real(sz) :: dx, dy, dist, LatestRmax 
+        integer, value :: irk, i, model_type
+        real(sz),value  :: dtdp, lon, lat, cLon, cLat, Pn, Pc, rmx, Vmax
+        real(sz), value :: dx, dy, dist, LatestRmax
 
         dx = deg2rad * Rearth * (lon - cLon) * COS(deg2rad*cLat)
         dy = deg2rad * Rearth * (lat - cLat)

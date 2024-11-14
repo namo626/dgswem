@@ -116,7 +116,7 @@ C.......Compute the DG time and DG ramp
          
 C.......Obtain the meteorological forcing
 
-         IF (NWS.NE.0) CALL MET_FORCING(IT)
+         IF (NWS.NE.0) CALL MET_FORCING(IRK, IT)
          istat = cudaDeviceSynchronize()
         
         IF(NRS.GE.1) THEN
