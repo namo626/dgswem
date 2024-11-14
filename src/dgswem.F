@@ -70,7 +70,7 @@ c     nd
         CALL alloc_precipitation() 
       end if
 
-      if (rainfall.eq.3) then
+      if (rainfall.eq.2) then
         CRAIN_TIMINC = 3600
         call ncrain1_init(PREC2, NP)
         call ncrain_get(PREC2, NP)

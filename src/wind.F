@@ -3810,15 +3810,9 @@ c$$$      istat = cudaDeviceSynchronize()
          ! elevation (meters).
          !-------------------------------------------
          ! namo - add rain
-#if 0
-
-         if (rainfall.eq.1) then
-           call UPDATE_PREC(i, ycoor(i), xcoor(i), cLon, cLat, Pn, Pc, Rmax, Vmax, 1)
-        elseif (rainfall.eq.3)then
-           call UPDATE_PREC(i, ycoor(i), xcoor(i), cLon, cLat, Pn, Pc, Rmax, Vmax, 3)
-
+         if (rainfall > 2) then
+           call UPDATE_PREC(i, ycoor(i), xcoor(i), cLon, cLat, Pn, Pc, Rmax, Vmax, rainfall)
          end if
-#endif
 
          press(i) = press(i) / RhoWatG
       END DO

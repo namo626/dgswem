@@ -41,7 +41,7 @@ C***********************************************************************
         ENDIF
       END FUNCTION
 
-      function computeTRR_IPET(dist, LatestRmax, Pn, Pc) result(TRR)
+      attributes(device) function computeTRR_IPET(dist, LatestRmax, Pn, Pc) result(TRR)
         use global, only : sz
         implicit none
         real(sz) :: TRR
@@ -62,7 +62,7 @@ C***********************************************************************
         TRR = TRR * 1e-3 / 3600.0
       END FUNCTION
 
-      function computeTRR_RCLIPER(dist, Vmax) result(TRR)
+      attributes(device) function computeTRR_RCLIPER(dist, Vmax) result(TRR)
         use global, only : sz
 
         implicit none
@@ -111,13 +111,13 @@ C***********************************************************************
       end function  
 
 
-      SUBROUTINE UPDATE_PREC(i, lat, lon, cLon, cLat, Pn, Pc, rmx, Vmax, model_type)
+      attributes(device,host) SUBROUTINE UPDATE_PREC(i, lat, lon, cLon, cLat, Pn, Pc, rmx, Vmax, model_type)
         use global, only : Rearth, deg2rad, DTDP, rad2deg
         use vortex
         use DG, only : IRK
         implicit none
-        integer, intent(in) :: i, model_type
-        real(sz), intent(in) :: lon, lat, cLon, cLat, Pn, Pc, rmx, Vmax
+        integer, value :: i, model_type
+        real(sz),value  :: lon, lat, cLon, cLat, Pn, Pc, rmx, Vmax
         real(sz) :: dx, dy, dist, LatestRmax 
 
         dx = deg2rad * Rearth * (lon - cLon) * COS(deg2rad*cLat)
@@ -130,9 +130,9 @@ C***********************************************************************
 
         
         SELECT CASE (model_type)
-          CASE (1)  ! Use RCLIPER
+          CASE (3)  ! Use RCLIPER
           PREC2(i) = computeTRR_RCLIPER(dist, Vmax)
-          CASE (3)  ! Use IPET
+          CASE (4)  ! Use IPET
           PREC2(i) = computeTRR_IPET(dist,LatestRmax, Pn, Pc)
             END SELECT  
         
