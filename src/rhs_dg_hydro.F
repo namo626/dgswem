@@ -74,8 +74,8 @@ C.......Compute rain source term if rain is enabled
          ! for now, stop rain after 1 day (86400 s)
 
          IF (rainfall > 0) THEN
-            IF (rainfall == 1 .OR. rainfall == 3) SOURCE_R = computeElemTRR(L)
-            IF (rainfall == 2) SOURCE_R =  7.0556e-6 ! 1 inch/hour
+            IF (rainfall > 1) SOURCE_R = computeElemTRR(L)
+            IF (rainfall == 1) SOURCE_R =  7.0556e-6 ! 1 inch/hour
 
             IF (SOURCE_R .GT. 0.0) THEN
               DO I = 1,NAGP(pa)
