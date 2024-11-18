@@ -28,6 +28,7 @@ C.....Use appropriate modules
       use cudafor
       USE GLOBAL
       USE DG
+      use nvtx
       use tidal_dg, only : tidal_potential
       use wetdry_dg, only : wetdry
       use slopelimiters, only : slopelimiter5
@@ -116,8 +117,13 @@ C.......Compute the DG time and DG ramp
          
 C.......Obtain the meteorological forcing
 
-         IF (NWS.NE.0) CALL MET_FORCING(IT)
-         istat = cudaDeviceSynchronize()
+         IF (NWS.NE.0) then
+            call nvtxstartrange("met_forcing", 2)
+            CALL MET_FORCING(IT)
+            call nvtxendrange
+            istat = cudaDeviceSynchronize()
+         endif
+
         
         IF(NRS.GE.1) THEN
           IF(TIME_A.GT.RSTIME2) THEN
