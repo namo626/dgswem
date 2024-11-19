@@ -60,6 +60,7 @@ c$$$      istat = cudaMemPrefetchAsync(nodecode, mnp, cudaCpuDeviceId, 0)
       call nvtxStartRange("WRITE_RESULTS", 1)
       CALL WRITE_RESULTS(IT,.FALSE.)
       call nvtxEndRange
+
 #ifdef CMPI
 #ifdef BLKOUT
       CALL MSG_BLOCKSYNC_FINISH()
@@ -78,10 +79,6 @@ c$$$      istat = cudaMemPrefetchAsync(nodecode, mnp, 0, 0)
 
       if (result) STOP
 
-
-c$$$      call nvtxStartRange("SCRUTINIZE", 1)
-c$$$      CALL SCRUTINIZE_SOLUTION()
-c$$$      call nvtxEndRange
 
       RETURN
       END SUBROUTINE

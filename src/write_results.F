@@ -15,7 +15,7 @@ C***********************************************************************
 
       USE precipitation, only: prec3
       use global, only :  eta2, uu2, vv2, dp, nm, areas,
-     &  dpe, el_count, pdg_el, eletab, etamax, nodecode, mnp, uumag, nscreen_inc, time_a
+     &  dpe, el_count, pdg_el, eletab, etamax, nodecode, mnp, nscreen_inc, time_a
       use dg, only : ze, wdflg, qx, qy, hb, phi_corner, nagp, wagp, phi_area, dofs
       USE HARM
       use sizes, only:  myproc,layers, sz
@@ -34,7 +34,6 @@ C***********************************************************************
       integer, intent(in) :: it
 
       real(sz)  :: elmax, velmax
-      integer  :: kemax, kvmax
       integer :: istat, i
       real(sz) :: umag
 
@@ -55,12 +54,6 @@ C***********************************************************************
      &           2X,'SPEEDMAX = ',E11.4)
         endif
 
-
-c$$$      kemax = maxloc(abs(eta2), dim=1, mask=nodecode .eq. 1)
-c$$$      elmax = eta2(kemax)
-c$$$
-c$$$      kvmax = maxloc(uumag, dim=1)
-c$$$      velmax = uumag(kvmax)
 
       end subroutine
 
@@ -1111,39 +1104,7 @@ c
           elmaxe=0.0
           qmaxe=0.0
           imaxq = 0.0
-c$$$          DO I=1,NP
-c$$$             IF((NODECODE(I).EQ.1).AND.(ABS(ETA2(I)).GT.ELMAX))THEN
-c$$$                ELMAX=ABS(ETA2(I))
-c$$$                KEMAX=I
-c$$$             ENDIF
-c$$$             VELABS=UU2(I)*UU2(I)+VV2(I)*VV2(I)
-c$$$             IF (VELABS.GT.VELMAX) THEN
-c$$$                VELMAX=VELABS
-c$$$                KVMAX=I
-c$$$             ENDIF
-c$$$          END DO
-
-
-c$$$          do i=1,ne
-c$$$             if (wdflg(i).ne.0) then
-c$$$                if (abs(ze(1,i,1)).gt.elmaxe) then
-c$$$                   imaxze=i
-c$$$                   elmaxe=abs(ze(1,i,1))
-c$$$                endif
-c$$$                if (sqrt(qx(1,i,1)**2+qy(1,i,1)**2).gt.qmaxe) then
-c$$$                   qmaxe=sqrt(qx(1,i,1)**2+qy(1,i,1)**2)
-c$$$                   imaxq=i
-c$$$                endif
-c$$$             endif
-c$$$          enddo
-
-C             
-c$$$          VELMAX=VELMAX**0.50
-          ErrorElevExceeded=0
-          if (KEMAX .eq. 0) then
-             KEMAX = 1
-          endif 
-C          
+C
 #ifdef CMPI
           IF( (MYPROC.EQ.0).AND.(ELMAX.LT.1000.0).AND.
      &        (MOD(IT,NSCREEN_INC).EQ.0) ) THEN
@@ -1218,14 +1179,7 @@ C
             CALL MESSAGE_FINI()
             stop
          ENDIF
-#else
-#if 0
-
-         IF(ELMAX.LT.1000.0.and.(MOD(IT,NSCREEN_INC).EQ.0) ) THEN
-           WRITE(6,1992) IT,TIME_A/86400.0,ETA2(KEMAX),KEMAX,VELMAX,KVMAX
- 1992      FORMAT(1X,'TIME STEP =',I8,5X,'TIME =',F12.6,
-     &           /,2X,'ELMAX = ', E11.4,' AT NODE',I7,
-     &           2X,'SPEEDMAX = ',E11.4,' AT NODE',I7)
+#endif
            if (padapt.eq.1) then
                
                do k=pl,ph
@@ -1249,8 +1203,9 @@ C
                print*,'With',ne,'total elements'               
             endif
 
-         ENDIF
 C
+#if 0
+
          IF(ELMAX.GT.1000.0) THEN
             WRITE(6,1994) IT,TIME_A/86400.0,
      $           ETA2(KEMAX),KEMAX,VELMAX,KVMAX
@@ -1262,7 +1217,6 @@ C
      &           2X,' !!! WARNING - HIGH ELEVATION !!!')
             STOP
          ENDIF
-#endif
 
 #endif
       ENDIF
