@@ -15,7 +15,7 @@ C***********************************************************************
 
       USE precipitation, only: prec3
       use global, only :  eta2, uu2, vv2, dp, nm, areas,
-     &  dpe, el_count, pdg_el, eletab, etamax
+     &  dpe, el_count, pdg_el, eletab, etamax, nodecode, mnp, uumag, nscreen_inc, time_a
       use dg, only : ze, wdflg, qx, qy, hb, phi_corner, nagp, wagp, phi_area, dofs
       USE HARM
       use sizes, only:  myproc,layers, sz
@@ -25,6 +25,44 @@ C***********************************************************************
 #endif
 
       contains
+
+      subroutine printScreen(it)
+      use cudafor
+
+      implicit none
+
+      integer, intent(in) :: it
+
+      real(sz)  :: elmax, velmax
+      integer  :: kemax, kvmax
+      integer :: istat, i
+      real(sz) :: umag
+
+      velmax = 0.
+      elmax = 0.
+!$cuf kernel do <<< *, 128 >>> reduce(max:velmax,elmax)
+      do i = 1,mnp
+         umag = sqrt(uu2(i)*uu2(i) + vv2(i)*vv2(i))
+         elmax = max(elmax, abs(eta2(i)*nodecode(i)))
+         velmax = max(umag, velmax)
+      enddo
+      istat = cudaDeviceSynchronize()
+
+      IF(ELMAX.LT.1000.0.and.(MOD(IT,NSCREEN_INC).EQ.0) ) THEN
+           WRITE(6,1992) IT,TIME_A/86400.0,elmax, velmax
+ 1992      FORMAT(1X,'TIME STEP =',I8,5X,'TIME =',F12.6,
+     &           /,2X,'ELMAX = ', E11.4,
+     &           2X,'SPEEDMAX = ',E11.4)
+        endif
+
+
+c$$$      kemax = maxloc(abs(eta2), dim=1, mask=nodecode .eq. 1)
+c$$$      elmax = eta2(kemax)
+c$$$
+c$$$      kvmax = maxloc(uumag, dim=1)
+c$$$      velmax = uumag(kvmax)
+
+      end subroutine
 
       attributes(global) subroutine check_nan(mnp, result)
 
@@ -1073,32 +1111,34 @@ c
           elmaxe=0.0
           qmaxe=0.0
           imaxq = 0.0
-          DO I=1,NP
-             IF((NODECODE(I).EQ.1).AND.(ABS(ETA2(I)).GT.ELMAX))THEN
-                ELMAX=ABS(ETA2(I))
-                KEMAX=I
-             ENDIF
-             VELABS=UU2(I)*UU2(I)+VV2(I)*VV2(I)
-             IF (VELABS.GT.VELMAX) THEN
-                VELMAX=VELABS
-                KVMAX=I
-             ENDIF
-          END DO
+c$$$          DO I=1,NP
+c$$$             IF((NODECODE(I).EQ.1).AND.(ABS(ETA2(I)).GT.ELMAX))THEN
+c$$$                ELMAX=ABS(ETA2(I))
+c$$$                KEMAX=I
+c$$$             ENDIF
+c$$$             VELABS=UU2(I)*UU2(I)+VV2(I)*VV2(I)
+c$$$             IF (VELABS.GT.VELMAX) THEN
+c$$$                VELMAX=VELABS
+c$$$                KVMAX=I
+c$$$             ENDIF
+c$$$          END DO
 
-          do i=1,ne
-             if (wdflg(i).ne.0) then
-                if (abs(ze(1,i,1)).gt.elmaxe) then
-                   imaxze=i
-                   elmaxe=abs(ze(1,i,1))
-                endif
-                if (sqrt(qx(1,i,1)**2+qy(1,i,1)**2).gt.qmaxe) then
-                   qmaxe=sqrt(qx(1,i,1)**2+qy(1,i,1)**2)
-                   imaxq=i
-                endif
-             endif
-          enddo
+
+c$$$          do i=1,ne
+c$$$             if (wdflg(i).ne.0) then
+c$$$                if (abs(ze(1,i,1)).gt.elmaxe) then
+c$$$                   imaxze=i
+c$$$                   elmaxe=abs(ze(1,i,1))
+c$$$                endif
+c$$$                if (sqrt(qx(1,i,1)**2+qy(1,i,1)**2).gt.qmaxe) then
+c$$$                   qmaxe=sqrt(qx(1,i,1)**2+qy(1,i,1)**2)
+c$$$                   imaxq=i
+c$$$                endif
+c$$$             endif
+c$$$          enddo
+
 C             
-          VELMAX=VELMAX**0.50
+c$$$          VELMAX=VELMAX**0.50
           ErrorElevExceeded=0
           if (KEMAX .eq. 0) then
              KEMAX = 1
@@ -1179,6 +1219,8 @@ C
             stop
          ENDIF
 #else
+#if 0
+
          IF(ELMAX.LT.1000.0.and.(MOD(IT,NSCREEN_INC).EQ.0) ) THEN
            WRITE(6,1992) IT,TIME_A/86400.0,ETA2(KEMAX),KEMAX,VELMAX,KVMAX
  1992      FORMAT(1X,'TIME STEP =',I8,5X,'TIME =',F12.6,
@@ -1220,6 +1262,8 @@ C
      &           2X,' !!! WARNING - HIGH ELEVATION !!!')
             STOP
          ENDIF
+#endif
+
 #endif
       ENDIF
         
