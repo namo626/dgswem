@@ -13,9 +13,9 @@ C***********************************************************************
 C.....Use appropriate modules
       
       USE SIZES, ONLY : SZ,layers
-      USE GLOBAL, ONLY : SEDFLAG, MNP, nleq, leq, modetonode, maxel
-      use dg, only : dofh, ph
-      use output_dg, only : write_results, modal2nodal
+      USE GLOBAL, ONLY : SEDFLAG, MNP, mne, nleq, leq, modetonode, maxel, eta2, el_count, uu2, vv2, nodecode
+      use dg, only : dofh, ph, ze
+      use output_dg, only : write_results, modal2nodal, printScreen
       use nvtx
       use cudafor
 
@@ -27,9 +27,11 @@ C.....Use appropriate modules
 
 C.....Declare local variables
 
-      INTEGER :: IT, istat
+      INTEGER :: IT, istat, kemax, kvmax
       logical :: result
       logical, device :: result_d
+      real(sz) :: elmax, velmax
+
       
 C.....Hydrodynamics
 
@@ -46,15 +48,21 @@ C.....Write out results
 #endif
       call modal2nodal<<<MNP/128+1,128>>>(MNP,IT,maxel,nleq,leq, dofh, ph, sedflag)
       istat = cudaDeviceSynchronize()
+
+      call nvtxStartRange("nscreen", 1)
+      call printScreen(it)
+      call nvtxEndRange
+
       call nvtxStartRange("WRITE_RESULTS", 1)
-      !call modal2nodal(NE,IT,maxel,nleq,leq,modetonode, dofh, ph, sedflag)
       CALL WRITE_RESULTS(IT,.FALSE.)
       call nvtxEndRange
+
 #ifdef CMPI
 #ifdef BLKOUT
       CALL MSG_BLOCKSYNC_FINISH()
 #endif
 #endif
+
 
       result = .true.
       call check_nan<<<MNP/128+1,128>>>(MNP,result_d)
@@ -62,9 +70,6 @@ C.....Write out results
 
       if (result) STOP
 
-c$$$      call nvtxStartRange("SCRUTINIZE", 1)
-c$$$      CALL SCRUTINIZE_SOLUTION()
-c$$$      call nvtxEndRange
 
       RETURN
       END SUBROUTINE
