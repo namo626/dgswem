@@ -52,11 +52,7 @@ C.....Write out results
       call nvtxStartRange("nscreen", 1)
       call printScreen(it)
       call nvtxEndRange
-c$$$      istat = cudaMemPrefetchAsync(eta2, mnp, cudaCpuDeviceId, 0)
-c$$$      istat = cudaMemPrefetchAsync(uu2, mnp, cudaCpuDeviceId, 0)
-c$$$      istat = cudaMemPrefetchAsync(vv2, mnp, cudaCpuDeviceId, 0)
-c$$$      istat = cudaMemPrefetchAsync(ze(:,:,1), mne*3, cudaCpuDeviceId, 0)
-c$$$      istat = cudaMemPrefetchAsync(nodecode, mnp, cudaCpuDeviceId, 0)
+
       call nvtxStartRange("WRITE_RESULTS", 1)
       CALL WRITE_RESULTS(IT,.FALSE.)
       call nvtxEndRange
@@ -67,11 +63,6 @@ c$$$      istat = cudaMemPrefetchAsync(nodecode, mnp, cudaCpuDeviceId, 0)
 #endif
 #endif
 
-c$$$      istat = cudaMemPrefetchAsync(eta2, mnp, 0, 0)
-c$$$      istat = cudaMemPrefetchAsync(ze(:,:,1), mne*3, 0, 0)
-c$$$      istat = cudaMemPrefetchAsync(UU2, mnp, 0, 0)
-c$$$      istat = cudaMemPrefetchAsync(VV2, mnp, 0, 0)
-c$$$      istat = cudaMemPrefetchAsync(nodecode, mnp, 0, 0)
 
       result = .true.
       call check_nan<<<MNP/128+1,128>>>(MNP,result_d)

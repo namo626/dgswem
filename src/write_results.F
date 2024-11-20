@@ -37,22 +37,22 @@ C***********************************************************************
       integer :: istat, i
       real(sz) :: umag
 
-      velmax = 0.
-      elmax = 0.
+      IF((MOD(IT,NSCREEN_INC).EQ.0) ) THEN
+         velmax = 0.
+         elmax = 0.
 !$cuf kernel do <<< *, 128 >>> reduce(max:velmax,elmax)
-      do i = 1,mnp
-         umag = sqrt(uu2(i)*uu2(i) + vv2(i)*vv2(i))
-         elmax = max(elmax, abs(eta2(i)*nodecode(i)))
-         velmax = max(umag, velmax)
-      enddo
-      istat = cudaDeviceSynchronize()
+         do i = 1,mnp
+            umag = sqrt(uu2(i)*uu2(i) + vv2(i)*vv2(i))
+            elmax = max(elmax, abs(eta2(i)*nodecode(i)))
+            velmax = max(umag, velmax)
+         enddo
+         istat = cudaDeviceSynchronize()
 
-      IF(ELMAX.LT.1000.0.and.(MOD(IT,NSCREEN_INC).EQ.0) ) THEN
-           WRITE(6,1992) IT,TIME_A/86400.0,elmax, velmax
- 1992      FORMAT(1X,'TIME STEP =',I8,5X,'TIME =',F12.6,
-     &           /,2X,'ELMAX = ', E11.4,
-     &           2X,'SPEEDMAX = ',E11.4)
-        endif
+         WRITE(6,1992) IT,TIME_A/86400.0,elmax, velmax
+ 1992    FORMAT(1X,'TIME STEP =',I8,5X,'TIME =',F12.6,
+     &        /,2X,'ELMAX = ', E11.4,
+     &        2X,'SPEEDMAX = ',E11.4)
+      endif
 
 
       end subroutine
@@ -236,6 +236,7 @@ C.....to single nodal values
       !use global, only : et00, uu00, vv00, bt00, cc00, rmp00, rmu00, rmv00
       use global
       use DG
+      use cudafor
 
       implicit none
       integer, value :: it
@@ -246,6 +247,8 @@ C.....to single nodal values
       REAL(SZ) AREA, DEPTH, ANGLE_SUM, FH_NL, DP1, DP2, DP3, DP00, ZE00
       real(sz) qmaxe,elmaxe, iota_int, iota_error
       integer :: imaxze,imaxq,ErrorElevExceeded, k,j , i, kk
+      logical :: wrote_noutge, wrote_noute
+      integer :: istat
 
       iota_int = 0.0
       
@@ -254,10 +257,16 @@ C...OUTPUT ELEVATION RECORDING STATION INFORMATION IF NOUTE<>0 AND THE
 C....TIME STEP FALLS WITHIN THE SPECIFIED WINDOW
 C...CALCULATE ELEVATION SOLUTIONS AT STATIONS USING INTERPOLATION
 C...
+      wrote_noute = .false.
         IF(NOUTE.NE.0) THEN
           IF((IT.GT.NTCYSE).AND.(IT.LE.NTCYFE).OR.FORCE_WRITE) THEN
             NSCOUE=NSCOUE+1
             IF(NSCOUE.EQ.NSPOOLE.OR.FORCE_WRITE) THEN
+               istat = cudaMemPrefetchAsync(eta2, mnp, cudaCpuDeviceId, 0)
+               istat = cudaMemPrefetchAsync(nodecode, mnp, cudaCpuDeviceId, 0)
+               istat = cudaMemPrefetchAsync(ze(:,:,1), 3*mne, cudaCpuDeviceId, 0)
+               wrote_noute = .true.
+
               DO I=1,NSTAE  
                 if (ModetoNode.eq.1) then              
                   EE1=ETA2(NM(NNE(I),1))
@@ -502,11 +511,16 @@ C...
 C.....Output the gloabl elevation data if NOUTGE ~= 0 and the
 C.....time step falls within the specified window
 
+          wrote_noutge = .false.
       IF (NOUTGE.NE.0) THEN
         IF ((IT.GT.NTCYSGE).AND.(IT.LE.NTCYFGE).OR.FORCE_WRITE) THEN
           NSCOUGE = NSCOUGE + 1
           IF (NSCOUGE.EQ.NSPOOLGE.OR.FORCE_WRITE) THEN
             IF (ABS(NOUTGE).EQ.1) THEN
+               istat = cudaMemPrefetchAsync(eta2, mnp, cudaCpuDeviceId, 0)
+               istat = cudaMemPrefetchAsync(nodecode, mnp, cudaCpuDeviceId, 0)
+               wrote_noutge = .true.
+
               WRITE(63,2120) TIME_A, IT
               WRITE(88,2120) TIME_A, IT
               WRITE(89,2120) TIME_A, IT
@@ -1284,6 +1298,18 @@ C.....If applicable write out a DG hot start
          CLOSE(290)
 #endif
       ENDIF
+
+      ! copy back to device if necessary
+
+      if (wrote_noutge .or. wrote_noute) then
+         istat = cudaMemPrefetchAsync(eta2, mnp, 0, 0)
+         istat = cudaMemPrefetchAsync(nodecode, mnp, 0, 0)
+      endif
+
+      if (wrote_noute) then
+         istat = cudaMemPrefetchAsync(ze(:,:,1), 3*mne, 0, 0)
+      endif
+
 
 C.....If end of run write out DG data
 
