@@ -43,7 +43,7 @@ C.....Use appropriate modules
       
 C.....Declare local variables
 
-      INTEGER IED, JED, JJED, IEL, IEL1, IEL2, JJ1, JJ2
+      INTEGER IED, JED, JJED, IEL, IEL1, IEL2, JJ1, JJ2, led_in, led_ex
 Csb--
       INTEGER JEL, JJEL,ED_ID,L,GED,I,J,K
 C--
@@ -612,6 +612,25 @@ C.....Construct global edge to local edge (1,2, or 3) table
           ENDIF
         ENDDO
       ENDDO
+
+      ! create a map : which global internal edge belongs to an element
+      nieds_count = 1
+      elem_edge = -1
+      do i = 1,nieds
+         GED = NIEDN(i)
+         LED_IN = NEDSD(1,GED)
+         LED_EX = NEDSD(2,GED)
+
+C.......Retrieve the elements which share the edge
+
+         EL_IN = NEDEL(1,GED)
+         EL_EX = NEDEL(2,GED)
+
+         elem_edge(el_in, nieds_count(el_in)) = ged
+         nieds_count(el_in) = nieds_count(el_in) + 1
+         elem_edge(el_ex, nieds_count(el_ex)) = ged
+         nieds_count(el_ex) = nieds_count(el_ex) + 1
+      enddo
 
       RETURN
       END SUBROUTINE CREATE_EDGE_DATA

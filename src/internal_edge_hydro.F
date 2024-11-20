@@ -26,7 +26,7 @@ C     C***********************************************************************
       USE GLOBAL, only : areas, pdg_el, neled
       USE DG, only : rhs_ze, rhs_qx, rhs_qy, cosnx, sinnx, ze, wdflg, qx, qy, xlen,
      &     hb, bathed, dofs, edgeq, negp, max_boa_dt, phi_edge, sfaced, lz, nedel, niedn,
-     &     nedsd
+     &     nedsd, elem_edge, ze_edge, qx_edge, qy_edge
       USE NodalAttributes, ONLY :  ESLM
       use sizes, only:  sz, myproc
       use flux_dg, only : llf_flux
@@ -45,7 +45,7 @@ C     C***********************************************************************
 C.....Declare local variables
       real(sz) :: tmp
       logical :: is_large_flux
-      integer :: el_in, el_ex, pa, el, test_el
+      integer :: el_in, el_ex, pa, el, test_el, ind_ex, ind_in
       real(sz) :: nx, ny, ze_in, qx_in, qy_in, qx_ex, qy_ex, hb_ex, hb_in
       real(sz) :: f_hat, g_hat, h_hat, q_n_ext, q_t_ext, q_n_int, q_t_int, ze_ex
       real(sz) :: sfac_in, sfac_ex
@@ -59,9 +59,9 @@ C.....Declare local variables
       REAL(SZ) EDFAC_IN, EDFAC_EX, DEN
       REAL(SZ) XLEN_EL_IN, XLEN_EL_EX,MZ_X_EX(layers),MZ_Y_EX(layers)
       REAL(SZ) MASS_EL_IN, MASS_EL_EX,MZ_X_IN(layers),MZ_Y_IN(layers)
-      REAL(SZ), SAVE, ALLOCATABLE :: 
-     &     RHS_ZE_IN(:), RHS_QX_IN(:), RHS_QY_IN(:),
-     &     RHS_ZE_EX(:), RHS_QX_EX(:), RHS_QY_EX(:)
+      REAL(SZ)  ::
+     &     RHS_ZE_IN(3), RHS_QX_IN(3), RHS_QY_IN(3),
+     &     RHS_ZE_EX(3), RHS_QX_EX(3), RHS_QY_EX(3)
 #ifdef TRACE     
      &     ,RHS_iota_IN(:), RHS_iota_EX(:)
 #endif
@@ -81,7 +81,7 @@ C.....Declare local variables
       REAL(SZ) K_HAT_O
       Real(SZ) bed_HAT_IN(layers),bed_HAT_EX(layers)
 c     
-
+#if 0
       IF(.NOT.ALLOCATED(RHS_ZE_IN)) THEN
          ALLOCATE ( RHS_ZE_IN(DOFH),RHS_QX_IN(DOFH),RHS_QY_IN(DOFH) )
          ALLOCATE ( RHS_ZE_EX(DOFH),RHS_QX_EX(DOFH),RHS_QY_EX(DOFH) )
@@ -96,6 +96,8 @@ c
          Allocate ( rhs_dynP_IN(dofh),rhs_dynP_EX(dofh) )
 #endif
       ENDIF
+#endif
+
 
       test_el = 0
       L = (blockidx%x-1)*blockdim%x + threadidx%x
@@ -137,14 +139,20 @@ C.....Save the current RHS
 
          DO K = 1,DOFS(EL)
 
-            RHS_ZE_IN(K) = RHS_ZE(K,EL_IN,IRK)
-            RHS_QX_IN(K) = RHS_QX(K,EL_IN,IRK)
-            RHS_QY_IN(K) = RHS_QY(K,EL_IN,IRK)
+c$$$            RHS_ZE_IN(K) = RHS_ZE(K,EL_IN,IRK)
+c$$$            RHS_QX_IN(K) = RHS_QX(K,EL_IN,IRK)
+c$$$            RHS_QY_IN(K) = RHS_QY(K,EL_IN,IRK)
+c$$$
+c$$$            RHS_ZE_EX(K) = RHS_ZE(K,EL_EX,IRK)
+c$$$            RHS_QX_EX(K) = RHS_QX(K,EL_EX,IRK)
+c$$$            RHS_QY_EX(K) = RHS_QY(K,EL_EX,IRK)
 
-            RHS_ZE_EX(K) = RHS_ZE(K,EL_EX,IRK)
-            RHS_QX_EX(K) = RHS_QX(K,EL_EX,IRK)
-            RHS_QY_EX(K) = RHS_QY(K,EL_EX,IRK)
-
+            rhs_ze_in = 0.
+            rhs_qx_in = 0.
+            rhs_qy_in = 0.
+            rhs_ze_ex = 0.
+            rhs_qx_ex = 0.
+            rhs_qy_ex = 0.
 #ifdef TRACE
             RHS_iota_IN(K) = RHS_iota(K,EL_IN,IRK)
             RHS_iota_EX(K) = RHS_iota(K,EL_EX,IRK)
@@ -434,13 +442,19 @@ C......namo 5/22 - modify for rain (source term no longer zero)
 C...........Put back the saved RHS
 
                DO K = 1,DOFS(EL)
-                  RHS_ZE(K,EL_IN,IRK) = RHS_ZE_IN(K)
-                  RHS_QX(K,EL_IN,IRK) = RHS_QX_IN(K)
-                  RHS_QY(K,EL_IN,IRK) = RHS_QY_IN(K)
-
-                  RHS_ZE(K,EL_EX,IRK) = RHS_ZE_EX(K)
-                  RHS_QX(K,EL_EX,IRK) = RHS_QX_EX(K)
-                  RHS_QY(K,EL_EX,IRK) = RHS_QY_EX(K)
+                  rhs_ze_in = 0.
+                  rhs_qx_in = 0.
+                  rhs_qy_in = 0.
+                  rhs_ze_ex = 0.
+                  rhs_qx_ex = 0.
+                  rhs_qy_ex = 0.
+c$$$                  RHS_ZE(K,EL_IN,IRK) = RHS_ZE_IN(K)
+c$$$                  RHS_QX(K,EL_IN,IRK) = RHS_QX_IN(K)
+c$$$                  RHS_QY(K,EL_IN,IRK) = RHS_QY_IN(K)
+c$$$
+c$$$                  RHS_ZE(K,EL_EX,IRK) = RHS_ZE_EX(K)
+c$$$                  RHS_QX(K,EL_EX,IRK) = RHS_QX_EX(K)
+c$$$                  RHS_QY(K,EL_EX,IRK) = RHS_QY_EX(K)
 
 #ifdef TRACE
                   RHS_iota(K,EL_IN,IRK) = RHS_iota_IN(K)
@@ -702,14 +716,21 @@ C.....Compute the edge integral
                W_IN = EDFAC_IN*EDGEQ(K,GP_IN,LED_IN,pa)
                W_EX = EDFAC_EX*EDGEQ(K,GP_EX,LED_EX,pa)
 
-               tmp = atomicAdd(RHS_ZE(K,EL_IN,IRK), -W_IN*F_HAT_O  )
-               tmp = atomicAdd(RHS_QX(K,EL_IN,IRK), -W_IN*G_HAT_IN)
-               tmp = atomicAdd(RHS_QY(K,EL_IN,IRK), -W_IN*H_HAT_IN)
+c$$$               tmp = atomicAdd(RHS_ZE(K,EL_IN,IRK), -W_IN*F_HAT_O  )
+c$$$               tmp = atomicAdd(RHS_QX(K,EL_IN,IRK), -W_IN*G_HAT_IN)
+c$$$               tmp = atomicAdd(RHS_QY(K,EL_IN,IRK), -W_IN*H_HAT_IN)
+c$$$
+c$$$               tmp = atomicAdd(RHS_ZE(K,EL_EX,IRK), W_EX*F_HAT_O)
+c$$$               tmp = atomicAdd(RHS_QX(K,EL_EX,IRK), W_EX*G_HAT_EX)
+c$$$               tmp = atomicAdd(RHS_QY(K,EL_EX,IRK), W_EX*H_HAT_EX)
 
-               tmp = atomicAdd(RHS_ZE(K,EL_EX,IRK), W_EX*F_HAT_O)
-               tmp = atomicAdd(RHS_QX(K,EL_EX,IRK), W_EX*G_HAT_EX)
-               tmp = atomicAdd(RHS_QY(K,EL_EX,IRK), W_EX*H_HAT_EX)
+               rhs_ze_in(k) = rhs_ze_in(k) - w_in * f_hat_o
+               rhs_qx_in(k) = rhs_qx_in(k) - w_in * g_hat_in
+               rhs_qy_in(k) = rhs_qy_in(k) - w_in * h_hat_in
 
+               rhs_ze_ex(k) = rhs_ze_ex(k) + w_ex * f_hat_o
+               rhs_qx_ex(k) = rhs_qx_ex(k) + w_ex * g_hat_ex
+               rhs_qy_ex(k) = rhs_qy_ex(k) + w_ex * h_hat_ex
 #ifdef TRACE
 
                RHS_iota(K,EL_IN,IRK) = RHS_iota(K,EL_IN,IRK) - W_IN*I_HAT_O
@@ -955,9 +976,13 @@ C.....Compute the edge integral
 
                W_IN = EDFAC_IN*EDGEQ(K,GP_IN,LED_IN,pa)
 
-               tmp = atomicAdd(RHS_ZE(K,EL_IN,IRK) , -W_IN*F_HAT)
-               tmp = atomicAdd(RHS_QX(K,EL_IN,IRK) , -W_IN*G_HAT)
-               tmp = atomicAdd(RHS_QY(K,EL_IN,IRK) , -W_IN*H_HAT)
+c$$$               tmp = atomicAdd(RHS_ZE(K,EL_IN,IRK) , -W_IN*F_HAT)
+c$$$               tmp = atomicAdd(RHS_QX(K,EL_IN,IRK) , -W_IN*G_HAT)
+c$$$               tmp = atomicAdd(RHS_QY(K,EL_IN,IRK) , -W_IN*H_HAT)
+               rhs_ze_in(k) = rhs_ze_in(k) - w_in * f_hat
+               rhs_qx_in(k) = rhs_qx_in(k) - w_in * g_hat
+               rhs_qy_in(k) = rhs_qy_in(k) - w_in * h_hat
+
 
 #ifdef TRACE
              RHS_iota(K,EL_IN,IRK) = RHS_iota(K,EL_IN,IRK) - W_IN*I_HAT
@@ -1176,9 +1201,12 @@ C.....Compute the edge integral
 
                W_EX = EDFAC_EX*EDGEQ(K,GP_EX,LED_EX,pa)
 
-               tmp = atomicAdd(RHS_ZE(K,EL_EX,IRK), W_EX*F_HAT)
-               tmp = atomicAdd(RHS_QX(K,EL_EX,IRK), W_EX*G_HAT)
-               tmp = atomicAdd(RHS_QY(K,EL_EX,IRK), W_EX*H_HAT)
+c$$$               tmp = atomicAdd(RHS_ZE(K,EL_EX,IRK), W_EX*F_HAT)
+c$$$               tmp = atomicAdd(RHS_QX(K,EL_EX,IRK), W_EX*G_HAT)
+c$$$               tmp = atomicAdd(RHS_QY(K,EL_EX,IRK), W_EX*H_HAT)
+               rhs_ze_ex(k) = rhs_ze_ex(k) + w_ex * f_hat
+               rhs_qx_ex(k) = rhs_qx_ex(k) + w_ex * g_hat
+               rhs_qy_ex(k) = rhs_qy_ex(k) + w_ex * h_hat
 
 #ifdef TRACE
               RHS_iota(K,EL_EX,IRK) = RHS_iota(K,EL_EX,IRK) + W_EX*I_HAT
@@ -1205,9 +1233,85 @@ C.....Compute the edge integral
          ENDDO
 
       endif
+
+
+      ind_ex = -1
+      ind_in = -1
+      do k = 1,3
+         if (elem_edge(el_ex, k) == ged) then
+            ind_ex = k
+         endif
+         if (elem_edge(el_in, k) == ged) then
+            ind_in = k
+         endif
+      enddo
+
+
+      do k = 1,3
+         ze_edge(el_ex,ind_ex,k) = rhs_ze_ex(k)
+         qx_edge(el_ex,ind_ex,k) = rhs_qx_ex(k)
+         qy_edge(el_ex,ind_ex,k) = rhs_qy_ex(k)
+
+         ze_edge(el_in,ind_in,k) = rhs_ze_in(k)
+         qx_edge(el_in,ind_in,k) = rhs_qx_in(k)
+         qy_edge(el_in,ind_in,k) = rhs_qy_in(k)
+      enddo
+
+
+
+
+
+c$$$      do k = 1,DOFS(EL)
+c$$$         tmp = atomicAdd(RHS_ZE(K,EL_EX,IRK), rhs_ze_ex(k))
+c$$$         tmp = atomicAdd(RHS_QX(K,EL_EX,IRK), rhs_qx_ex(k))
+c$$$         tmp = atomicAdd(RHS_QY(K,EL_EX,IRK), rhs_qy_ex(k))
+c$$$
+c$$$         tmp = atomicAdd(RHS_ZE(K,EL_in,IRK), rhs_ze_in(k))
+c$$$         tmp = atomicAdd(RHS_QX(K,EL_in,IRK), rhs_qx_in(k))
+c$$$         tmp = atomicAdd(RHS_QY(K,EL_in,IRK), rhs_qy_in(k))
+c$$$      enddo
+
          
       endif thread
 
       END SUBROUTINE
+
+      attributes(global) subroutine add_internal_flux(irk, NE)
+      implicit none
+
+      integer, value :: irk, NE
+
+      real(sz) :: ze_sum, qx_sum, qy_sum
+      integer :: l, k, i
+
+      L = (blockidx%x-1)*blockdim%x + threadidx%x
+
+
+
+      if (L <= NE) then
+         do k = 1,3
+            ze_sum = 0.
+            qx_sum = 0.
+            qy_sum = 0.
+            do i = 1,3
+               ze_sum = ze_sum + ze_edge(L,i,k)
+               qx_sum = qx_sum + qx_edge(L,i,k)
+               qy_sum = qy_sum + qy_edge(L,i,k)
+            enddo
+
+            rhs_ze(k,L, IRK) = rhs_ze(k,L, IRK) + ze_sum
+            rhs_qx(k,L, IRK) = rhs_qx(k,L, IRK) + qx_sum
+            rhs_qy(k,L, IRK) = rhs_qy(k,L, IRK) + qy_sum
+         enddo
+
+         ze_edge(L,:,:) = 0.
+         qx_edge(L,:,:) = 0.
+         qy_edge(L,:,:) = 0.
+
+      endif
+
+
+
+      end subroutine
 
       end module internal_edge_dg
