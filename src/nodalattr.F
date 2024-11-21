@@ -185,8 +185,8 @@ C     Nodal attributes.
                                            !  Tau0Var may be optimized later based on 
                                            !  Tau0Base and other info if Tau0 value 
                                            !  in Unit 15 is -3. jjw&sb46.39.sb01
-      REAL(SZ), ALLOCATABLE :: z0land(:,:) ! directional wind speed red. fac.
-      REAL(SZ), ALLOCATABLE :: vcanopy(:)  ! canopy coefficient
+      REAL(SZ), managed, ALLOCATABLE :: z0land(:,:) ! directional wind speed red. fac.
+      REAL(SZ), managed, ALLOCATABLE :: vcanopy(:)  ! canopy coefficient
 C     The following attribute contains BK(I),BALPHA(I),BDELX(I), and POAN(I)
       REAL(SZ), ALLOCATABLE :: BridgePilings(:,:)
       REAL(SZ), ALLOCATABLE :: Chezy(:)
@@ -1114,18 +1114,18 @@ C     written into the hstart.F file by jjw in jjw-42.06j. This is used
 C     in hstart.F and timestep.F.
 C
 C     ----------------------------------------------------------------
-      SUBROUTINE ApplyDirectionalWindReduction(NodeNumber, WindDragCo,
+      attributes(device) SUBROUTINE ApplyDirectionalWindReduction(NodeNumber, WindDragCo,
      &     WindMag, BathymetricDepth, Elevation, CutOffDepth, G,
      &     WindX, WindY)
       USE SIZES
       IMPLICIT NONE
-      INTEGER,  intent(in) :: NodeNumber ! index of node under consideration
-      REAL(SZ), intent(in) :: WindDragCo ! wind drag coefficient
-      REAL(SZ), intent(in) :: WindMag    ! wind magnitude
-      REAL(SZ), intent(in) :: BathymetricDepth ! a.k.a. dp(i),depth below geoid
-      REAL(SZ), intent(in) :: Elevation  ! a.k.a. eta2(i)
-      REAL(SZ), intent(in) :: CutOffDepth! a.k.a. h0, user-spec. min. depth
-      REAL(SZ), intent(in) :: G          ! gravitational constant
+      INTEGER,  value :: NodeNumber ! index of node under consideration
+      REAL(SZ), value :: WindDragCo ! wind drag coefficient
+      REAL(SZ), value :: WindMag    ! wind magnitude
+      REAL(SZ), value :: BathymetricDepth ! a.k.a. dp(i),depth below geoid
+      REAL(SZ), value :: Elevation  ! a.k.a. eta2(i)
+      REAL(SZ), value :: CutOffDepth! a.k.a. h0, user-spec. min. depth
+      REAL(SZ), value :: G          ! gravitational constant
 
       REAL(SZ), intent(inout) :: WindX   ! x-dir component of wind velocity
       REAL(SZ), intent(inout) :: WindY   ! x-dir component of wind velocity

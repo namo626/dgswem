@@ -534,12 +534,15 @@ Cek added NWS = 12 and -12 from version 46
             WINDY = WVNY1(I) + WTRATIO*(WVNY2(I)-WVNY1(I))
             WINDMAG = SQRT(WINDX*WINDX+WINDY*WINDY)
             WDragCo = winddrag(windmag, draglaw, foundeye, winddraglimit, i)
+#if 0
             IF (LoadDirEffRLen) THEN
               CALL ApplyDirectionalWindReduction(I, WDragCo,
      &              WindMag, DP(I), ETA2(I), H0, G, WindX, WindY)
               WindMag = SQRT(WindX*WindX+WindY*WindY)
               WDragCo = winddrag(windmag, draglaw, foundeye, winddraglimit, i)
             ENDIF
+#endif
+
             WSX2(I)    = RampMete2*0.0012930*WDRAGCO*WINDX*WINDMAG
             WSY2(I)    = RampMete2*0.0012930*WDRAGCO*WINDY*WINDMAG
             PR2(I)     = RampMete2*PRN1(I)
@@ -559,12 +562,15 @@ Cek added NWS = 12 and -12 from version 46
             WINDY   = WVNY1(I)
             WINDMAG = SQRT(WINDX*WINDX+WINDY*WINDY)
             WDragCo = winddrag(windmag, draglaw, foundeye, winddraglimit, i)
+#if 0
             IF (LoadDirEffRLen) THEN
               CALL ApplyDirectionalWindReduction(I, WDragCo,
      &              WindMag, DP(I), ETA2(I), H0, G, WindX, WindY)
               WindMag = SQRT(WindX*WindX+WindY*WindY)
               WDragCo = winddrag(windmag, draglaw, foundeye, winddraglimit, i)
             ENDIF
+#endif
+
             WSX2(I)    = RampMete2*0.0012930*WDRAGCO*WINDX*WINDMAG
             WSY2(I)    = RampMete2*0.0012930*WDRAGCO*WINDY*WINDMAG
             PR2(I)     = RampMete2*PRN1(I)
@@ -583,12 +589,14 @@ Cek added NWS = 12 and -12 from version 46
             WindY = WVNY2(I)
             WindMag = SQRT(WindX*WindX+WindY*WindY)
             WDragCo = winddrag(windmag, draglaw, foundeye, winddraglimit, i)
+#if 0
             IF (LoadDirEffRLen) THEN
                CALL ApplyDirectionalWindReduction(I, WDragCo,
      &              WindMag, DP(I), ETA2(I), H0, G, WindX, WindY)
                WindMag = SQRT(WindX*WindX+WindY*WindY)
                WDragCo = winddrag(windmag, draglaw, foundeye, winddraglimit, i)
             ENDIF
+#endif
             WSX2(I) = RampMete2*0.0012930*WDragCo*WindX*WindMag
             WSY2(I) = RampMete2*0.0012930*WDragCo*WindY*WindMag
 C  tcm v49.16 20100617

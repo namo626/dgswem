@@ -29,6 +29,7 @@ Casey 101118: We need these values from other places.
       REAL(SZ) AsymmetricTime
       REAL(SZ) PRDIFF,PRBCKGRND_MH2O     ! tcm v49.16 20100617 added
       INTEGER II, IT
+      real(sz), device :: windX_d, windY_d
 
       RampMete = rampdg
 
@@ -165,7 +166,7 @@ C..........Compute wind drag
            WDragCo = winddrag(windmag, draglaw, foundeye, winddraglimit, i)
            
 C..........Apply directional wind reductions
-           
+#if 0
            IF (LoadDirEffRLen) THEN
              CALL ApplyDirectionalWindReduction( II, WDRAGCO, WINDMAG,
      &                                          DP(II), ETA2(II), H0, G,
@@ -173,6 +174,7 @@ C..........Apply directional wind reductions
              WINDMAG = SQRT( WINDX*WINDX + WINDY*WINDY )
              WDragCo = winddrag(windmag, draglaw, foundeye, winddraglimit, i)
            ENDIF
+#endif
            
 C..........Apply met ramp
 c           RampMete = RAMPDG
@@ -237,7 +239,7 @@ C.........Compute wind drag
           WDragCo = winddrag(windmag, draglaw, foundeye, winddraglimit, i)
            
 C.........Apply directional wind reductions
-
+#if 0
           IF (LoadDirEffRLen) THEN
             CALL ApplyDirectionalWindReduction( II, WDRAGCO, WINDMAG,
      &                                          DP(II), ETA2(II), H0, G,
@@ -245,6 +247,7 @@ C.........Apply directional wind reductions
             WINDMAG = SQRT(WINDX*WINDX+WINDY*WINDY)
             WDragCo = winddrag(windmag, draglaw, foundeye, winddraglimit, i)
           ENDIF
+#endif
             
 C.........Apply met ramp
 c           RampMete = RAMPDG
@@ -309,7 +312,7 @@ C.........Compute wind drag
           WDragCo = winddrag(windmag, draglaw, foundeye, winddraglimit, i)
           
 C.........Apply directional wind reductions
-          
+#if 0
           IF (LoadDirEffRLen) THEN
             CALL ApplyDirectionalWindReduction( II, WDRAGCO, WINDMAG,
      &                                          DP(II), ETA2(II), H0, G,
@@ -317,6 +320,7 @@ C.........Apply directional wind reductions
             WINDMAG = SQRT( WINDX*WINDX + WINDY*WINDY )
             WDragCo = winddrag(windmag, draglaw, foundeye, winddraglimit, i)
           ENDIF
+#endif
           
 C.........Apply met ramp
           
@@ -387,7 +391,7 @@ C.........Compute wind drag
           WDragCo = winddrag(windmag, draglaw, foundeye, winddraglimit, i)
           
 C.........Apply directional wind reductions
-
+#if 0
           IF (LoadDirEffRLen) THEN
             CALL ApplyDirectionalWindReduction( II, WDRAGCO, WINDMAG,
      &                                          DP(II), ETA2(II), H0, G,
@@ -395,6 +399,7 @@ C.........Apply directional wind reductions
             WINDMAG = SQRT(WINDX*WINDX+WINDY*WINDY)
             WDragCo = winddrag(windmag, draglaw, foundeye, winddraglimit, i)
           ENDIF
+#endif
           
 C.........Apply met ramp
           
@@ -493,7 +498,7 @@ C.........Compute wind drag
           WDragCo = winddrag(windmag, draglaw, foundeye, winddraglimit, i)
           
 C.........Apply directional wind reductions
-          
+#if 0
           IF (LoadDirEffRLen) THEN
             CALL ApplyDirectionalWindReduction( II, WDRAGCO, WINDMAG,
      &                                          DP(II), ETA2(II), H0, G,
@@ -501,6 +506,7 @@ C.........Apply directional wind reductions
             WINDMAG = SQRT(WINDX*WINDX + WINDY*WINDY)
             WDragCo = winddrag(windmag, draglaw, foundeye, winddraglimit, i)
           ENDIF
+#endif
             
 C.........Apply met ramp
             
@@ -619,7 +625,7 @@ C.........Compute wind drag
           WDragCo = winddrag(windmag, draglaw, foundeye, winddraglimit, i)
 
 C.........Apply directional wind reductions
-
+#if 0
           IF (LoadDirEffRLen) THEN
             CALL ApplyDirectionalWindReduction( II, WDRAGCO, WINDMAG,
      &                                          DP(II), ETA2(II), H0, G,
@@ -627,6 +633,7 @@ C.........Apply directional wind reductions
             WINDMAG = SQRT(WINDX*WINDX + WINDY*WINDY)
             WDragCo = winddrag(windmag, draglaw, foundeye, winddraglimit, i)
           ENDIF
+#endif
           
 C.........Apply met ramp
           
@@ -701,7 +708,7 @@ C.........Compute wind drag
           WDragCo = winddrag(windmag, draglaw, foundeye, winddraglimit, i)
             
 C.........Apply directional wind reductions
-
+#if 0
           IF (LoadDirEffRLen) THEN
             CALL ApplyDirectionalWindReduction( II, WDRAGCO, WINDMAG,
      &                                          DP(II), ETA2(II), H0, G,
@@ -709,6 +716,7 @@ C.........Apply directional wind reductions
             WINDMAG = SQRT(WINDX*WINDX + WINDY*WINDY)
             WDragCo = winddrag(windmag, draglaw, foundeye, winddraglimit, i)
           ENDIF
+#endif
             
 C.........Apply met ramp
             
@@ -770,7 +778,7 @@ C.........Compute wind drag
           WDragCo = winddrag(windmag, draglaw, foundeye, winddraglimit, i)
           
 C.........Apply directional wind reductions
-          
+#if 0
           IF (LoadDirEffRLen) THEN
             CALL ApplyDirectionalWindReduction( II, WDRAGCO, WINDMAG,
      &                                          DP(II), ETA2(II), H0, G,
@@ -778,6 +786,7 @@ C.........Apply directional wind reductions
             WINDMAG = SQRT(WINDX*WINDX + WINDY*WINDY)
             WDragCo = winddrag(windmag, draglaw, foundeye, winddraglimit, i)
           ENDIF
+#endif
           
 C.........Apply met ramp
           
@@ -805,12 +814,14 @@ Casey 101118: Added these lines for coupling winds to SWAN.
             WindY = WVNY2(II)
             WindMag = SQRT(WindX*WindX+WindY*WindY)
             WDragCo = winddrag(windmag, draglaw, foundeye, winddraglimit, i)
+#if 0
             IF (LoadDirEffRLen) THEN
                CALL ApplyDirectionalWindReduction(II, WDragCo,
      &              WindMag, DP(II), ETA2(II), H0, G, WindX, WindY)
                WindMag = SQRT(WindX*WindX+WindY*WindY)
                WDragCo = winddrag(windmag, draglaw, foundeye, winddraglimit, i)
             ENDIF
+#endif
 
             WSX2(II) = RampMete*0.0012930*WDragCo*WindX*WindMag
             WSY2(II) = RampMete*0.0012930*WDragCo*WindY*WindMag
@@ -835,29 +846,27 @@ Casey 121019: Added multiplication factor to be used before sending winds to cou
          CALL NWS20GET(SLAM,SFEA,WVNX2,WVNY2,PRN2,NP,AsymmetricTime,ICS)
 !$cuf kernel do <<< *, 128>>>
          DO II=1,NP
-            WindX = WVNX2(II)
-            WindY = WVNY2(II)
-            WindMag = SQRT(WindX*WindX+WindY*WindY)
+            WindX_d = WVNX2(II)
+            WindY_d = WVNY2(II)
+            WindMag = SQRT(WindX_d*WindX_d+WindY_d*WindY_d)
             WDragCo = WindDrag(WindMag, dragLaw, foundEye, winddraglimit, I)
-#if 0
 
             IF (LoadDirEffRLen) THEN
                CALL ApplyDirectionalWindReduction(II, WDragCo,
-     &              WindMag, DP(II), ETA2(II), H0, G, WindX, WindY)
-               WindMag = SQRT(WindX*WindX+WindY*WindY)
+     &              WindMag, DP(II), ETA2(II), H0, G, WindX_d, WindY_d)
+               WindMag = SQRT(WindX_d*WindX_d+WindY_d*WindY_d)
                WDragCo = winddrag(windmag, draglaw, foundeye, winddraglimit, i)
             ENDIF
-#endif
 
 
-            WSX2(II) = RampMete*0.0012930*WDragCo*WindX*WindMag
-            WSY2(II) = RampMete*0.0012930*WDragCo*WindY*WindMag
+            WSX2(II) = RampMete*0.0012930*WDragCo*WindX_d*WindMag
+            WSY2(II) = RampMete*0.0012930*WDragCo*WindY_d*WindMag
 !            PR2(II)=RampMete*PRN2(II)
             PRBCKGRND_MH2O = 100.0*PRBCKGRND/(RHOWAT0*G)
             PRDIFF = RampMete*(PRN2(II)-PRBCKGRND_MH2O)
             PR2(II) = PRBCKGRND_MH2O + PRDIFF
-            WVNXOUT(II)=RampMete*WindX
-            WVNYOUT(II)=RampMete*WindY
+            WVNXOUT(II)=RampMete*WindX_d
+            WVNYOUT(II)=RampMete*WindY_d
 #ifdef CSWAN
 Casey 090302: Added these lines for coupling winds to SWAN.
 Casey 121019: Added multiplication factor to be used before sending winds to coupled wave models.
