@@ -156,6 +156,8 @@ C.....Declare allocatable real arrays
       REAL(SZ), ALLOCATABLE :: Q_HAT(:)
       REAL(SZ), ALLOCATABLE :: QIB(:)
       REAL(SZ), ALLOCATABLE, managed :: QX(:,:,:), QY(:,:,:), ZE(:,:,:)
+      REAL(SZ), ALLOCATABLE, managed :: ze_edge(:,:,:), qx_edge(:,:,:), qy_edge(:,:,:)
+      integer, ALLOCATABLE, managed :: elem_edge(:,:), nieds_count(:)
 
       ! For slope limiter
       Real(SZ), Allocatable, managed :: ZE_MIN1(:),ZE_MAX1(:),QX_MIN1(:),QX_MAX1(:)
@@ -305,6 +307,12 @@ Csb-20070228 NRK+1-->NRK+2 --- XX(:,:,NRK+2) will be used by slope limiter
       Allocate ( dynP(DOFH,MNE,NRK+2) ) 
       Allocate ( iotaa(DOFH,MNE,NRK+2),iotaa2(DOFH,MNE,NRK+2) )
       Allocate ( iotaa3(DOFH,MNE,NRK+2) )
+
+      allocate( elem_edge(MNE,3), nieds_count(MNE) )
+      allocate( ze_edge(MNE,3,DOFH), qx_edge(MNE,3,DOFH), qy_edge(MNE,3,DOFH))
+      ze_edge = 0.
+      qx_edge = 0.
+      qy_edge = 0.
 
       Allocate ( ZE_MIN1(MNP),ZE_MAX1(MNP),QX_MIN1(MNP) )
       Allocate ( QY_MIN1(MNP),QY_MAX1(MNP),QX_MAX1(MNP) )

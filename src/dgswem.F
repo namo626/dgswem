@@ -8,6 +8,7 @@ C******************************************************************************
         ! rainfall
       use precipitation, only : alloc_precipitation, prec2
       use owi_rain, only : ncrain1_init, ncrain_get
+      use cudafor
 C     
 C     sb-disabled for Linux&Intel compiler
 #ifdef VF
@@ -37,7 +38,6 @@ C--
       IMPLICIT NONE
       real(4) crain_time1, crain_time2, crain_timinc
       
-      INTEGER TESTFLAG,OUTITER,istop,i
 C     sb-PDG1
       REAL(4) CPU_TIME,CPU_SEC(2)
       REAL(4) TARRAY(2)
@@ -58,7 +58,7 @@ c     nd
       
       REAL(4) CPU_TIME,CPU_SEC(2)
       REAL(4) TARRAY(2)
-      INTEGER TESTFLAG,OUTITER,i
+      INTEGER TESTFLAG,OUTITER,i, istat
       character*80 tecfile, tecfile_max
 
       CALL MAKE_DIRNAME()       ! Establish Working Directory Name
@@ -200,6 +200,7 @@ c     write(200+myproc,*) 'back from prep_dg'
       ITHS = 0
       !CALL WRITE_RESULTS(0,.FALSE.)
       call modal2nodal<<<MNP/128+1,128>>>(MNP,0,maxel,nleq,leq, dofh, ph, sedflag)
+      istat = cudaDeviceSynchronize()
       CALL WRITE_RESULTS(0,.FALSE.)
 
                                !cnd...for tecplot output

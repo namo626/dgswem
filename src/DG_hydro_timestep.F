@@ -37,7 +37,7 @@ C.....Use appropriate modules
       use flow_edge_dg, only : flow_edge_hydro
       use rhs_dg, only : rhs_dg_hydro
       use land_dg, only : land_edge_hydro
-      use internal_edge_dg, only : internal_edge_hydro
+      use internal_edge_dg, only : internal_edge_hydro, add_internal_flux
       use ebarrier_dg, only : ebarrier_edge_hydro
       use ibarrier_dg, only : ibarrier_edge_hydro
       USE NodalAttributes, ONLY : TAU, IFLINBF, IFHYBF, HBREAK, FTHETA,
@@ -169,6 +169,7 @@ Casey 090302: Added these lines for output to the rads.64 file.
 C.......Compute tidal potential terms
 
          IF (NTIP.NE.0) CALL TIDAL_POTENTIAL(irk, np, dtdp, timeh, ntif, rampdg)
+         istat = cudaDeviceSynchronize()
 
 C.......For non-periodic elevation bcs
 
@@ -268,6 +269,9 @@ C.......Compute internal edges
 
          call INTERNAL_EDGE_HYDRO<<<NIEDS/128+1,128>>>(
      &        IT, IRK, NIEDS, G, DOFH, nleq, leq, nleqg, fg_l, layers
+     &   )
+         call add_internal_flux<<<NE/128+1,128>>>(
+     &        IRK, NE
      &   )
 
 C.......Compute elements to finish building the rhs
@@ -599,6 +603,7 @@ C.......Apply the wet-dry algorithm if appropriate
          ENDDO
 
          CALL WETDRY<<<NE/128+1,128>>>(irk, dofh, np, ne, h0, c13, c16)
+         istat = cudaDeviceSynchronize()
       ENDIF
 
 c$$$C...Apply the slopelimiter again if auxiliary variable is being used

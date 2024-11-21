@@ -21,7 +21,7 @@ C.....Declare local variables
       INTEGER GED, LED, L,i,k,ll, el, pa
       REAL(SZ) ABOVE, SUBSUP, W_IN, TX, TY, nx, ny, ze_in, q_n_ext, q_t_ext
       real(sz) :: ze_ex, hb_ex, qx_in, qy_in, qx_ex, qy_ex, sfac_in, hb_in
-      real(sz) :: f_hat, g_hat, h_hat, sfac_ex
+      real(sz) :: f_hat, g_hat, h_hat, sfac_ex, tmp
 
 C.....Loop over the external barrier segments
 
@@ -185,9 +185,11 @@ C.........Compute numerical flux
                W_IN = 2.0*M_INV(K,pa)/AREAS(EL)*XLEN(GED)
      &              *PHI_EDGE(K,I,LED,pa)*WEGP(I,pa)
 
-               RHS_ZE(K,EL,IRK) = RHS_ZE(K,EL,IRK) - W_IN*F_HAT
-               RHS_QX(K,EL,IRK) = RHS_QX(K,EL,IRK) - W_IN*G_HAT
-               RHS_QY(K,EL,IRK) = RHS_QY(K,EL,IRK) - W_IN*H_HAT
+               tmp = atomicAdd(RHS_ZE(K,EL,IRK), -W_IN*F_HAT)
+               tmp = atomicAdd(RHS_QX(K,EL,IRK), -W_IN*G_HAT)
+               tmp = atomicAdd(RHS_QY(K,EL,IRK), -W_IN*H_HAT)
+c$$$               RHS_QX(K,EL,IRK) = RHS_QX(K,EL,IRK) - W_IN*G_HAT
+c$$$               RHS_QY(K,EL,IRK) = RHS_QY(K,EL,IRK) - W_IN*H_HAT
 
 #ifdef TRACE
                RHS_iota(K,EL,IRK) = RHS_iota(K,EL,IRK) - W_IN*I_HAT
