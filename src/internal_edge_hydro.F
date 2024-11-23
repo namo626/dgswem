@@ -26,7 +26,7 @@ C     C***********************************************************************
       USE GLOBAL, only : areas, pdg_el, neled
       USE DG, only : rhs_ze, rhs_qx, rhs_qy, cosnx, sinnx, ze, wdflg, qx, qy, xlen,
      &     hb, bathed, dofs, edgeq, negp, max_boa_dt, phi_edge, sfaced, lz, nedel, niedn,
-     &     nedsd, elem_edge, ze_edge, qx_edge, qy_edge
+     &     nedsd, elem_edge, ze_edge, qx_edge, qy_edge, el_range
       USE NodalAttributes, ONLY :  ESLM
       use sizes, only:  sz, myproc
       use flux_dg, only : llf_flux
@@ -34,18 +34,19 @@ C     C***********************************************************************
       contains
 
       attributes(global) SUBROUTINE INTERNAL_EDGE_HYDRO(IT, IRK, NIEDS,
-     &   G, DOFH, nleq, leq, nleqg, fg_l, layers )
+     &   G, DOFH, nleq, leq, nleqg, fg_l, layers, max_el_range, min_el_range)
 
 
       IMPLICIT NONE
 
-      integer, value :: it, irk, nieds, dofh, layers
+      integer, value :: it, irk, nieds, dofh, layers, max_el_range, min_el_range
       real(sz), value :: G, nleq, leq, nleqg, fg_l
 
 C.....Declare local variables
       real(sz) :: tmp
       logical :: is_large_flux
-      integer :: el_in, el_ex, pa, el, test_el, ind_ex, ind_in
+      integer :: el_in, el_ex, pa, el, test_el, ind_ex, ind_in, id, min_el, max_el
+      integer :: my_el_in, my_el_ex
       real(sz) :: nx, ny, ze_in, qx_in, qy_in, qx_ex, qy_ex, hb_ex, hb_in
       real(sz) :: f_hat, g_hat, h_hat, q_n_ext, q_t_ext, q_n_int, q_t_int, ze_ex
       real(sz) :: sfac_in, sfac_ex
@@ -80,6 +81,7 @@ C.....Declare local variables
       REAL(SZ) G_HAT_EX, H_HAT_EX
       REAL(SZ) K_HAT_O
       Real(SZ) bed_HAT_IN(layers),bed_HAT_EX(layers)
+      real(sz), shared :: wdflg_shared(max_el_range+1)
 c     
 #if 0
       IF(.NOT.ALLOCATED(RHS_ZE_IN)) THEN
@@ -101,6 +103,7 @@ c
 
       test_el = 0
       L = (blockidx%x-1)*blockdim%x + threadidx%x
+      id = threadidx%x
       thread: if (L <= NIEDS) then
 
         is_large_flux = .false.
@@ -129,9 +132,23 @@ C.......Retrieve the elements which share the edge
          endif
 #endif
 
+! load wdflg in a coalesced way
+         min_el = el_range(L, 1)
+         max_el = el_range(L, 2)
+         do k = 1, max_el-min_el+1,blockdim%x
+            if (id+min_el-1+k-1 <= max_el) then
+               wdflg_shared(id + k-1) = wdflg(id + min_el-1 + k-1)
+            endif
+         enddo
+
+         call syncthreads()
+
+         my_el_in = el_in - min_el + 1
+         my_el_ex = el_ex - min_el + 1
+
 C.......If both elements on either side of edge are dry then skip
 
-         IF((WDFLG(EL_IN).EQ.0).AND.(WDFLG(EL_EX).EQ.0)) return
+         IF((WDFLG_shared(my_el_in).EQ.0).AND.(WDFLG_shared(my_el_ex).EQ.0)) return
 
          !test_el = test_el+1
 
@@ -490,7 +507,7 @@ C........Check to make sure mass flux is not coming from a dry element
 
             dry_flux: IF (abs(F_HAT).gt.1.d-12) THEN
                !
-               IF (WDFLG(EL_IN).EQ.0) THEN
+               IF (WDFLG_shared(my_EL_IN).EQ.0) THEN
                   ! EL_IN is dry !
                   IF (F_HAT.GT.0) THEN
                      ! Flux going from the dry element (in)
@@ -571,7 +588,7 @@ C........Check to make sure mass flux is not coming from a dry element
 #endif
                   ENDIF
                   
-               ELSEIF (WDFLG(EL_EX).EQ.0) THEN
+               ELSEIF (WDFLG_shared(my_EL_EX).EQ.0) THEN
                   
                   ! EL_EX is dry
                   IF (F_HAT.LT.0) THEN

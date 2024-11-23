@@ -45,7 +45,7 @@ C.....Declare local variables
 
       INTEGER IED, JED, JJED, IEL, IEL1, IEL2, JJ1, JJ2, led_in, led_ex
 Csb--
-      INTEGER JEL, JJEL,ED_ID,L,GED,I,J,K
+      INTEGER JEL, JJEL,ED_ID,L,GED,I,J,K , max_el, min_el
 C--
       INTEGER I1, I2, I3, II, LED(2,3)
       INTEGER NED1, NED2, NED3, NED4, NED5, NED6
@@ -631,6 +631,43 @@ C.......Retrieve the elements which share the edge
          elem_edge(el_ex, nieds_count(el_ex)) = ged
          nieds_count(el_ex) = nieds_count(el_ex) + 1
       enddo
+
+! print out element range for each group of internal edges
+      max_el_range = 0
+      min_el_range = mne
+
+      allocate(el_range(nieds, 2))
+      do i = 1,nieds,128
+         max_el = 0
+         min_el = mne
+         do j = i,min(i+128, nieds)
+            GED = NIEDN(j)
+            EL_IN = NEDEL(1,GED)
+            EL_EX = NEDEL(2,GED)
+
+            max_el = max(max_el, el_in)
+            min_el = min(min_el, el_in)
+
+            max_el = max(max_el, el_ex)
+            min_el = min(min_el, el_ex)
+
+            el_range(j, 1) = min_el
+            el_range(j, 2) = max_el
+         enddo
+         max_el_range = max(max_el_range, max_el - min_el)
+         min_el_range = min(min_el_range, max_el - min_el)
+
+
+         print *, 'group: ', i
+         print *, 'max_el = ', max_el
+         print *, 'min_el = ', min_el
+         print *, 'count = ', max_el - min_el
+         print *, ' '
+      enddo
+      print *, 'max elem range = ', max_el_range
+      print *, 'min elem range = ', min_el_range
+
+
 
       RETURN
       END SUBROUTINE CREATE_EDGE_DATA

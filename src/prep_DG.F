@@ -180,6 +180,7 @@ C.....Create the edge based data
       IF (SLOPEFLAG.ge.4) CALL MESSAGE_START()
 #endif
 
+
 C.....Re-arrange elevation specified boundary segment data for DG
 
       IF (NEEDS.GT.0) THEN

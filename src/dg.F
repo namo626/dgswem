@@ -26,6 +26,7 @@ C.....Use appropriate modules
 
 
 C.....Declare integer variables
+      integer :: max_el_range, min_el_range
       INTEGER, TARGET :: rainfall
       INTEGER, TARGET :: DGFLAG,DGHOT,DGHOTSPOOL
       INTEGER DOF,dofh,dofl,dofx
@@ -119,7 +120,8 @@ C.....Declare allocatable integer arrays
 
 
 C.....Declare allocatable real arrays
-      
+
+      integer, allocatable, managed :: el_range(:,:)
       REAL(SZ), ALLOCATABLE, managed :: ATVD(:,:), BTVD(:,:), CTVD(:,:)
       REAL(SZ), ALLOCATABLE, managed :: DTVD(:), MAX_BOA_DT(:),e1(:),balance(:)
       Real(SZ), Allocatable :: RKC_T(:),RKC_U(:),RKC_Tprime(:)

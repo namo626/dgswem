@@ -267,8 +267,8 @@ C.......Compute external barrier edges
          
 C.......Compute internal edges
 
-         call INTERNAL_EDGE_HYDRO<<<NIEDS/128+1,128>>>(
-     &        IT, IRK, NIEDS, G, DOFH, nleq, leq, nleqg, fg_l, layers
+         call INTERNAL_EDGE_HYDRO<<<NIEDS/128+1,128,sz*(max_el_range+1)>>>(
+     &        IT, IRK, NIEDS, G, DOFH, nleq, leq, nleqg, fg_l, layers, max_el_range, min_el_range
      &   )
          call add_internal_flux<<<NE/128+1,128>>>(
      &        IRK, NE
