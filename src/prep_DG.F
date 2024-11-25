@@ -472,7 +472,7 @@ C.....Retrieve the normals to the edges
       CALL CALC_NORMAL()
 
 ! prepare internal edge data
-      allocate (edfac_ins(nieds), edfac_exs(nieds))
+      allocate (edfac_ins(nieds), edfac_exs(nieds), xlen_ins(nieds), xlen_exs(nieds))
       do i = 1, nieds
          GED = NIEDN(i)
          LED_IN = NEDSD(1,GED)
@@ -483,6 +483,9 @@ C.....Retrieve the normals to the edges
 
          edfac_ins(i) = XLEN(GED)/AREAS(EL_IN)
          edfac_exs(i) = XLEN(GED)/AREAS(EL_ex)
+
+         XLEN_ins(i) = XLEN(NELED(1,EL_IN)) + XLEN(NELED(2,EL_IN)) + XLEN(NELED(3,EL_IN))
+         XLEN_EXs(i) = XLEN(NELED(1,EL_EX)) + XLEN(NELED(2,EL_EX)) + XLEN(NELED(3,EL_EX))
       enddo
 
 C***********************************************************************

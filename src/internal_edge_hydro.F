@@ -26,7 +26,7 @@ C     C***********************************************************************
       USE GLOBAL, only : areas, pdg_el, neled
       USE DG, only : rhs_ze, rhs_qx, rhs_qy, cosnx, sinnx, ze, wdflg, qx, qy, xlen,
      &     hb, bathed, dofs, edgeq, negp, max_boa_dt, phi_edge, sfaced, lz, nedel, niedn,
-     &     nedsd, elem_edge, ze_edge, qx_edge, qy_edge, edfac_ins, edfac_exs
+     &     nedsd, elem_edge, ze_edge, qx_edge, qy_edge, edfac_ins, edfac_exs, xlen_ins,xlen_exs
       USE NodalAttributes, ONLY :  ESLM
       use sizes, only:  sz, myproc
       use flux_dg, only : llf_flux
@@ -181,14 +181,16 @@ c$$$            RHS_QY_EX(K) = RHS_QY(K,EL_EX,IRK)
 
 C.....Compute the sum of the lengths of three edges
 
-         XLEN_EL_IN = XLEN(NELED(1,EL_IN))
-         XLEN_EL_IN = XLEN_EL_IN + XLEN(NELED(2,EL_IN))
-         XLEN_EL_IN = XLEN_EL_IN + XLEN(NELED(3,EL_IN))
+c$$$         XLEN_EL_IN = XLEN(NELED(1,EL_IN))
+c$$$         XLEN_EL_IN = XLEN_EL_IN + XLEN(NELED(2,EL_IN))
+c$$$         XLEN_EL_IN = XLEN_EL_IN + XLEN(NELED(3,EL_IN))
+c$$$
+c$$$         XLEN_EL_EX = XLEN(NELED(1,EL_EX))
+c$$$         XLEN_EL_EX = XLEN_EL_EX + XLEN(NELED(2,EL_EX))
+c$$$         XLEN_EL_EX = XLEN_EL_EX + XLEN(NELED(3,EL_EX))
 
-         XLEN_EL_EX = XLEN(NELED(1,EL_EX))
-         XLEN_EL_EX = XLEN_EL_EX + XLEN(NELED(2,EL_EX))
-         XLEN_EL_EX = XLEN_EL_EX + XLEN(NELED(3,EL_EX))
-
+         xlen_el_in = xlen_ins(l)
+         xlen_el_ex = xlen_exs(l)
 C.....Compute the total mass in the elements
 
          MASS_EL_IN = (ZE(1,EL_IN,IRK)+HB(1,EL_IN,1))*AREAS(EL_IN)*0.50
