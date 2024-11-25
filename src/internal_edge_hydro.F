@@ -82,6 +82,7 @@ C.....Declare local variables
       REAL(SZ) K_HAT_O
       Real(SZ) bed_HAT_IN(layers),bed_HAT_EX(layers)
       real(sz), shared :: wdflg_shared(max_el_range+1)
+      real(sz), dimension(3) :: ze_ins, ze_exs, qx_ins, qx_exs, qy_ins, qy_exs
 c     
 #if 0
       IF(.NOT.ALLOCATED(RHS_ZE_IN)) THEN
@@ -157,13 +158,6 @@ C.....Save the current RHS
 
          DO K = 1,DOFS(EL)
 
-c$$$            RHS_ZE_IN(K) = RHS_ZE(K,EL_IN,IRK)
-c$$$            RHS_QX_IN(K) = RHS_QX(K,EL_IN,IRK)
-c$$$            RHS_QY_IN(K) = RHS_QY(K,EL_IN,IRK)
-c$$$
-c$$$            RHS_ZE_EX(K) = RHS_ZE(K,EL_EX,IRK)
-c$$$            RHS_QX_EX(K) = RHS_QX(K,EL_EX,IRK)
-c$$$            RHS_QY_EX(K) = RHS_QY(K,EL_EX,IRK)
 
             rhs_ze_in = 0.
             rhs_qx_in = 0.
@@ -237,6 +231,14 @@ C.....Set the components for the tangential vector to the edge
          EDFAC_IN = XLEN(GED)/AREAS(EL_IN)
          EDFAC_EX = XLEN(GED)/AREAS(EL_EX)
 
+! load the elemental data
+         ze_ins = ze(:,el_in,irk)
+         qx_ins = qx(:,el_in,irk)
+         qy_ins = qy(:,el_in,irk)
+
+         ze_exs = ze(:,el_ex,irk)
+         qx_exs = qx(:,el_ex,irk)
+         qy_exs = qy(:,el_ex,irk)
 C.....Compute ZE, QX, QY, and HB at each edge Gauss quadrature point
 
          gauss_point_loop: DO I = 1,NEGP(pa)
@@ -244,9 +246,17 @@ C.....Compute ZE, QX, QY, and HB at each edge Gauss quadrature point
             GP_IN = I
             GP_EX = NEGP(pa) - I + 1
 
-            ZE_IN = ZE(1,EL_IN,IRK)
-            QX_IN = QX(1,EL_IN,IRK)
-            QY_IN = QY(1,EL_IN,IRK)
+            ze_in = 0.
+            qx_in = 0.
+            qy_in = 0.
+
+            ze_ex = 0.
+            qx_ex = 0.
+            qy_ex = 0.
+
+c$$$            ZE_IN = ZE(1,EL_IN,IRK)
+c$$$            QX_IN = QX(1,EL_IN,IRK)
+c$$$            QY_IN = QY(1,EL_IN,IRK)
             HB_IN = BATHED(GP_IN,LED_IN,EL_IN,pa)
 
 #ifdef SED_LAY                  !When layered, these change
@@ -258,9 +268,9 @@ C.....Compute ZE, QX, QY, and HB at each edge Gauss quadrature point
 
             SFAC_IN = SFACED(GP_IN,LED_IN,EL_IN,pa)
             
-            ZE_EX = ZE(1,EL_EX,IRK)
-            QX_EX = QX(1,EL_EX,IRK)
-            QY_EX = QY(1,EL_EX,IRK)
+c$$$            ZE_EX = ZE(1,EL_EX,IRK)
+c$$$            QX_EX = QX(1,EL_EX,IRK)
+c$$$            QY_EX = QY(1,EL_EX,IRK)
             HB_EX = BATHED(GP_EX,LED_EX,EL_EX,pa)
 
 #ifdef SED_LAY 
@@ -326,15 +336,15 @@ C.....Compute ZE, QX, QY, and HB at each edge Gauss quadrature point
             LZ_YX_EX = LZ(1,2,1,EL_EX)
             LZ_YY_EX = LZ(1,2,2,EL_EX)
 
-            DO K = 2,DOFS(EL)
+            DO K = 1,DOFS(EL)
 
-               ZE_IN = ZE_IN + ZE(K,EL_IN,IRK)*PHI_EDGE(K,GP_IN,LED_IN,pa)
-               QX_IN = QX_IN + QX(K,EL_IN,IRK)*PHI_EDGE(K,GP_IN,LED_IN,pa)
-               QY_IN = QY_IN + QY(K,EL_IN,IRK)*PHI_EDGE(K,GP_IN,LED_IN,pa)
+               ZE_IN = ZE_IN + ZE_ins(k)*PHI_EDGE(K,GP_IN,LED_IN,pa)
+               QX_IN = QX_IN + QX_ins(k)*PHI_EDGE(K,GP_IN,LED_IN,pa)
+               QY_IN = QY_IN + QY_ins(k)*PHI_EDGE(K,GP_IN,LED_IN,pa)
 
-               ZE_EX = ZE_EX + ZE(K,EL_EX,IRK)*PHI_EDGE(K,GP_EX,LED_EX,pa)
-               QX_EX = QX_EX + QX(K,EL_EX,IRK)*PHI_EDGE(K,GP_EX,LED_EX,pa)
-               QY_EX = QY_EX + QY(K,EL_EX,IRK)*PHI_EDGE(K,GP_EX,LED_EX,pa)
+               ZE_EX = ZE_EX + ZE_exs(k)*PHI_EDGE(K,GP_EX,LED_EX,pa)
+               QX_EX = QX_EX + QX_exs(k)*PHI_EDGE(K,GP_EX,LED_EX,pa)
+               QY_EX = QY_EX + QY_exs(k)*PHI_EDGE(K,GP_EX,LED_EX,pa)
 
 #ifdef TRACE
                iota_IN = iota_IN + iota(K,EL_IN,IRK)*PHI_EDGE(K,GP_IN,LED_IN,pa)
@@ -802,14 +812,21 @@ C.....Compute ZE, QX, QY, bed, and HB at each edge Gauss quadrature point
 
          DO I = 1,NEGP(pa)
 
+            ze_in = 0.
+            qx_in = 0.
+            qy_in = 0.
+            ze_ex = 0.
+            qx_ex = 0.
+            qy_ex = 0.
+
             GP_IN = I
             GP_EX = NEGP(pa) - I + 1
 
 C     ----------------------------- EL_IN ------------------------------
 
-            ZE_IN = ZE(1,EL_IN,IRK)
-            QX_IN = QX(1,EL_IN,IRK)
-            QY_IN = QY(1,EL_IN,IRK)
+c$$$            ZE_IN = ZE(1,EL_IN,IRK)
+c$$$            QX_IN = QX(1,EL_IN,IRK)
+c$$$            QY_IN = QY(1,EL_IN,IRK)
             HB_IN = BATHED(GP_IN,LED_IN,EL_IN,pa)
 
             SFAC_IN = SFACED(GP_IN,LED_IN,EL_IN,pa)
@@ -857,11 +874,11 @@ C     ----------------------------- EL_IN ------------------------------
 
 #endif
 
-            DO K = 2,DOFS(EL)
+            DO K = 1,DOFS(EL)
 
-               ZE_IN = ZE_IN + ZE(K,EL_IN,IRK)*PHI_EDGE(K,GP_IN,LED_IN,pa)
-               QX_IN = QX_IN + QX(K,EL_IN,IRK)*PHI_EDGE(K,GP_IN,LED_IN,pa)
-               QY_IN = QY_IN + QY(K,EL_IN,IRK)*PHI_EDGE(K,GP_IN,LED_IN,pa)
+               ZE_IN = ZE_IN + ZE_ins(k)*PHI_EDGE(K,GP_IN,LED_IN,pa)
+               QX_IN = QX_IN + QX_ins(k)*PHI_EDGE(K,GP_IN,LED_IN,pa)
+               QY_IN = QY_IN + QY_ins(k)*PHI_EDGE(K,GP_IN,LED_IN,pa)
 
 #ifdef TRACE
                iota_IN = iota_IN + iota(K,EL_IN,IRK)*PHI_EDGE(K,GP_IN,LED_IN,PA)
@@ -1028,9 +1045,9 @@ c$$$               tmp = atomicAdd(RHS_QY(K,EL_IN,IRK) , -W_IN*H_HAT)
 
 C     ----------------------------- EL_EX ------------------------------
 
-            ZE_EX = ZE(1,EL_EX,IRK)
-            QX_EX = QX(1,EL_EX,IRK)
-            QY_EX = QY(1,EL_EX,IRK)
+c$$$            ZE_EX = ZE(1,EL_EX,IRK)
+c$$$            QX_EX = QX(1,EL_EX,IRK)
+c$$$            QY_EX = QY(1,EL_EX,IRK)
             HB_EX = BATHED(GP_EX,LED_EX,EL_EX,pa)
 
             SFAC_EX = SFACED(GP_EX,LED_EX,EL_EX,pa)
@@ -1077,11 +1094,11 @@ C     ----------------------------- EL_EX ------------------------------
 
 #endif
 
-            DO K = 2,DOFS(EL)
+            DO K = 1,DOFS(EL)
 
-               ZE_EX = ZE_EX + ZE(K,EL_EX,IRK)*PHI_EDGE(K,GP_EX,LED_EX,pa)
-               QX_EX = QX_EX + QX(K,EL_EX,IRK)*PHI_EDGE(K,GP_EX,LED_EX,pa)
-               QY_EX = QY_EX + QY(K,EL_EX,IRK)*PHI_EDGE(K,GP_EX,LED_EX,pa)
+               ZE_EX = ZE_EX + ZE_exs(k)*PHI_EDGE(K,GP_EX,LED_EX,pa)
+               QX_EX = QX_EX + QX_exs(k)*PHI_EDGE(K,GP_EX,LED_EX,pa)
+               QY_EX = QY_EX + QY_exs(k)*PHI_EDGE(K,GP_EX,LED_EX,pa)
 
 #ifdef TRACE
                iota_EX = iota_EX + iota(K,EL_EX,IRK)*PHI_EDGE(K,GP_EX,LED_EX,pa)
