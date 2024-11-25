@@ -119,7 +119,10 @@ C.....Declare allocatable integer arrays
 
 
 C.....Declare allocatable real arrays
-      
+
+      real(sz), allocatable, managed :: edfac_ins(:), edfac_exs(:)
+      real(sz), allocatable, managed :: xlen_ins(:), xlen_exs(:)
+      real(sz), allocatable, managed :: hb_ins(:,:), hb_exs(:,:)
       REAL(SZ), ALLOCATABLE, managed :: ATVD(:,:), BTVD(:,:), CTVD(:,:)
       REAL(SZ), ALLOCATABLE, managed :: DTVD(:), MAX_BOA_DT(:),e1(:),balance(:)
       Real(SZ), Allocatable :: RKC_T(:),RKC_U(:),RKC_Tprime(:)
