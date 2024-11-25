@@ -26,7 +26,7 @@ C     C***********************************************************************
       USE GLOBAL, only : areas, pdg_el, neled
       USE DG, only : rhs_ze, rhs_qx, rhs_qy, cosnx, sinnx, ze, wdflg, qx, qy, xlen,
      &     hb, bathed, dofs, edgeq, negp, max_boa_dt, phi_edge, sfaced, lz, nedel, niedn,
-     &     nedsd, elem_edge, ze_edge, qx_edge, qy_edge
+     &     nedsd, elem_edge, ze_edge, qx_edge, qy_edge, edfac_ins, edfac_exs
       USE NodalAttributes, ONLY :  ESLM
       use sizes, only:  sz, myproc
       use flux_dg, only : llf_flux
@@ -216,9 +216,10 @@ C.....Set the components for the tangential vector to the edge
          TX = -NY
          TY =  NX
          
-         EDFAC_IN = XLEN(GED)/AREAS(EL_IN)
-         EDFAC_EX = XLEN(GED)/AREAS(EL_EX)
-
+c$$$         EDFAC_IN = XLEN(GED)/AREAS(EL_IN)
+c$$$         EDFAC_EX = XLEN(GED)/AREAS(EL_EX)
+         edfac_in = edfac_ins(l)
+         edfac_ex = edfac_exs(l)
 C.....Compute ZE, QX, QY, and HB at each edge Gauss quadrature point
 
          gauss_point_loop: DO I = 1,NEGP(pa)
