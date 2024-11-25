@@ -26,7 +26,8 @@ C     C***********************************************************************
       USE GLOBAL, only : areas, pdg_el, neled
       USE DG, only : rhs_ze, rhs_qx, rhs_qy, cosnx, sinnx, ze, wdflg, qx, qy, xlen,
      &     hb, bathed, dofs, edgeq, negp, max_boa_dt, phi_edge, sfaced, lz, nedel, niedn,
-     &     nedsd, elem_edge, ze_edge, qx_edge, qy_edge, edfac_ins, edfac_exs, xlen_ins,xlen_exs
+     &     nedsd, elem_edge, ze_edge, qx_edge, qy_edge, edfac_ins, edfac_exs, xlen_ins,xlen_exs,
+     &     hb_ins, hb_exs
       USE NodalAttributes, ONLY :  ESLM
       use sizes, only:  sz, myproc
       use flux_dg, only : llf_flux
@@ -232,8 +233,8 @@ C.....Compute ZE, QX, QY, and HB at each edge Gauss quadrature point
             ZE_IN = ZE(1,EL_IN,IRK)
             QX_IN = QX(1,EL_IN,IRK)
             QY_IN = QY(1,EL_IN,IRK)
-            HB_IN = BATHED(GP_IN,LED_IN,EL_IN,pa)
-
+            !HB_IN = BATHED(GP_IN,LED_IN,EL_IN,pa)
+            hb_in = hb_ins(l,i)
 #ifdef SED_LAY                  !When layered, these change
             do ll = 1,layers
                bed_IN(ll) = bed(1,EL_IN,irk,ll)
@@ -246,8 +247,8 @@ C.....Compute ZE, QX, QY, and HB at each edge Gauss quadrature point
             ZE_EX = ZE(1,EL_EX,IRK)
             QX_EX = QX(1,EL_EX,IRK)
             QY_EX = QY(1,EL_EX,IRK)
-            HB_EX = BATHED(GP_EX,LED_EX,EL_EX,pa)
-
+            !HB_EX = BATHED(GP_EX,LED_EX,EL_EX,pa)
+            hb_ex = hb_exs(l,i)
 #ifdef SED_LAY 
             do ll = 1,layers
                bed_EX(ll) = bed(1,EL_EX,irk,ll)
@@ -793,7 +794,8 @@ C     ----------------------------- EL_IN ------------------------------
             ZE_IN = ZE(1,EL_IN,IRK)
             QX_IN = QX(1,EL_IN,IRK)
             QY_IN = QY(1,EL_IN,IRK)
-            HB_IN = BATHED(GP_IN,LED_IN,EL_IN,pa)
+            !HB_IN = BATHED(GP_IN,LED_IN,EL_IN,pa)
+            hb_in = hb_ins(l,i)
 
             SFAC_IN = SFACED(GP_IN,LED_IN,EL_IN,pa)
 
@@ -1014,8 +1016,8 @@ C     ----------------------------- EL_EX ------------------------------
             ZE_EX = ZE(1,EL_EX,IRK)
             QX_EX = QX(1,EL_EX,IRK)
             QY_EX = QY(1,EL_EX,IRK)
-            HB_EX = BATHED(GP_EX,LED_EX,EL_EX,pa)
-
+            !HB_EX = BATHED(GP_EX,LED_EX,EL_EX,pa)
+            hb_ex = hb_exs(l,i)
             SFAC_EX = SFACED(GP_EX,LED_EX,EL_EX,pa)
 
 #ifdef TRACE

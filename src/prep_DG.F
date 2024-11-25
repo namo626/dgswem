@@ -49,7 +49,7 @@ C.....Declare local variables
       real(sz) checkarea,arint(2,2),rhsint(2),edgeint,dpsdx,psimid,
      $     determ,sfacdub2max,sfacdub3max,R
       integer i1,i2,sfac_flag,led,ELEM,ADDGP,NEDGS, ged, led_in, led_ex
-      integer ifac2max,ifac3max,phh,DIM,NQEDS
+      integer ifac2max,ifac3max,phh,DIM,NQEDS, gp_in, gp_ex
       real(sz) xmid,ymid,Ox,Oy,rev,C_0,sig,C_1
       Real(SZ),allocatable :: XBCbt(:),YBCbt(:),radial(:),XB(:),YB(:),
      & l2e(:)
@@ -471,22 +471,6 @@ C.....Retrieve the normals to the edges
 
       CALL CALC_NORMAL()
 
-! prepare internal edge data
-      allocate (edfac_ins(nieds), edfac_exs(nieds), xlen_ins(nieds), xlen_exs(nieds))
-      do i = 1, nieds
-         GED = NIEDN(i)
-         LED_IN = NEDSD(1,GED)
-         LED_EX = NEDSD(2,GED)
-
-         EL_IN = NEDEL(1,GED)
-         EL_EX = NEDEL(2,GED)
-
-         edfac_ins(i) = XLEN(GED)/AREAS(EL_IN)
-         edfac_exs(i) = XLEN(GED)/AREAS(EL_ex)
-
-         XLEN_ins(i) = XLEN(NELED(1,EL_IN)) + XLEN(NELED(2,EL_IN)) + XLEN(NELED(3,EL_IN))
-         XLEN_EXs(i) = XLEN(NELED(1,EL_EX)) + XLEN(NELED(2,EL_EX)) + XLEN(NELED(3,EL_EX))
-      enddo
 
 C***********************************************************************
 C dmw 03-14-2017 until next line of *'s
@@ -1554,7 +1538,32 @@ C.....Close files
 
 !      CLOSE(115)
 !      CLOSE(25)
-      
+
+! prepare internal edge data
+      allocate (edfac_ins(nieds), edfac_exs(nieds), xlen_ins(nieds), xlen_exs(nieds))
+      allocate( hb_ins(nieds, negp(pa)), hb_exs(nieds,negp(pa)) )
+      do l = 1, nieds
+         GED = NIEDN(l)
+         LED_IN = NEDSD(1,GED)
+         LED_EX = NEDSD(2,GED)
+
+         EL_IN = NEDEL(1,GED)
+         EL_EX = NEDEL(2,GED)
+
+         edfac_ins(l) = XLEN(GED)/AREAS(EL_IN)
+         edfac_exs(l) = XLEN(GED)/AREAS(EL_ex)
+
+         XLEN_ins(l) = XLEN(NELED(1,EL_IN)) + XLEN(NELED(2,EL_IN)) + XLEN(NELED(3,EL_IN))
+         XLEN_EXs(l) = XLEN(NELED(1,EL_EX)) + XLEN(NELED(2,EL_EX)) + XLEN(NELED(3,EL_EX))
+
+         DO I = 1,NEGP(pa)
+            GP_IN = I
+            GP_EX = NEGP(pa) - I + 1
+            HB_INs(l,i) = BATHED(GP_IN,LED_IN,EL_IN,pa)
+            HB_EXs(l,i) = BATHED(GP_EX,LED_EX,EL_EX,pa)
+         enddo
+
+      enddo
       RETURN
       END SUBROUTINE PREP_DG
 
