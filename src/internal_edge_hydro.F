@@ -134,6 +134,8 @@ C.......Retrieve the elements which share the edge
 #endif
 
 ! load wdflg in a coalesced way
+#if 0
+
          min_el = el_range(blockidx%x, 1)
          max_el = el_range(blockidx%x, 2)
          do k = 1, max_el-min_el+1,blockdim%x
@@ -146,11 +148,13 @@ C.......Retrieve the elements which share the edge
 
          my_el_in = el_in - min_el + 1
          my_el_ex = el_ex - min_el + 1
+#endif
+
 
 C.......If both elements on either side of edge are dry then skip
 
-         IF((WDFLG_shared(my_el_in).EQ.0).AND.(WDFLG_shared(my_el_ex).EQ.0)) return
-         !IF((WDFLG(el_in).EQ.0).AND.(WDFLG(el_ex).EQ.0)) return
+         !IF((WDFLG_shared(my_el_in).EQ.0).AND.(WDFLG_shared(my_el_ex).EQ.0)) return
+         IF((WDFLG(el_in).EQ.0).AND.(WDFLG(el_ex).EQ.0)) return
 
          !test_el = test_el+1
 
