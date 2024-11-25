@@ -636,11 +636,14 @@ C.......Retrieve the elements which share the edge
       max_el_range = 0
       min_el_range = mne
 
-      allocate(el_range(nieds, 2))
+      allocate(el_range((nieds+128-1)/128, 2))
+      k = 0
+      ! loop over thread blocks of size 128
       do i = 1,nieds,128
+         k = k + 1
          max_el = 0
          min_el = mne
-         do j = i,min(i+128, nieds)
+         do j = i,min(i+128-1, nieds)
             GED = NIEDN(j)
             EL_IN = NEDEL(1,GED)
             EL_EX = NEDEL(2,GED)
@@ -651,9 +654,10 @@ C.......Retrieve the elements which share the edge
             max_el = max(max_el, el_ex)
             min_el = min(min_el, el_ex)
 
-            el_range(j, 1) = min_el
-            el_range(j, 2) = max_el
          enddo
+         el_range(k, 1) = min_el
+         el_range(k, 2) = max_el
+
          max_el_range = max(max_el_range, max_el - min_el)
          min_el_range = min(min_el_range, max_el - min_el)
 

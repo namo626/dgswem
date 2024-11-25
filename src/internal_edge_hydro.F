@@ -133,8 +133,8 @@ C.......Retrieve the elements which share the edge
 #endif
 
 ! load wdflg in a coalesced way
-         min_el = el_range(L, 1)
-         max_el = el_range(L, 2)
+         min_el = el_range(blockidx%x, 1)
+         max_el = el_range(blockidx%x, 2)
          do k = 1, max_el-min_el+1,blockdim%x
             if (id+min_el-1+k-1 <= max_el) then
                wdflg_shared(id + k-1) = wdflg(id + min_el-1 + k-1)
