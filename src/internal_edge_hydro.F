@@ -149,6 +149,7 @@ C.......Retrieve the elements which share the edge
 C.......If both elements on either side of edge are dry then skip
 
          IF((WDFLG_shared(my_el_in).EQ.0).AND.(WDFLG_shared(my_el_ex).EQ.0)) return
+         !IF((WDFLG(el_in).EQ.0).AND.(WDFLG(el_ex).EQ.0)) return
 
          !test_el = test_el+1
 
@@ -507,7 +508,8 @@ C........Check to make sure mass flux is not coming from a dry element
 
             dry_flux: IF (abs(F_HAT).gt.1.d-12) THEN
                !
-               IF (WDFLG_shared(my_EL_IN).EQ.0) THEN
+               !IF (WDFLG_shared(my_EL_IN).EQ.0) THEN
+               IF (WDFLG(EL_IN).EQ.0) THEN
                   ! EL_IN is dry !
                   IF (F_HAT.GT.0) THEN
                      ! Flux going from the dry element (in)
@@ -588,7 +590,8 @@ C........Check to make sure mass flux is not coming from a dry element
 #endif
                   ENDIF
                   
-               ELSEIF (WDFLG_shared(my_EL_EX).EQ.0) THEN
+               !ELSEIF (WDFLG_shared(my_EL_EX).EQ.0) THEN
+               ELSEIF (WDFLG(EL_EX).EQ.0) THEN
                   
                   ! EL_EX is dry
                   IF (F_HAT.LT.0) THEN
