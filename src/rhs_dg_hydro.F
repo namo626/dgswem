@@ -32,7 +32,7 @@ c$$$     &     FGAMMA,LoadManningsN,ManningsN,CF
 
       contains
 
-      attributes(global) SUBROUTINE RHS_DG_HYDRO(IT, DTDP, IRK, NE,
+      attributes(global) launch_bounds(128,4) SUBROUTINE RHS_DG_HYDRO(IT, DTDP, IRK, NE,
      &     NLEQ, LEQ, NLEQG, G, NWS, NTIP, rampdg, fg_l, cf, tau, iflinbf, ifhybf,
      &     hbreak, ftheta, fgamma, layers, rainfall, loadmanningsn)
 
@@ -210,7 +210,7 @@ C.......Compute ZE, QX, QY, and HB at each area Gauss quadrature point
 
             SFACQUAD = SFAC_ELEM(I,L,pa)
 
-            DO K = 2,DOFS(L)
+            DO K = 2,3
 
                ZE_IN = ZE_IN + ZE(K,L,IRK)*PHI_AREA(K,I,pa)
                QX_IN = QX_IN + QX(K,L,IRK)*PHI_AREA(K,I,pa)
@@ -429,7 +429,7 @@ C.........Build the rhs
             RHS_QX(1,L,IRK) = RHS_QX(1,L,IRK) + SRFAC(1,I,L,pa)*SOURCE_X
             RHS_QY(1,L,IRK) = RHS_QY(1,L,IRK) + SRFAC(1,I,L,pa)*SOURCE_Y
 
-            DO K = 2,DOFS(L)
+            DO K = 2,3
 
                RHS_ZE(K,L,IRK) = RHS_ZE(K,L,IRK) + XFAC(K,I,L,pa)*FX_IN
      &                + YFAC(K,I,L,pa)*FY_IN

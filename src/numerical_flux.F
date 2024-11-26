@@ -771,7 +771,6 @@ C.....Use appropriate modules
 C.....Declare local variables
 
       INTEGER II,l
-      REAL(SZ) EIGVALS(6)
       REAL(SZ) EIGMAX, IDEPTH, HUU, HUV, HVV, GH2
       REAL(SZ) C_EX, C_IN, UN_EX, UN_IN, U_AVG, V_AVG, VEL_NORMAL
       REAL(SZ) DEPTH, F1_NL, FU_NL, FV_NL, FG_NL, FH_NL
@@ -780,17 +779,17 @@ C.....Declare local variables
       REAL(SZ) F1_AVG, F2_AVG, F3_AVG, NX2, NY2, NXY
       REAL(SZ) TOL
       REAL(SZ) DEN, q_RoeX, q_RoeY, q_Roe
-      Real(SZ) discharge_modelX_IN,discharge_modelX_EX
-      Real(SZ) discharge_modelY_IN,discharge_modelY_EX
-      Real(SZ) rVncU,rVncV,lambda1_IN,lambda1_EX,lambda2_IN,lambda2_EX
-      Real(SZ) lambda3_IN,lambda3_EX,Select_IN,Select_EX
-      real(sz) :: jump(3), ht_in, ht_ex, u_in, u_ex, v_in, v_ex
+c$$$      Real(SZ) discharge_modelX_IN,discharge_modelX_EX
+c$$$      Real(SZ) discharge_modelY_IN,discharge_modelY_EX
+c$$$      Real(SZ) rVncU,rVncV,lambda1_IN,lambda1_EX,lambda2_IN,lambda2_EX
+c$$$      Real(SZ) lambda3_IN,lambda3_EX,Select_IN,Select_EX
+      real(sz) ::  ht_in, ht_ex, u_in, u_ex, v_in, v_ex
 
 C.....Compute the jump in the variables
 
-      JUMP(1) = ZE_EX - ZE_IN
-      JUMP(2) = QX_EX - QX_IN
-      JUMP(3) = QY_EX - QY_IN
+c$$$      JUMP(1) = ZE_EX - ZE_IN
+c$$$      JUMP(2) = QX_EX - QX_IN
+c$$$      JUMP(3) = QY_EX - QY_IN
 
 C.....Compute the total height of the water column
 
@@ -870,20 +869,21 @@ C.....Evaluate the eigenvalues at the interior and exterior states
 
       UN_IN = (U_IN*NX + V_IN*NY)*NLEQ
       C_IN = SQRT(G*HT_IN*(NY**2 + (NX*SFAC_IN)**2)) !srb - spherical coordinate correction
-      EIGVALS(1) = ABS(UN_IN + C_IN)
-      EIGVALS(2) = ABS(UN_IN)
-      EIGVALS(3) = ABS(UN_IN - C_IN)
+      EIGmax = ABS(UN_IN + C_IN)
+      eigmax = max(eigmax,ABS(UN_IN))
+      eigmax = max(eigmax,ABS(UN_IN - C_IN))
 
-      UN_EX = (U_EX*NX + V_EX*NY)*NLEQ
-      C_EX = SQRT(G*HT_EX*(NY**2 + (NX*SFAC_EX)**2)) !srb - spherical coordinate correction
-      EIGVALS(4) = ABS(UN_EX + C_EX)
-      EIGVALS(5) = ABS(UN_EX)
-      EIGVALS(6) = ABS(UN_EX - C_EX)
+
+      un_in = (U_EX*NX + V_EX*NY)*NLEQ
+      C_in = SQRT(G*HT_EX*(NY**2 + (NX*SFAC_EX)**2)) !srb - spherical coordinate correction
+      eigmax = max(eigmax,ABS(un_in + C_in))
+      eigmax = max(eigmax,ABS(un_in))
+      eigmax = max(eigmax,ABS(un_in - C_in))
 
 C.....Find the maximum eigenvalue (in absolute value)
 
-      EIGMAX = MAX( EIGVALS(1), EIGVALS(2), EIGVALS(3),
-     &     EIGVALS(4), EIGVALS(5), EIGVALS(6) )
+c$$$      EIGMAX = MAX( EIGVALS(1), EIGVALS(2), EIGVALS(3),
+c$$$     &     EIGVALS(4), EIGVALS(5), EIGVALS(6) )
 
       !cfl_max = max(EIGMAX,cfl_max)
                                 !print*,eigmax
@@ -894,9 +894,9 @@ C.....Compute the Local Lax Friedrichs Fluxes
       NY2 = NLEQ+LEQ*NY*NY
       NXY = NX*NY
 
-      F_HAT = F1_AVG - 0.50*EIGMAX*(JUMP(1))
-      G_HAT = F2_AVG - 0.50*EIGMAX*(JUMP(2)*NX2 + LEQ*JUMP(3)*NXY)
-      H_HAT = F3_AVG - 0.50*EIGMAX*(JUMP(3)*NY2 + LEQ*JUMP(2)*NXY)
+      F_HAT = F1_AVG - 0.50*EIGMAX*(ze_ex-ze_in)
+      G_HAT = F2_AVG - 0.50*EIGMAX*((qx_ex-qx_in)*NX2 + LEQ*(qy_ex-qy_in)*NXY)
+      H_HAT = F3_AVG - 0.50*EIGMAX*((qy_ex-qy_in)*NY2 + LEQ*(qx_ex-qx_in)*NXY)
 
 #ifdef SED_LAY !this is not well-tested!
 

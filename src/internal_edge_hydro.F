@@ -34,7 +34,7 @@ C     C***********************************************************************
 
       contains
 
-      attributes(global) SUBROUTINE INTERNAL_EDGE_HYDRO(IT, IRK, NIEDS,
+      attributes(global) launch_bounds(128, 3) SUBROUTINE INTERNAL_EDGE_HYDRO(IT, IRK, NIEDS,
      &   G, DOFH, nleq, leq, nleqg, fg_l, layers )
 
 
