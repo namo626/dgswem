@@ -58,6 +58,7 @@ C.....Declare local variables
       REAL(SZ) HZ_X_EX, HZ_Y_EX, HZ_X_IN, HZ_Y_IN
       REAL(SZ) TZ_X_EX, TZ_Y_EX, TZ_X_IN, TZ_Y_IN
       REAL(SZ) EDFAC_IN, EDFAC_EX, DEN
+      real(sz) :: ze_ins(3), ze_exs(3), qx_ins(3), qx_exs(3), qy_ins(3), qy_exs(3)
       REAL(SZ) XLEN_EL_IN, XLEN_EL_EX,MZ_X_EX(layers),MZ_Y_EX(layers)
       REAL(SZ) MASS_EL_IN, MASS_EL_EX,MZ_X_IN(layers),MZ_Y_IN(layers)
       REAL(SZ)  ::
@@ -133,6 +134,13 @@ C.......Retrieve the elements which share the edge
 C.......If both elements on either side of edge are dry then skip
 
          IF((WDFLG(EL_IN).EQ.0).AND.(WDFLG(EL_EX).EQ.0)) return
+
+         ze_ins = ze(:,el_in,irk)
+         qx_ins = qx(:,el_in,irk)
+         qy_ins = qy(:,el_in,irk)
+         ze_exs = ze(:,el_ex,irk)
+         qx_exs = qx(:,el_ex,irk)
+         qy_exs = qy(:,el_ex,irk)
 
          !test_el = test_el+1
 
@@ -230,9 +238,9 @@ C.....Compute ZE, QX, QY, and HB at each edge Gauss quadrature point
             GP_IN = I
             GP_EX = NEGP(pa) - I + 1
 
-            ZE_IN = ZE(1,EL_IN,IRK)
-            QX_IN = QX(1,EL_IN,IRK)
-            QY_IN = QY(1,EL_IN,IRK)
+            ZE_IN = ZE_ins(1)
+            QX_IN = QX_ins(1)
+            QY_IN = QY_ins(1)
             !HB_IN = BATHED(GP_IN,LED_IN,EL_IN,pa)
             hb_in = hb_ins(l,i)
 #ifdef SED_LAY                  !When layered, these change
@@ -244,9 +252,9 @@ C.....Compute ZE, QX, QY, and HB at each edge Gauss quadrature point
 
             SFAC_IN = SFACED(GP_IN,LED_IN,EL_IN,pa)
             
-            ZE_EX = ZE(1,EL_EX,IRK)
-            QX_EX = QX(1,EL_EX,IRK)
-            QY_EX = QY(1,EL_EX,IRK)
+            ZE_EX = ZE_exs(1)
+            QX_EX = QX_exs(1)
+            QY_EX = QY_exs(1)
             !HB_EX = BATHED(GP_EX,LED_EX,EL_EX,pa)
             hb_ex = hb_exs(l,i)
 #ifdef SED_LAY 
@@ -314,13 +322,13 @@ C.....Compute ZE, QX, QY, and HB at each edge Gauss quadrature point
 
             DO K = 2,DOFS(EL)
 
-               ZE_IN = ZE_IN + ZE(K,EL_IN,IRK)*PHI_EDGE(K,GP_IN,LED_IN,pa)
-               QX_IN = QX_IN + QX(K,EL_IN,IRK)*PHI_EDGE(K,GP_IN,LED_IN,pa)
-               QY_IN = QY_IN + QY(K,EL_IN,IRK)*PHI_EDGE(K,GP_IN,LED_IN,pa)
+               ZE_IN = ZE_IN + ZE_ins(K)*PHI_EDGE(K,GP_IN,LED_IN,pa)
+               QX_IN = QX_IN + QX_ins(K)*PHI_EDGE(K,GP_IN,LED_IN,pa)
+               QY_IN = QY_IN + QY_ins(K)*PHI_EDGE(K,GP_IN,LED_IN,pa)
 
-               ZE_EX = ZE_EX + ZE(K,EL_EX,IRK)*PHI_EDGE(K,GP_EX,LED_EX,pa)
-               QX_EX = QX_EX + QX(K,EL_EX,IRK)*PHI_EDGE(K,GP_EX,LED_EX,pa)
-               QY_EX = QY_EX + QY(K,EL_EX,IRK)*PHI_EDGE(K,GP_EX,LED_EX,pa)
+               ZE_EX = ZE_EX + ZE_exs(K)*PHI_EDGE(K,GP_EX,LED_EX,pa)
+               QX_EX = QX_EX + QX_exs(K)*PHI_EDGE(K,GP_EX,LED_EX,pa)
+               QY_EX = QY_EX + QY_exs(K)*PHI_EDGE(K,GP_EX,LED_EX,pa)
 
 #ifdef TRACE
                iota_IN = iota_IN + iota(K,EL_IN,IRK)*PHI_EDGE(K,GP_IN,LED_IN,pa)
@@ -791,9 +799,9 @@ C.....Compute ZE, QX, QY, bed, and HB at each edge Gauss quadrature point
 
 C     ----------------------------- EL_IN ------------------------------
 
-            ZE_IN = ZE(1,EL_IN,IRK)
-            QX_IN = QX(1,EL_IN,IRK)
-            QY_IN = QY(1,EL_IN,IRK)
+            ZE_IN = ZE_ins(1)
+            QX_IN = QX_ins(1)
+            QY_IN = QY_ins(1)
             !HB_IN = BATHED(GP_IN,LED_IN,EL_IN,pa)
             hb_in = hb_ins(l,i)
 
@@ -844,9 +852,9 @@ C     ----------------------------- EL_IN ------------------------------
 
             DO K = 2,DOFS(EL)
 
-               ZE_IN = ZE_IN + ZE(K,EL_IN,IRK)*PHI_EDGE(K,GP_IN,LED_IN,pa)
-               QX_IN = QX_IN + QX(K,EL_IN,IRK)*PHI_EDGE(K,GP_IN,LED_IN,pa)
-               QY_IN = QY_IN + QY(K,EL_IN,IRK)*PHI_EDGE(K,GP_IN,LED_IN,pa)
+               ZE_IN = ZE_IN + ZE_ins(K)*PHI_EDGE(K,GP_IN,LED_IN,pa)
+               QX_IN = QX_IN + QX_ins(K)*PHI_EDGE(K,GP_IN,LED_IN,pa)
+               QY_IN = QY_IN + QY_ins(K)*PHI_EDGE(K,GP_IN,LED_IN,pa)
 
 #ifdef TRACE
                iota_IN = iota_IN + iota(K,EL_IN,IRK)*PHI_EDGE(K,GP_IN,LED_IN,PA)
@@ -1013,9 +1021,9 @@ c$$$               tmp = atomicAdd(RHS_QY(K,EL_IN,IRK) , -W_IN*H_HAT)
 
 C     ----------------------------- EL_EX ------------------------------
 
-            ZE_EX = ZE(1,EL_EX,IRK)
-            QX_EX = QX(1,EL_EX,IRK)
-            QY_EX = QY(1,EL_EX,IRK)
+            ZE_EX = ZE_exs(1)
+            QX_EX = QX_exs(1)
+            QY_EX = QY_exs(1)
             !HB_EX = BATHED(GP_EX,LED_EX,EL_EX,pa)
             hb_ex = hb_exs(l,i)
             SFAC_EX = SFACED(GP_EX,LED_EX,EL_EX,pa)
@@ -1064,9 +1072,9 @@ C     ----------------------------- EL_EX ------------------------------
 
             DO K = 2,DOFS(EL)
 
-               ZE_EX = ZE_EX + ZE(K,EL_EX,IRK)*PHI_EDGE(K,GP_EX,LED_EX,pa)
-               QX_EX = QX_EX + QX(K,EL_EX,IRK)*PHI_EDGE(K,GP_EX,LED_EX,pa)
-               QY_EX = QY_EX + QY(K,EL_EX,IRK)*PHI_EDGE(K,GP_EX,LED_EX,pa)
+               ZE_EX = ZE_EX + ZE_exs(K)*PHI_EDGE(K,GP_EX,LED_EX,pa)
+               QX_EX = QX_EX + QX_exs(K)*PHI_EDGE(K,GP_EX,LED_EX,pa)
+               QY_EX = QY_EX + QY_exs(K)*PHI_EDGE(K,GP_EX,LED_EX,pa)
 
 #ifdef TRACE
                iota_EX = iota_EX + iota(K,EL_EX,IRK)*PHI_EDGE(K,GP_EX,LED_EX,pa)
