@@ -30,6 +30,7 @@ C.....Use appropriate modules
       USE DG
       use nvtx
       use tidal_dg, only : tidal_potential
+      use met_dg, only : met_forcing
       use wetdry_dg, only : wetdry
       use slopelimiters, only : slopelimiter5
       USE precipitation, only : prec2

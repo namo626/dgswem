@@ -101,6 +101,7 @@ SLOPE_MSRC = slopelimiter.F
 WETDRY_MSRC = wetdry.F
 OUTPUT_MSRC = write_results.F
 C_MSRC = c_interface.F90
+MET_MSRC = met_forcing.F
 
 PREP_MOBJ:= $(patsubst %.F, $(O_DIR)%.o, $(PREP_MSRC) )
 PGLO_MOBJ:= $(patsubst %.F, $(O_DIR)%.o, $(PGLO_MSRC) )
@@ -121,6 +122,7 @@ FLUX_MOBJ := $(patsubst %.F, $(O_DIR)%.o, $(FLUX_MSRC))
 SLOPE_MOBJ := $(patsubst %.F, $(O_DIR)%.o, $(SLOPE_MSRC))
 WETDRY_MOBJ := $(patsubst %.F, $(O_DIR)%.o, $(WETDRY_MSRC))
 OUTPUT_MOBJ := $(patsubst %.F, $(O_DIR)%.o, $(OUTPUT_MSRC))
+MET_MOBJ := $(patsubst %.F, $(O_DIR)%.o, $(MET_MSRC))
 
 ############################# Source & Object Files ##############################
 
@@ -136,7 +138,7 @@ ADC_SRC    =  dgswem.F owiwind.F read_input.F cstart.F hstart.F radiation_edge_h
 	radiation_edge_hydro.F read_input.F \
 	quad_rules_general.F \
 	prep_slopelim.F \
-	LDG_hydro.F met_forcing.F sta_basis.F modal2nodal.F write_output.F
+	LDG_hydro.F sta_basis.F modal2nodal.F write_output.F
 #Casey 121126: Added modal2nodal.F and write_output.F to the previous line.
 
 METIS1_OBJ:= $(patsubst %.F, $(O_DIR)%.o, $(METIS1_SRC) )
@@ -347,7 +349,7 @@ $(O_DIR)calc_normal.o         	:  calc_normal.F $(ADC_MOBJ)
 $(O_DIR)create_edge_data.o    	:  create_edge_data.F $(ADC_MOBJ) $(C_MOBJ) $(O_DIR)count_edges.o
 $(O_DIR)detector.o	      	:  detector.F $(ADC_MOBJ)
 $(O_DIR)DG_timestep.o         	:  DG_timestep.F $(ADC_MOBJ) $(OUTPUT_MOBJ)
-$(O_DIR)DG_hydro_timestep.o   	:  DG_hydro_timestep.F  $(ADC_MOBJ) $(SOLVE_MOBJ) $(SLOPE_MOBJ) $(WETDRY_MOBJ)
+$(O_DIR)DG_hydro_timestep.o   	:  DG_hydro_timestep.F  $(ADC_MOBJ) $(SOLVE_MOBJ) $(SLOPE_MOBJ) $(WETDRY_MOBJ) $(MET_MOBJ)
 $(O_DIR)edge_int_hydro.o      	:  edge_int_hydro.F $(ADC_MOBJ)
 $(O_DIR)flow_edge_hydro.o     	:  flow_edge_hydro.F $(ADC_MOBJ) $(FLUX_MOBJ)
 $(O_DIR)internal_edge_hydro.o 	:  internal_edge_hydro.F $(ADC_MOBJ) $(FLUX_MOBJ)

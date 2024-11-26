@@ -41,6 +41,7 @@ C
       REAL(SZ) RampMete2  ! Ramp for wind and atmospheric pressure @ITHS
       REAL(SZ) RampWRad2  ! Ramp for wave radiation stress @ITHS
       REAL(SZ) PRDIFF,PRBCKGRND_MH2O     ! tcm v49.16 20100617 added
+      real(sz) windx, windy
 C...
 C.....READ IN 2DDI HOT START INITIAL CONDITION OVER WHOLE DOMAIN
 C.....THIS FILE ALWAYS HAS A RECL=8 BECAUSE IT IS ASSUMED THAT THE 

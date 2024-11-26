@@ -7,8 +7,18 @@ C     code
 C
 C***********************************************************************
 
+      module met_dg
+      use sizes, only : sz
+      use global, only : wvnx2, wvny2, dp, eta2, wsx2, wsy2, prn2, pr2,
+     &  wvnxout, wvnyout, prbckgrnd, G, h0
+      use nodalattributes, only : applydirectionalwindreduction
+      use wind, only : winddrag
+
+      implicit none
+
+      contains
+
       SUBROUTINE MET_FORCING(IT)
-      
       USE GLOBAL
       USE DG
       USE HARM
@@ -24,12 +34,13 @@ Casey 101118: We need these values from other places.
      &                       SWAN_WY2
 #endif
       
+
       IMPLICIT NONE
       
       REAL(SZ) AsymmetricTime
       REAL(SZ) PRDIFF,PRBCKGRND_MH2O     ! tcm v49.16 20100617 added
       INTEGER II, IT
-      real(sz), device :: windX_d, windY_d
+      real(sz) :: windx, windy
 
       RampMete = rampdg
 
@@ -844,39 +855,47 @@ Casey 121019: Added multiplication factor to be used before sending winds to cou
 
       IF(NWS.EQ.20) THEN
          CALL NWS20GET(SLAM,SFEA,WVNX2,WVNY2,PRN2,NP,AsymmetricTime,ICS)
-!$cuf kernel do <<< *, 128>>>
-         DO II=1,NP
-            WindX_d = WVNX2(II)
-            WindY_d = WVNY2(II)
-            WindMag = SQRT(WindX_d*WindX_d+WindY_d*WindY_d)
-            WDragCo = WindDrag(WindMag, dragLaw, foundEye, winddraglimit, I)
-
-            IF (LoadDirEffRLen) THEN
-               CALL ApplyDirectionalWindReduction(II, WDragCo,
-     &              WindMag, DP(II), ETA2(II), H0, G, WindX_d, WindY_d)
-               WindMag = SQRT(WindX_d*WindX_d+WindY_d*WindY_d)
-               WDragCo = winddrag(windmag, draglaw, foundeye, winddraglimit, i)
-            ENDIF
-
-
-            WSX2(II) = RampMete*0.0012930*WDragCo*WindX_d*WindMag
-            WSY2(II) = RampMete*0.0012930*WDragCo*WindY_d*WindMag
-!            PR2(II)=RampMete*PRN2(II)
-            PRBCKGRND_MH2O = 100.0*PRBCKGRND/(RHOWAT0*G)
-            PRDIFF = RampMete*(PRN2(II)-PRBCKGRND_MH2O)
-            PR2(II) = PRBCKGRND_MH2O + PRDIFF
-            WVNXOUT(II)=RampMete*WindX_d
-            WVNYOUT(II)=RampMete*WindY_d
-#ifdef CSWAN
-Casey 090302: Added these lines for coupling winds to SWAN.
-Casey 121019: Added multiplication factor to be used before sending winds to coupled wave models.
-            IF(COUPWIND)THEN
-               SWAN_WX2(II,2) = WindX/WindMultiplier
-               SWAN_WY2(II,2) = WindY/WindMultiplier
-            ENDIF
-#endif
-         END DO
+         call met_nws20<<<mnp/128+1, 128>>>(mnp,loaddireffrlen, G, H0, rhowat0,rampmete, draglaw, foundEye, winddraglimit)
       ENDIF
 
       RETURN
       END SUBROUTINE MET_FORCING
+
+      attributes(global) subroutine met_nws20(NP, loaddireffrlen, G, H0, rhowat0,rampmete, draglaw, foundEye, winddraglimit)
+      implicit none
+
+      integer, value :: np, draglaw
+      logical, value :: foundeye, loaddireffrlen
+      real(sz), value :: winddraglimit, G, h0, rampmete, rhowat0
+
+      integer :: ii
+      real(sz) :: windx, windy, windmag, wdragco, prbckgrnd_mh2o, prdiff
+
+      ii = (blockidx%x-1)*blockdim%x + threadidx%x
+      if (ii <= np) then
+         windX = WVNX2(II)
+         WindY = WVNY2(II)
+         windmag = sqrt(windx**2 + windy**2)
+         WDragCo = WindDrag(WindMag, dragLaw, foundEye, winddraglimit, II)
+
+         IF (LoadDirEffRLen) THEN
+            CALL ApplyDirectionalWindReduction(II, WDragCo,
+     &           WindMag, DP(II), ETA2(II), H0, G, WindX, WindY)
+            WindMag = SQRT(WindX**2 + WindY**2)
+            WDragCo = winddrag(windmag, draglaw, foundeye, winddraglimit, ii)
+         ENDIF
+
+         WSX2(II) = RampMete*0.0012930*WDragCo*WindX*WindMag
+         WSY2(II) = RampMete*0.0012930*WDragCo*WindY*WindMag
+!     PR2(II)=RampMete*PRN2(II)
+         PRBCKGRND_MH2O = 100.0*PRBCKGRND/(RHOWAT0*G)
+         PRDIFF = RampMete*(PRN2(II)-PRBCKGRND_MH2O)
+         PR2(II) = PRBCKGRND_MH2O + PRDIFF
+         WVNXOUT(II)=RampMete*WindX
+         WVNYOUT(II)=RampMete*WindY
+
+      ENDif
+
+      end subroutine
+
+      end module
