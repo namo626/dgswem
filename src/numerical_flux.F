@@ -771,7 +771,6 @@ C.....Use appropriate modules
 C.....Declare local variables
 
       INTEGER II,l
-      REAL(SZ) EIGVALS(6)
       REAL(SZ) EIGMAX, IDEPTH, HUU, HUV, HVV, GH2
       REAL(SZ) C_EX, C_IN, UN_EX, UN_IN, U_AVG, V_AVG, VEL_NORMAL
       REAL(SZ) DEPTH, F1_NL, FU_NL, FV_NL, FG_NL, FH_NL
@@ -870,20 +869,21 @@ C.....Evaluate the eigenvalues at the interior and exterior states
 
       UN_IN = (U_IN*NX + V_IN*NY)*NLEQ
       C_IN = SQRT(G*HT_IN*(NY**2 + (NX*SFAC_IN)**2)) !srb - spherical coordinate correction
-      EIGVALS(1) = ABS(UN_IN + C_IN)
-      EIGVALS(2) = ABS(UN_IN)
-      EIGVALS(3) = ABS(UN_IN - C_IN)
+      EIGmax = ABS(UN_IN + C_IN)
+      eigmax = max(eigmax,ABS(UN_IN))
+      eigmax = max(eigmax,ABS(UN_IN - C_IN))
 
-      UN_EX = (U_EX*NX + V_EX*NY)*NLEQ
+
+      un_in = (U_EX*NX + V_EX*NY)*NLEQ
       C_EX = SQRT(G*HT_EX*(NY**2 + (NX*SFAC_EX)**2)) !srb - spherical coordinate correction
-      EIGVALS(4) = ABS(UN_EX + C_EX)
-      EIGVALS(5) = ABS(UN_EX)
-      EIGVALS(6) = ABS(UN_EX - C_EX)
+      eigmax = max(eigmax,ABS(un_in + C_EX))
+      eigmax = max(eigmax,ABS(un_in))
+      eigmax = max(eigmax,ABS(un_in - C_EX))
 
 C.....Find the maximum eigenvalue (in absolute value)
 
-      EIGMAX = MAX( EIGVALS(1), EIGVALS(2), EIGVALS(3),
-     &     EIGVALS(4), EIGVALS(5), EIGVALS(6) )
+c$$$      EIGMAX = MAX( EIGVALS(1), EIGVALS(2), EIGVALS(3),
+c$$$     &     EIGVALS(4), EIGVALS(5), EIGVALS(6) )
 
       !cfl_max = max(EIGMAX,cfl_max)
                                 !print*,eigmax
