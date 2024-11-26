@@ -146,7 +146,7 @@ C.......If both elements on either side of edge are dry then skip
 
 C.....Save the current RHS
 
-         DO K = 1,DOFS(EL)
+         DO K = 1,3
 
 c$$$            RHS_ZE_IN(K) = RHS_ZE(K,EL_IN,IRK)
 c$$$            RHS_QX_IN(K) = RHS_QX(K,EL_IN,IRK)
@@ -453,7 +453,7 @@ C......namo 5/22 - modify for rain (source term no longer zero)
 
 C...........Put back the saved RHS
 
-               DO K = 1,DOFS(EL)
+               DO K = 1,3
                   rhs_ze_in = 0.
                   rhs_qx_in = 0.
                   rhs_qy_in = 0.
@@ -723,7 +723,7 @@ cnd try adding the penalty term in the LDG method
 
 C.....Compute the edge integral
 
-            DO K = 1,DOFS(EL)
+            DO K = 1,3
                
                W_IN = EDFAC_IN*EDGEQ(K,GP_IN,LED_IN,pa)
                W_EX = EDFAC_EX*EDGEQ(K,GP_EX,LED_EX,pa)
@@ -985,7 +985,7 @@ C.....Add LDG terms for sediment diffusion
 #endif
 
 C.....Compute the edge integral
-            DO K = 1,DOFS(EL)
+            DO K = 1,3
 
                W_IN = EDFAC_IN*EDGEQ(K,GP_IN,LED_IN,pa)
 
@@ -1210,7 +1210,7 @@ C.....Add LDG terms for sediment diffusion
 #endif
 
 C.....Compute the edge integral
-            DO K = 1,DOFS(EL)
+            DO K = 1,3
 
                W_EX = EDFAC_EX*EDGEQ(K,GP_EX,LED_EX,pa)
 
