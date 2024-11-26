@@ -146,7 +146,7 @@ C.......If both elements on either side of edge are dry then skip
 
 C.....Save the current RHS
 
-         DO K = 1,DOFS(EL)
+         DO K = 1,3
 
 c$$$            RHS_ZE_IN(K) = RHS_ZE(K,EL_IN,IRK)
 c$$$            RHS_QX_IN(K) = RHS_QX(K,EL_IN,IRK)
@@ -320,7 +320,7 @@ C.....Compute ZE, QX, QY, and HB at each edge Gauss quadrature point
             LZ_YX_EX = LZ(1,2,1,EL_EX)
             LZ_YY_EX = LZ(1,2,2,EL_EX)
 
-            DO K = 2,DOFS(EL)
+            DO K = 2,3
 
                ZE_IN = ZE_IN + ZE_ins(K)*PHI_EDGE(K,GP_IN,LED_IN,pa)
                QX_IN = QX_IN + QX_ins(K)*PHI_EDGE(K,GP_IN,LED_IN,pa)
@@ -453,7 +453,7 @@ C......namo 5/22 - modify for rain (source term no longer zero)
 
 C...........Put back the saved RHS
 
-               DO K = 1,DOFS(EL)
+               DO K = 1,3
                   rhs_ze_in = 0.
                   rhs_qx_in = 0.
                   rhs_qy_in = 0.
@@ -723,7 +723,7 @@ cnd try adding the penalty term in the LDG method
 
 C.....Compute the edge integral
 
-            DO K = 1,DOFS(EL)
+            DO K = 1,3
                
                W_IN = EDFAC_IN*EDGEQ(K,GP_IN,LED_IN,pa)
                W_EX = EDFAC_EX*EDGEQ(K,GP_EX,LED_EX,pa)
@@ -850,7 +850,7 @@ C     ----------------------------- EL_IN ------------------------------
 
 #endif
 
-            DO K = 2,DOFS(EL)
+            DO K = 2,3
 
                ZE_IN = ZE_IN + ZE_ins(K)*PHI_EDGE(K,GP_IN,LED_IN,pa)
                QX_IN = QX_IN + QX_ins(K)*PHI_EDGE(K,GP_IN,LED_IN,pa)
@@ -985,7 +985,7 @@ C.....Add LDG terms for sediment diffusion
 #endif
 
 C.....Compute the edge integral
-            DO K = 1,DOFS(EL)
+            DO K = 1,3
 
                W_IN = EDFAC_IN*EDGEQ(K,GP_IN,LED_IN,pa)
 
@@ -1070,7 +1070,7 @@ C     ----------------------------- EL_EX ------------------------------
 
 #endif
 
-            DO K = 2,DOFS(EL)
+            DO K = 2,3
 
                ZE_EX = ZE_EX + ZE_exs(K)*PHI_EDGE(K,GP_EX,LED_EX,pa)
                QX_EX = QX_EX + QX_exs(K)*PHI_EDGE(K,GP_EX,LED_EX,pa)
@@ -1210,7 +1210,7 @@ C.....Add LDG terms for sediment diffusion
 #endif
 
 C.....Compute the edge integral
-            DO K = 1,DOFS(EL)
+            DO K = 1,3
 
                W_EX = EDFAC_EX*EDGEQ(K,GP_EX,LED_EX,pa)
 
