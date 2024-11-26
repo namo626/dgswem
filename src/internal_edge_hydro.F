@@ -320,7 +320,7 @@ C.....Compute ZE, QX, QY, and HB at each edge Gauss quadrature point
             LZ_YX_EX = LZ(1,2,1,EL_EX)
             LZ_YY_EX = LZ(1,2,2,EL_EX)
 
-            DO K = 2,DOFS(EL)
+            DO K = 2,3
 
                ZE_IN = ZE_IN + ZE_ins(K)*PHI_EDGE(K,GP_IN,LED_IN,pa)
                QX_IN = QX_IN + QX_ins(K)*PHI_EDGE(K,GP_IN,LED_IN,pa)
@@ -850,7 +850,7 @@ C     ----------------------------- EL_IN ------------------------------
 
 #endif
 
-            DO K = 2,DOFS(EL)
+            DO K = 2,3
 
                ZE_IN = ZE_IN + ZE_ins(K)*PHI_EDGE(K,GP_IN,LED_IN,pa)
                QX_IN = QX_IN + QX_ins(K)*PHI_EDGE(K,GP_IN,LED_IN,pa)
@@ -1070,7 +1070,7 @@ C     ----------------------------- EL_EX ------------------------------
 
 #endif
 
-            DO K = 2,DOFS(EL)
+            DO K = 2,3
 
                ZE_EX = ZE_EX + ZE_exs(K)*PHI_EDGE(K,GP_EX,LED_EX,pa)
                QX_EX = QX_EX + QX_exs(K)*PHI_EDGE(K,GP_EX,LED_EX,pa)
