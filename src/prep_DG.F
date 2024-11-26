@@ -1564,6 +1564,18 @@ C.....Close files
          enddo
 
       enddo
+
+
+! const mem
+      phi_edge_c(:,:,:,1) = phi_edge(:,:,:,1)
+      phi_area_c(:,:,1) = phi_area(:,:,1)
+      edgeq_c(:,:,:,1) = edgeq(:,:,:,1)
+      negp_c = negp
+      max_boa_dt_c(1:2) = max_boa_dt(1:2)
+      drpsi_c = drpsi
+      dspsi_c = dspsi
+      drphi_c(:,:,1) = drphi(:,:,1)
+      dsphi_c(:,:,1) = dsphi(:,:,1)
       RETURN
       END SUBROUTINE PREP_DG
 

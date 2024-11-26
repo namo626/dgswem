@@ -21,8 +21,8 @@ C***********************************************************************
      &   wsx2, wsy2, pr2, tip2
       USE DG, only : rhs_ze, rhs_qx, rhs_qy,  dofs, nagp,
      &     srfac, wdflg, hb, qx, qy, fric_el, ze, bath, dbathdx, dbathdy,
-     &     phi_area, xfac,  dsdx, psi1, psi2, psi3, yfac, drdx,
-     &     sfac_elem, cori_el, drpsi, drdy, dsdy, dspsi, lz
+     &     phi_area_c, xfac,  dsdx, psi1, psi2, psi3, yfac, drdx,
+     &     sfac_elem, cori_el, drpsi_c, drdy, dsdy, dspsi_c, lz
 c$$$      USE NodalAttributes, ONLY : TAU, IFLINBF, IFHYBF, HBREAK, FTHETA,
 c$$$     &     FGAMMA,LoadManningsN,ManningsN,CF
 
@@ -53,7 +53,7 @@ C.....Declare local variables
       real(sz) :: dhb_x, dhb_y, umag
       REAL(SZ) DPSIDX(3), DPSIDY(3)
       REAL(SZ) AREA, IMASS, TKX, TKY, Xpart, Ypart,H_0,C_1
-      REAL(SZ) PHI_AREA_KI,MN_IN, MassAction1st,MassAction2nd,fx,fy
+      REAL(SZ) PHI_AREA_C_KI,MN_IN, MassAction1st,MassAction2nd,fx,fy
       REAL(SZ) LZ_XX, LZ_XY, LZ_YX, LZ_YY, rate, s_mass, s_sed,b_0
       REAL(SZ) DEPTH, F1_NL, FU_NL, FV_NL, FG_NL, FH_NL, FW_NL
       REAL(SZ) HUU, HVV, HUV, GH2,MZ_X(layers),MZ_Y(layers), fgauss, sig
@@ -129,12 +129,12 @@ C.......These will be used later when bottom friction is computed
 C.......Compute derivatives of Lagrange basis functions at nodes
 
          IF ((NWS.NE.0).OR.(NTIP.NE.0)) THEN
-            DPSIDX(1) = DRPSI(1)*DRDX(L) + DSPSI(1)*DSDX(L)
-            DPSIDX(2) = DRPSI(2)*DRDX(L) + DSPSI(2)*DSDX(L)
-            DPSIDX(3) = DRPSI(3)*DRDX(L) + DSPSI(3)*DSDX(L)
-            DPSIDY(1) = DRPSI(1)*DRDY(L) + DSPSI(1)*DSDY(L)
-            DPSIDY(2) = DRPSI(2)*DRDY(L) + DSPSI(2)*DSDY(L)
-            DPSIDY(3) = DRPSI(3)*DRDY(L) + DSPSI(3)*DSDY(L)
+            DPSIDX(1) = DRPSI_C(1)*DRDX(L) + DSPSI_C(1)*DSDX(L)
+            DPSIDX(2) = DRPSI_C(2)*DRDX(L) + DSPSI_C(2)*DSDX(L)
+            DPSIDX(3) = DRPSI_C(3)*DRDX(L) + DSPSI_C(3)*DSDX(L)
+            DPSIDY(1) = DRPSI_C(1)*DRDY(L) + DSPSI_C(1)*DSDY(L)
+            DPSIDY(2) = DRPSI_C(2)*DRDY(L) + DSPSI_C(2)*DSDY(L)
+            DPSIDY(3) = DRPSI_C(3)*DRDY(L) + DSPSI_C(3)*DSDY(L)
          ENDIF
 
 C.......Compute ZE, QX, QY, and HB at each area Gauss quadrature point
@@ -182,8 +182,8 @@ C.......Compute ZE, QX, QY, and HB at each area Gauss quadrature point
                do ll = 1,layers
                   HB(k,L,irk) = HB(k,L,irk) + bed(k,L,irk,ll)
                enddo
-               DPHIDX = DRPHI(K,I,pa)*DRDX(L) + DSPHI(K,I,pa)*DSDX(L)
-               DPHIDY = DRPHI(K,I,pa)*DRDY(L) + DSPHI(K,I,pa)*DSDY(L)
+               DPHIDX = DRPHI_C(K,I,pa)*DRDX(L) + DSPHI_c(K,I,pa)*DSDX(L)
+               DPHIDY = DRPHI_C(K,I,pa)*DRDY(L) + DSPHI_c(K,I,pa)*DSDY(L)
                DHB_X = DHB_X + HB(K,L,irk)*DPHIDX
                DHB_Y = DHB_Y + HB(K,L,irk)*DPHIDY
                DH_Y = DH_Y + (HB(K,L,irk)+ZE(K,L,irk))*DPHIDY
@@ -212,45 +212,45 @@ C.......Compute ZE, QX, QY, and HB at each area Gauss quadrature point
 
             DO K = 2,3
 
-               ZE_IN = ZE_IN + ZE(K,L,IRK)*PHI_AREA(K,I,pa)
-               QX_IN = QX_IN + QX(K,L,IRK)*PHI_AREA(K,I,pa)
-               QY_IN = QY_IN + QY(K,L,IRK)*PHI_AREA(K,I,pa)
+               ZE_IN = ZE_IN + ZE(K,L,IRK)*PHI_AREA_C(K,I,pa)
+               QX_IN = QX_IN + QX(K,L,IRK)*PHI_AREA_C(K,I,pa)
+               QY_IN = QY_IN + QY(K,L,IRK)*PHI_AREA_C(K,I,pa)
 
 #ifdef WAVE_DIF
-               HZ_X = HZ_X + HZ(K,1,1,L)*PHI_AREA(K,I,pa)
-               HZ_Y = HZ_Y + HZ(K,2,2,L)*PHI_AREA(K,I,pa)
+               HZ_X = HZ_X + HZ(K,1,1,L)*PHI_AREA_C(K,I,pa)
+               HZ_Y = HZ_Y + HZ(K,2,2,L)*PHI_AREA_C(K,I,pa)
 #endif
 
-               LZ_XX = LZ_XX + LZ(K,1,1,L)*PHI_AREA(K,I,pa)
-               LZ_XY = LZ_XY + LZ(K,1,2,L)*PHI_AREA(K,I,pa)
-               LZ_YX = LZ_YX + LZ(K,2,1,L)*PHI_AREA(K,I,pa)
-               LZ_YY = LZ_YY + LZ(K,2,2,L)*PHI_AREA(K,I,pa)
+               LZ_XX = LZ_XX + LZ(K,1,1,L)*PHI_AREA_C(K,I,pa)
+               LZ_XY = LZ_XY + LZ(K,1,2,L)*PHI_AREA_C(K,I,pa)
+               LZ_YX = LZ_YX + LZ(K,2,1,L)*PHI_AREA_C(K,I,pa)
+               LZ_YY = LZ_YY + LZ(K,2,2,L)*PHI_AREA_C(K,I,pa)
 
 #ifdef TRACE
-               TZ_X = TZ_X + TZ(K,1,1,L)*PHI_AREA(K,I,pa)
-               TZ_Y = TZ_Y + TZ(K,2,2,L)*PHI_AREA(K,I,pa)
+               TZ_X = TZ_X + TZ(K,1,1,L)*PHI_AREA_C(K,I,pa)
+               TZ_Y = TZ_Y + TZ(K,2,2,L)*PHI_AREA_C(K,I,pa)
 
-               iota_IN = iota_IN + iota(K,L,IRK)*PHI_AREA(K,I,pa)
+               iota_IN = iota_IN + iota(K,L,IRK)*PHI_AREA_C(K,I,pa)
 #endif
 
 #ifdef CHEM
-               iota_IN = iota_IN + iota(K,L,IRK)*PHI_AREA(K,I,pa)
-               iota2_IN = iota2_IN + iota2(K,L,IRK)*PHI_AREA(K,I,pa)
+               iota_IN = iota_IN + iota(K,L,IRK)*PHI_AREA_C(K,I,pa)
+               iota2_IN = iota2_IN + iota2(K,L,IRK)*PHI_AREA_C(K,I,pa)
 #endif
 
 #ifdef DYNP
-               dynP_IN = dynP_IN + dynP(K,L,IRK)*PHI_AREA(K,I,pa)
+               dynP_IN = dynP_IN + dynP(K,L,IRK)*PHI_AREA_C(K,I,pa)
 #endif
 
                DEPTH = ZE_IN + HB_IN
 
 #ifdef SED_LAY
                do ll = 1,layers
-                  bed_IN(ll)=bed_IN(ll)+bed(K,L,IRK,ll)*PHI_AREA(K,I,pa)
-                  HB_IN = HB_IN + bed(K,L,irk,ll)*PHI_AREA(K,I,pa)
+                  bed_IN(ll)=bed_IN(ll)+bed(K,L,IRK,ll)*PHI_AREA_C(K,I,pa)
+                  HB_IN = HB_IN + bed(K,L,irk,ll)*PHI_AREA_C(K,I,pa)
 
-                  MZ_X(ll) =  MZ_X(ll) + MZ(K,1,ll,L)*PHI_AREA(K,I,pa)
-                  MZ_Y(ll) =  MZ_Y(ll) + MZ(K,2,ll,L)*PHI_AREA(K,I,pa)
+                  MZ_X(ll) =  MZ_X(ll) + MZ(K,1,ll,L)*PHI_AREA_C(K,I,pa)
+                  MZ_Y(ll) =  MZ_Y(ll) + MZ(K,2,ll,L)*PHI_AREA_C(K,I,pa)
                enddo
                DEPTH = 0.0
                DEPTH = ZE_IN + HB_IN

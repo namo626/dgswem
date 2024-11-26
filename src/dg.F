@@ -35,6 +35,7 @@ C.....Declare integer variables
       INTEGER J1, J2, J3,negp_fixed,nagp_fixed
       INTEGER NEDGES, NRK !42 hardwires for ph=7
       integer, allocatable, managed :: nagp(:), negp(:), ncheck(:)
+      integer, constant :: negp_c(8)
       INTEGER NIEDS, NLEDS, NEEDS, NFEDS, NREDS, NEBEDS, NIBEDS
       INTEGER NIBSEG, NEBSEG
       INTEGER MNED, MNLED, MNSED, MNRAED, MNRIED
@@ -102,6 +103,7 @@ C.....Declare real variable arrays
 
       !REAL(SZ) DRPSI(3), DSPSI(3)
       real(sz), allocatable, managed :: drpsi(:), dspsi(:)
+      real(sz), constant :: drpsi_c(3), dspsi_c(3)
       REAL(SZ) VEC1(2), VEC2(2)
       
 C.....Declare allocatable integer arrays
@@ -125,6 +127,7 @@ C.....Declare allocatable real arrays
       real(sz), allocatable, managed :: hb_ins(:,:), hb_exs(:,:)
       REAL(SZ), ALLOCATABLE, managed :: ATVD(:,:), BTVD(:,:), CTVD(:,:)
       REAL(SZ), ALLOCATABLE, managed :: DTVD(:), MAX_BOA_DT(:),e1(:),balance(:)
+      real(sz), constant :: max_boa_dt_c(2)
       Real(SZ), Allocatable :: RKC_T(:),RKC_U(:),RKC_Tprime(:)
       Real(SZ), Allocatable :: RKC_Tdprime(:),RKC_a(:),RKC_b(:),RKC_c(:)
       Real(SZ), Allocatable :: RKC_mu(:),RKC_tildemu(:),RKC_nu(:),
@@ -136,6 +139,7 @@ C.....Declare allocatable real arrays
       REAL(SZ), ALLOCATABLE, managed :: DP_NODE(:,:,:)
       REAL(SZ), ALLOCATABLE, managed :: DP_VOL(:,:)
       REAL(SZ), ALLOCATABLE :: DRPHI(:,:,:), DSPHI(:,:,:)
+      real(sz), constant :: dsphi_c(3,4,1), drphi_c(3,4,1)
       REAL(SZ), ALLOCATABLE, managed :: DRDX(:), DSDX(:), DRDY(:), DSDY(:)
       REAL(SZ), ALLOCATABLE :: DXPHI2(:,:,:), DYPHI2(:,:,:), PHI2(:,:,:)
       REAL(SZ), ALLOCATABLE, managed :: EFA_DG(:,:,:), EMO_DG(:,:,:)
@@ -149,6 +153,7 @@ C.....Declare allocatable real arrays
       REAL(SZ), ALLOCATABLE :: JACOBI(:,:,:,:)
       REAL(SZ), ALLOCATABLE, managed :: M_INV(:,:),phi_edge_fixed(:,:,:)
       REAL(SZ), ALLOCATABLE, managed :: PHI_AREA(:,:,:), PHI_EDGE(:,:,:,:)
+      real(sz), constant :: phi_edge_c(3,4,3,1), phi_area_c(3,4,1)
       REAL(SZ), ALLOCATABLE, managed :: PHI_CENTER(:,:), PHI_CORNER(:,:,:)
       REAL(SZ), ALLOCATABLE, managed :: PHI_CHECK(:,:,:)
       REAL(SZ), ALLOCATABLE :: PHI_CORNER1(:,:,:,:)
@@ -194,6 +199,7 @@ C.....Declare allocatable real arrays
       REAL(SZ), ALLOCATABLE, managed :: XFAC(:,:,:,:), YFAC(:,:,:,:),
      & SRFAC(:,:,:,:)
       REAL(SZ), ALLOCATABLE, managed :: EDGEQ(:,:,:,:)
+      real(sz), constant :: edgeq_c(3,3,3,1)
       REAL(SZ), ALLOCATABLE, managed :: PHI(:), DPHIDZ1(:), DPHIDZ2(:)
       REAL(SZ), ALLOCATABLE, managed :: PHI_STAE(:,:), PHI_STAV(:,:)
       Real(SZ), Allocatable, managed :: bed_IN(:),bed_EX(:),bed_HAT(:)
