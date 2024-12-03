@@ -135,7 +135,7 @@ C.....Declare allocatable real arrays
       REAL(SZ), ALLOCATABLE, managed :: BATH(:,:,:),DBATHDX(:,:,:),DBATHDY(:,:,:)
       REAL(SZ), ALLOCATABLE, managed :: SFAC_ELEM(:,:,:)
       REAL(SZ), ALLOCATABLE, managed :: BATHED(:,:,:,:),SFACED(:,:,:,:)
-      REAL(SZ), ALLOCATABLE, managed :: COSNX(:), SINNX(:)
+      REAL(SZ), ALLOCATABLE, managed :: COSNX(:), SINNX(:), DENs(:)
       REAL(SZ), ALLOCATABLE, managed :: DP_NODE(:,:,:)
       REAL(SZ), ALLOCATABLE, managed :: DP_VOL(:,:)
       REAL(SZ), ALLOCATABLE :: DRPHI(:,:,:), DSPHI(:,:,:)
@@ -282,7 +282,7 @@ C.....Set edge array sizes
       ALLOCATE ( NIEDN(MNED), NLEDN(MNED), NEEDN(MNED) )
       ALLOCATE ( NFEDN(MNED),  NREDN(MNED), NIBEDN(MNED), NEBEDN(MNED) )
       ALLOCATE ( NCOUNT(MNED) )
-      ALLOCATE ( COSNX(MNED), SINNX(MNED), XLEN(MNED) )
+      ALLOCATE ( COSNX(MNED), SINNX(MNED), XLEN(MNED), DENs(MNED) )
       ALLOCATE ( Q_HAT(MNED) )
       RETURN
       END SUBROUTINE

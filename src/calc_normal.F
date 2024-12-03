@@ -15,13 +15,15 @@ C***********************************************************************
 C.....Use appropriate modules
 
       USE GLOBAL, only : x, y, sfac
-      USE DG, only : xlen, cosnx, sinnx, nedges, nedno,  sav
+      USE DG, only : xlen, cosnx, sinnx, nedges, nedno,  sav, dens
+      use sizes, only : sz
       
       IMPLICIT NONE
       
 C.....Declare local variables
 
       INTEGER IEL, IED,i, n1, n2
+      real(sz) :: nx, ny, tx, ty
 
 C.....Loop over the edges
 
@@ -46,6 +48,12 @@ C.....Compute the components of the normal vector
        !COSNX(I) = SAV*(Y(N2) - Y(N1))/XLEN(I)
        COSNX(I) = (Y(N2) - Y(N1))/XLEN(I)
        SINNX(I) = -(X(N2) - X(N1))/XLEN(I)
+
+       NX = COSNX(I)
+       NY = SINNX(I)
+       TX = -NY
+       TY =  NX
+       DENs(I) = 1.0/(NX*TY - NY*TX)
       ENDDO
         
       RETURN

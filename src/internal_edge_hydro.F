@@ -27,7 +27,7 @@ C     C***********************************************************************
       USE DG, only : rhs_ze, rhs_qx, rhs_qy, cosnx, sinnx, ze, wdflg, qx, qy, xlen,
      &     hb, bathed, dofs, edgeq_c, negp_c, max_boa_dt_c, phi_edge_c, sfaced, lz, nedel, niedn,
      &     nedsd, elem_edge, ze_edge, qx_edge, qy_edge, edfac_ins, edfac_exs, xlen_ins,xlen_exs,
-     &     hb_ins, hb_exs, phi_edge_c_c
+     &     hb_ins, hb_exs, phi_edge_c_c, dens
       USE NodalAttributes, ONLY :  ESLM
       use sizes, only:  sz, myproc
       use flux_dg, only : llf_flux
@@ -44,7 +44,7 @@ C     C***********************************************************************
       real(sz), value :: G, nleq, leq, nleqg, fg_l
 
 C.....Declare local variables
-      real(sz) :: tmp
+      real(sz) :: tmp, wd_in, wd_ex
       logical :: is_large_flux
       integer :: el_in, el_ex, pa, el, test_el, ind_ex, ind_in
       real(sz) :: nx, ny, ze_in, qx_in, qy_in, qx_ex, qy_ex, hb_ex, hb_in
@@ -133,7 +133,11 @@ C.......Retrieve the elements which share the edge
 
 C.......If both elements on either side of edge are dry then skip
 
-         IF((WDFLG(EL_IN).EQ.0).AND.(WDFLG(EL_EX).EQ.0)) return
+c$$$         wd_in = __ldcg(wdflg(el_in))
+c$$$         wd_ex = __ldcg(wdflg(el_ex))
+         wd_in = wdflg(el_in)
+         wd_ex = wdflg(el_ex)
+         IF((WD_in.EQ.0).AND.(WD_ex.EQ.0)) return
 
          ze_ins = ze(:,el_in,irk)
          qx_ins = qx(:,el_in,irk)
@@ -226,6 +230,8 @@ C.....Set the components for the tangential vector to the edge
 
          TX = -NY
          TY =  NX
+
+         den = dens(ged)
          
 c$$$         EDFAC_IN = XLEN(GED)/AREAS(EL_IN)
 c$$$         EDFAC_EX = XLEN(GED)/AREAS(EL_EX)
@@ -502,7 +508,7 @@ C........Check to make sure mass flux is not coming from a dry element
 
             dry_flux: IF (abs(F_HAT).gt.1.d-12) THEN
                !
-               IF (WDFLG(EL_IN).EQ.0) THEN
+               IF (wd_in.EQ.0) THEN
                   ! EL_IN is dry !
                   IF (F_HAT.GT.0) THEN
                      ! Flux going from the dry element (in)
@@ -511,7 +517,7 @@ C........Check to make sure mass flux is not coming from a dry element
                      Q_T_EXT = QX_EX*TX + QY_EX*TY
                      Q_N_INT = -Q_N_EXT
                      Q_T_INT =  Q_T_EXT
-                     DEN = 1.0/(NX*TY - NY*TX)
+                     !DEN = 1.0/(NX*TY - NY*TX)
                      QX_IN = ( TY*Q_N_INT - NY*Q_T_INT)*DEN
                      QY_IN = (-TX*Q_N_INT + NX*Q_T_INT)*DEN
                      ZE_IN = ZE_EX
@@ -583,7 +589,7 @@ C........Check to make sure mass flux is not coming from a dry element
 #endif
                   ENDIF
                   
-               ELSEIF (WDFLG(EL_EX).EQ.0) THEN
+               ELSEIF (wd_ex.EQ.0) THEN
                   
                   ! EL_EX is dry
                   IF (F_HAT.LT.0) THEN
@@ -593,7 +599,7 @@ C........Check to make sure mass flux is not coming from a dry element
                      Q_T_INT = QX_IN*TX + QY_IN*TY
                      Q_N_EXT = -Q_N_INT
                      Q_T_EXT =  Q_T_INT
-                     DEN = 1.0/(NX*TY - NY*TX)
+                     !DEN = 1.0/(NX*TY - NY*TX)
                      QX_EX = ( TY*Q_N_EXT - NY*Q_T_EXT)*DEN
                      QY_EX = (-TX*Q_N_EXT + NX*Q_T_EXT)*DEN
                      ZE_EX = ZE_IN
@@ -915,7 +921,7 @@ C.....Reflect the velocity in the normal direction
 
 C.....Compute the x and y components of the external state flow
 
-            DEN = 1.0/(NX*TY - NY*TX)
+            !DEN = 1.0/(NX*TY - NY*TX)
             QX_EX = ( TY*Q_N_EXT - NY*Q_T_EXT)*DEN
             QY_EX = (-TX*Q_N_EXT + NX*Q_T_EXT)*DEN
 
@@ -942,7 +948,7 @@ C.....Compute the x and y components of the external state flow
 
 C.....Compute the numerical flux
 
-            IF(WDFLG(EL_IN).EQ.0) THEN
+            IF(wd_in.EQ.0) THEN
                !CALL NUMERICAL_FLUX(IT,test_el)
             call LLF_FLUX(ze_ex, ze_in, qx_ex, qx_in, qy_ex, qy_in,
      &           hb_in, hb_ex, nx, ny, 0., nleq, leq, 0., fg_l,
@@ -1140,7 +1146,7 @@ C.....Reflect the velocity in the normal direction
 
 C.....Compute the x and y components of the external state flow
 
-            DEN = 1.0/(NX*TY - NY*TX)
+            !DEN = 1.0/(NX*TY - NY*TX)
             QX_IN = ( TY*Q_N_INT - NY*Q_T_INT)*DEN
             QY_IN = (-TX*Q_N_INT + NX*Q_T_INT)*DEN
 
@@ -1168,7 +1174,7 @@ C.....Compute the x and y components of the external state flow
 
 C.....Compute the numerical flux
 
-            IF(WDFLG(EL_EX).EQ.0) THEN
+            IF(wd_ex.EQ.0) THEN
                !CALL NUMERICAL_FLUX(IT,test_el)
             call LLF_FLUX(ze_ex, ze_in, qx_ex, qx_in, qy_ex, qy_in,
      &           hb_in, hb_ex, nx, ny, 0., nleq, leq, 0., fg_l,
