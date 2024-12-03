@@ -1,20 +1,7 @@
 SHELL:=/bin/sh
 #
 #  Makefile to Build DGSWEM and its pre/post-processor
-#export MPICH_FC=ifort
-
-########################################################################
-#  Get Canonical Machine NAME from config.guess
-#1
-NAME     := $(shell ./config.guess)
-LIST     := $(subst -, ,$(NAME))
-MACHINE  := $(word 1, $(LIST))
-VENDOR   := $(word 2, $(LIST))
-OS       := $(subst  $(MACHINE)-$(VENDOR)-,,$(strip $(NAME)))
 CLIBS    = -lc -lstdc++
-
-$(info MACHINE is $(MACHINE))
-$(info OS is $(OS))
 
 include cmplrflags.mk
 #Casey 121126: Include variables/flags from SWAN.
@@ -41,7 +28,7 @@ endif
 ifeq ($(BUILDTYPE),dgswem_serial)
   CF:= $(PPFC)
   O_DIR:=odir4/
-  FFLAGS:= $(FFLAGS3) $(DA) $(IMODS)$(O_DIR) $(CLIBS)
+  FFLAGS:= $(FFLAGS3) $(DA) $(IMODS)$(O_DIR)
   VPATH:=  ../src
   MSG_MOBJ:=
 endif
@@ -58,7 +45,7 @@ endif
 ifeq ($(BUILDTYPE),dgswem)
   CF:= $(PFC)
   O_DIR:=odir5/
-  FFLAGS:= $(FFLAGS4) $(DP) $(IMODS)$(O_DIR) $(CLIBS)
+  FFLAGS:= $(FFLAGS4) $(DP) $(IMODS)$(O_DIR)
   VPATH :=  ../src
   MSG_MOBJ:= $(O_DIR)messenger_elem.o $(O_DIR)messenger.o
   MSG_OBJ:=
@@ -235,10 +222,10 @@ else
 	$(CF) $(FFLAGS) -o $@  $(O_DIR)*.o
 
    dgswem_serial ::  $(ADC_OBJ)
-	$(CF) $(FFLAGS) -o $@  $(O_DIR)*.o
+	$(CF) $(FFLAGS) -o $@  $(O_DIR)*.o $(CLIBS)
 
    dgswem ::  $(MSG_MOBJ) $(MSG_OBJ) $(ADC_OBJ)
-	$(CF) $(FFLAGS) -o $@  $(O_DIR)*.o  $(MSGLIBS)
+	$(CF) $(FFLAGS) -o $@  $(O_DIR)*.o  $(MSGLIBS) $(CLIBS)
 
 #Casey 121126: Added the following lines for coupling to unstructured SWAN.
    swemswan :: $(O_DIR)
@@ -251,8 +238,6 @@ else
 endif
 
 ########################## Misc Commands ####################################
-install:
-	cp dgswem dgswem_serial /workspace/local/bin/
 
 clean:
 	 rm -f odir*/*.o  odir*/*.mod
@@ -271,6 +256,13 @@ help:
 #Casey 121126: Add text for the SWAN+ADCIRC targets.
 	@echo "make swemswan  - makes the serial SWAN+ADCIRC executable"
 	@echo "make dgswemswan - makes the parallel SWAN+ADCIRC executable"
+	@echo ""
+	@printf "\033[1mThe default compiler is Intel (ifx and icx).\033[0m To use NVIDIA, change the variable compiler:\n"
+	@echo "    make compiler=nvhpc ..."
+	@echo ""
+	@echo "For NVIDIA compilers, you can also choose the precision (default is double, or 8):"
+	@echo "    make sz=4 ..."
+	@echo ""
 
 
 ########################## Defining the DAG  ####################################
