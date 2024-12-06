@@ -148,7 +148,6 @@ C.....Declare variables for DG SW
       REAL(SZ),ALLOCATABLE :: FX_MID(:,:),GX_MID(:,:),HX_MID(:,:)
       REAL(SZ),ALLOCATABLE :: FY_MID(:,:),GY_MID(:,:),HY_MID(:,:)
       REAL(SZ),ALLOCATABLE :: ZE_C(:),QX_C(:),QY_C(:),dynP_DG(:)
-      REAL(SZ),ALLOCATABLE :: ZE_DG(:),QX_DG(:),QY_DG(:),HB_DG(:)
       REAL(SZ),Allocatable :: iota2_DG(:),iota_DG(:),iotaa_DG(:)
       REAL(SZ),Allocatable :: bed_DG(:,:), bed_N_int(:), bed_N_ext(:)
 C...
@@ -749,7 +748,6 @@ C
       ALLOCATE ( DP_DG(MAXEL),DG_ANG(MAXEL) )
       ALLOCATE ( NNOEL(MNP,MAXEL),CENTAB(MNP,MAXEL+1) )
       ALLOCATE (ELETAB(MNP,MAXEL+1),ANGTAB(MNP,MAXEL+1),dynP_DG(MAXEL) )
-      ALLOCATE ( ZE_DG(MAXEL), QX_DG(MAXEL), QY_DG(MAXEL), HB_DG(MAXEL))
       Allocate ( iota2_DG(MAXEL), iota_DG(MAXEL), iotaa_DG(MAXEL) )
       Allocate(bed_DG(MAXEL,layers),bed_N_int(layers),bed_N_ext(layers))
       RETURN

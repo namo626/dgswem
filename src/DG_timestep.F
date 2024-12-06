@@ -28,6 +28,7 @@ C.....Declare local variables
 C.....Hydrodynamics
 
       CALL DG_HYDRO_TIMESTEP(IT)
+      call modal2nodal()
 
 C.....Write out results
 
@@ -43,7 +44,7 @@ C.....Write out results
 #endif
 #endif
 
-      CALL SCRUTINIZE_SOLUTION()
+      !CALL SCRUTINIZE_SOLUTION()
 
       RETURN
       END SUBROUTINE

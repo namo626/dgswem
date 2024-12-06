@@ -115,7 +115,7 @@ ADC_SRC    =  dgswem.F owiwind.F read_input.F cstart.F hstart.F radiation_edge_h
 	radiation_edge_hydro.F read_input.F rhs_dg_hydro.F quad_rules_general.F \
 	tidal_potential.F write_results.F \
 	slopelimiter.F prep_slopelim.F \
-	wetdry.F LDG_hydro.F met_forcing.F sta_basis.F modal2nodal.F write_output.F
+	wetdry.F LDG_hydro.F met_forcing.F sta_basis.F  write_output.F
 #Casey 121126: Added modal2nodal.F and write_output.F to the previous line.
 
 METIS1_OBJ:= $(patsubst %.F, $(O_DIR)%.o, $(METIS1_SRC) )
