@@ -27,6 +27,7 @@ C.....Use appropriate modules
       
       USE GLOBAL
       USE DG
+      use mod_internal_edge
 
 #ifdef CMPI
       USE MESSENGER_ELEM 
@@ -63,9 +64,9 @@ C.....Compute the current time
 
 C.....Update ETA1 (shintaro: do we need this?)
 
-      DO I = 1,MNP
-         ETA1(I) = ETA2(I)
-      ENDDO
+c$$$      DO I = 1,MNP
+c$$$         ETA1(I) = ETA2(I)
+c$$$      ENDDO
 
 C.....Begin Runge-Kutta time stepper
 
@@ -226,19 +227,19 @@ C.......Compute external barrier edges
          IF (NEBEDS.GT.0) CALL EBARRIER_EDGE_HYDRO(IT)
          
 C.......Compute internal edges
-
          CALL INTERNAL_EDGE_HYDRO(IT)
+         call add_internal_flux()
 
 C.......Compute elements to finish building the rhs
          
          CALL RHS_DG_HYDRO(IT)
 
 C.......SSP Runge-Kutta Time Scheme
-
-         DO I = 1,IRK
-            ARK = ATVD(IRK,I)
-            BRK = BTVD(IRK,I)*DT
-            DO J = 1,NE
+!$acc parallel loop gang vector async(1) default(present)
+         DO J = 1,NE
+            DO I = 1,IRK
+               ARK = ATVD(IRK,I)
+               BRK = BTVD(IRK,I)*DT
                DO K = 1,DOFS(J)
 
 #ifdef SED_LAY
@@ -675,9 +676,8 @@ C......Filter chemistry transported terms if flagged
       ENDDO
 #endif
       
-
+!$acc parallel loop gang vector async(1) default(present)
       DO J = 1,MNE
-         
          DO K = 1,DOFS(J)
             ZE(K,J,1) = ZE(K,J,NRK+1)
             QX(K,J,1) = QX(K,J,NRK+1)
@@ -702,8 +702,9 @@ C......Filter chemistry transported terms if flagged
          ENDDO
       ENDDO
 
-      DO KK = 2,NRK+1
-         DO J = 1,MNE
+!$acc parallel loop gang vector async(1) default(present)
+      DO J = 1,MNE
+         DO KK = 2,NRK+1
             DO K = 1,DOFH
                ZE(K,J,KK) = 0.0
                QX(K,J,KK) = 0.0

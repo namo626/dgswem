@@ -151,6 +151,8 @@ C.....Declare allocatable real arrays
       REAL(SZ), ALLOCATABLE :: Q_HAT(:)
       REAL(SZ), ALLOCATABLE :: QIB(:)
       REAL(SZ), ALLOCATABLE :: QX(:,:,:), QY(:,:,:), ZE(:,:,:)
+      REAL(SZ), ALLOCATABLE :: ze_edge(:,:,:), qx_edge(:,:,:), qy_edge(:,:,:)
+      integer, allocatable :: elem_edge(:,:), nieds_count(:)
       Real(SZ), ALLOCATABLE, target:: bed(:,:,:,:)
       Real(SZ), Allocatable :: dynP(:,:,:),dynP_MAX(:), dynP_MIN(:)
       Real(SZ), Allocatable :: iota(:,:,:),iotaa(:,:,:),iota2(:,:,:)
@@ -317,6 +319,12 @@ C--
       ALLOCATE ( PHI(DOFH), DPHIDZ1(DOFH), DPHIDZ2(DOFH) )
       ALLOCATE ( DOFS(MNE), PCOUNT(MNE) )
       ALLOCATE ( PDG(MNP) )
+
+       allocate( elem_edge(MNE,3), nieds_count(MNE) )
+      allocate( ze_edge(MNE,3,DOFH), qx_edge(MNE,3,DOFH), qy_edge(MNE,3,DOFH))
+      ze_edge = 0.
+      qx_edge = 0.
+      qy_edge = 0.
       RETURN
       END SUBROUTINE
 

@@ -45,7 +45,7 @@ C.....Declare local variables
       REAL(SZ) LZ_XX_IN, LZ_XY_IN, LZ_YX_IN, LZ_YY_IN,W_IN
       Real(SZ) MZ_X_IN(layers),MZ_Y_IN(layers),TZ_X_IN,TZ_Y_IN
 
-      test_el = 0
+!$acc parallel loop gang vector async(1) default(present)
       DO 1000 L = 1,NLEDS
          
 C.....Retrieve the global and local edge number
@@ -69,7 +69,6 @@ C.....If the element is dry then skip the edge calculation
 
          IF (WDFLG(EL_IN).EQ.0) GOTO 1000
 
-         test_el = test_el+1
 
 C.....Retrieve the components of the normal vector to the edge
          
@@ -83,6 +82,7 @@ C.....Set the components for the tangential vector to the edge
 
 C.....Compute ZE, QX, QY, and HB at each Gauss point
 
+!$acc loop seq
          DO I = 1,NEGP(pa)
             
             ZE_IN = ZE(1,EL_IN,IRK)
@@ -140,6 +140,7 @@ C.....Compute ZE, QX, QY, and HB at each Gauss point
 C.....Compute the solution at the interior state
 C.....(modified for wetting and drying)
 
+!$acc loop seq
             DO K = 2,DOFS(EL_IN)
                
                ZE_IN = ZE_IN + ZE(K,EL_IN,IRK)*PHI_EDGE(K,I,LED,pa)
@@ -263,14 +264,18 @@ C.....Add LDG terms for sediment
 C.....Compute the edge integral
 C.....(modified for wetting and drying) 
 
+
 C.....Compute the edge integral
+!$acc loop seq
             DO K = 1,DOFS(EL_IN)
 
                W_IN = 2.0*M_INV(K,pa)/AREAS(EL_IN)*XLEN(GED)*
      &              PHI_EDGE(K,I,LED,pa)*WEGP(I,pa)
-
+!$acc atomic
                RHS_ZE(K,EL_IN,IRK) = RHS_ZE(K,EL_IN,IRK) - W_IN*F_HAT
+!$acc atomic
                RHS_QX(K,EL_IN,IRK) = RHS_QX(K,EL_IN,IRK) - W_IN*G_HAT
+!$acc atomic
                RHS_QY(K,EL_IN,IRK) = RHS_QY(K,EL_IN,IRK) - W_IN*H_HAT
 
 #ifdef TRACE

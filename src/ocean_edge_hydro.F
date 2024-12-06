@@ -47,7 +47,7 @@ C.....Declare local variables
       REAL(SZ):: ZEFREQ      
       REAL(SZ), dimension(2):: EFA_GPT, EMO_GPT, ARG_GPT, ZE_GPT
 
-      test_el = 0
+!$acc parallel loop gang vector private(efa_gpt, emo_gpt, arg_gpt, ze_gpt) async(1) default(present)
       DO 1000 L = 1, needs
          
 C.....Retrieve the global and local edge number
@@ -71,8 +71,7 @@ C.....If the element is dry then skip the edge calculation
 
          IF (WDFLG(EL_IN).EQ.0) GOTO 1000
          
-         test_el = test_el+1
-         
+
 C.....Retrieve the components of the normal vector to the edge
          
          NX = COSNX(GED)
@@ -84,7 +83,7 @@ C.....Retrieve the nodes of the edge
          N2 = NEDNO(2,GED)
          
 C.....Compute ZE, QX, QY, and HB at each edge Gauss quadrature point
-
+!$acc loop seq
          DO I = 1,NEGP(pa)
 
             ZE_IN = ZE(1,EL_IN,IRK)
@@ -144,7 +143,8 @@ C.....Compute ZE, QX, QY, and HB at each edge Gauss quadrature point
 #endif
 
 C.....Compute the specified open ocean elevation
-            
+
+!$acc loop seq
             DO JJ=1,NBFR
                
                IF (PER(JJ).EQ.0.0) THEN
@@ -158,7 +158,8 @@ C...........Surface Elevation
                ARGJ = AMIG(JJ)*(TIMEDG - NCYC*PER(JJ)) + FACE(JJ)
                RFF = FF(JJ)*RAMPDG
 
-C..............linearly interpolate from the time-series of the harmonic forcing 
+C..............linearly interpolate from the time-series of the harmonic forcing
+!$acc loop seq
                DO IPT = 1, 2
                   EFA_GPT(IPT) = EFA_DG(JJ,L,IPT) ;
                   EMO_GPT(IPT) = EMO_DG(JJ,L,IPT) ; 
@@ -186,6 +187,7 @@ C.....For non-periodic elevation bcs
 
 C.....Compute the solution at the interior state
 
+!$acc loop seq
             DO K = 2,DOFS(EL_IN)
 
                ZE_IN = ZE_IN + ZE(K,EL_IN,IRK)*PHI_EDGE(K,I,LED,pa)
@@ -307,13 +309,17 @@ C.....Add LDG terms for sediment
 #endif
 
 C.....Compute the edge integral
+!$acc loop seq
             DO K = 1,DOFS(EL_IN)
 
                W_IN = 2.0*M_INV(K,pa)/AREAS(EL_IN)*XLEN(GED)*
      &              PHI_EDGE(K,I,LED,pa)*WEGP(I,pa)
 
+!$acc atomic
                RHS_ZE(K,EL_IN,IRK) = RHS_ZE(K,EL_IN,IRK) - W_IN*F_HAT
+!$acc atomic
                RHS_QX(K,EL_IN,IRK) = RHS_QX(K,EL_IN,IRK) - W_IN*G_HAT
+!$acc atomic
                RHS_QY(K,EL_IN,IRK) = RHS_QY(K,EL_IN,IRK) - W_IN*H_HAT
 
 #ifdef TRACE

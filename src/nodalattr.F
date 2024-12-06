@@ -1117,6 +1117,7 @@ C     ----------------------------------------------------------------
       SUBROUTINE ApplyDirectionalWindReduction(NodeNumber, WindDragCo,
      &     WindMag, BathymetricDepth, Elevation, CutOffDepth, G,
      &     WindX, WindY)
+!$acc routine
       USE SIZES
       IMPLICIT NONE
       INTEGER,  intent(in) :: NodeNumber ! index of node under consideration

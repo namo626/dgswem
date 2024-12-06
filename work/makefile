@@ -115,7 +115,7 @@ ADC_SRC    =  dgswem.F owiwind.F read_input.F cstart.F hstart.F radiation_edge_h
 	radiation_edge_hydro.F read_input.F rhs_dg_hydro.F quad_rules_general.F \
 	tidal_potential.F write_results.F \
 	slopelimiter.F prep_slopelim.F \
-	wetdry.F LDG_hydro.F met_forcing.F sta_basis.F modal2nodal.F write_output.F
+	wetdry.F LDG_hydro.F met_forcing.F sta_basis.F  write_output.F
 #Casey 121126: Added modal2nodal.F and write_output.F to the previous line.
 
 METIS1_OBJ:= $(patsubst %.F, $(O_DIR)%.o, $(METIS1_SRC) )
@@ -326,8 +326,8 @@ $(O_DIR)dgswem.o      			:  dgswem.F $(ADC_MOBJ)  $(HARM_MOBJ) $(WIND_MOBJ) $(OW
 $(O_DIR)calc_normal.o         	:  calc_normal.F $(ADC_MOBJ)
 $(O_DIR)create_edge_data.o    	:  create_edge_data.F $(ADC_MOBJ) $(C_MOBJ) $(O_DIR)count_edges.o $(MSG_MOBJ)
 $(O_DIR)detector.o	      	:  detector.F $(ADC_MOBJ) $(FLUX_MOBJ)
-$(O_DIR)DG_timestep.o         	:  DG_timestep.F $(ADC_MOBJ) $(MSG_MOBJ)
-$(O_DIR)DG_hydro_timestep.o   	:  DG_hydro_timestep.F $(ADC_MOBJ) $(MSG_MOBJ)
+$(O_DIR)DG_timestep.o         	:  DG_timestep.F $(ADC_MOBJ)
+$(O_DIR)DG_hydro_timestep.o   	:  DG_hydro_timestep.F $(ADC_MOBJ) $(O_DIR)internal_edge_hydro.o
 $(O_DIR)edge_int_hydro.o      	:  edge_int_hydro.F $(ADC_MOBJ)
 $(O_DIR)flow_edge_hydro.o     	:  flow_edge_hydro.F $(ADC_MOBJ) $(FLUX_MOBJ)
 $(O_DIR)internal_edge_hydro.o 	:  internal_edge_hydro.F $(ADC_MOBJ) $(FLUX_MOBJ)

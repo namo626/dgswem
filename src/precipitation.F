@@ -27,7 +27,8 @@ C***********************************************************************
         prec3 = 0.0
       END SUBROUTINE
 
-      FUNCTION computeElemTRR(II) RESULT(SOURCE_R1)
+      pure FUNCTION computeElemTRR(II) RESULT(SOURCE_R1)
+!$acc routine
         use global, only : sz
         implicit none
         INTEGER, INTENT(IN) :: II ! global index of element
@@ -43,7 +44,8 @@ C***********************************************************************
         ENDIF
       END FUNCTION
 
-      function computeTRR_IPET(dist, LatestRmax, Pn, Pc) result(TRR)
+      pure function computeTRR_IPET(dist, LatestRmax, Pn, Pc) result(TRR)
+!$acc routine
         use global, only : sz
         implicit none
         real(sz) :: TRR
@@ -64,7 +66,8 @@ C***********************************************************************
         TRR = TRR * 1e-3 / 3600.0
       END FUNCTION
 
-      function computeTRR_RCLIPER(dist, Vmax) result(TRR)
+      pure function computeTRR_RCLIPER(dist, Vmax) result(TRR)
+!$acc routine
         use global, only : sz
 
         implicit none
@@ -114,6 +117,7 @@ C***********************************************************************
 
 
       SUBROUTINE UPDATE_PREC(i, lat, lon, cLon, cLat, Pn, Pc, rmx, Vmax, model_type)
+!$acc routine
         use global, only : Rearth, deg2rad, DTDP, rad2deg
         use vortex
         use DG, only : IRK
