@@ -236,11 +236,9 @@ C.......Compute elements to finish building the rhs
 C.......SSP Runge-Kutta Time Scheme
 !$acc parallel loop gang vector
          DO J = 1,NE
-!$acc loop seq
             DO I = 1,IRK
                ARK = ATVD(IRK,I)
                BRK = BTVD(IRK,I)*DT
-!$acc loop seq
                DO K = 1,DOFS(J)
 
 #ifdef SED_LAY
@@ -677,10 +675,8 @@ C......Filter chemistry transported terms if flagged
       ENDDO
 #endif
       
-!$acc data
-!$acc parallel loop gang vector async(1)
+!$acc parallel loop gang vector
       DO J = 1,MNE
-         
          DO K = 1,DOFS(J)
             ZE(K,J,1) = ZE(K,J,NRK+1)
             QX(K,J,1) = QX(K,J,NRK+1)
@@ -742,6 +738,5 @@ C......Filter chemistry transported terms if flagged
             ENDDO
          ENDDO
       ENDDO
-!$acc end data
       RETURN
       END SUBROUTINE
