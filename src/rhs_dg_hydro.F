@@ -47,15 +47,14 @@ C.....Declare local variables
       Real(SZ) discharge_modelX_IN,discharge_modelY_IN
       Real(SZ) DH_X,DH_Y,phi_tot,C_0,HZ_X,HZ_Y,TZ_X,TZ_Y
 
-      Real(SZ),allocatable :: XBCbt(:),YBCbt(:)
 
       real(sz) source_max, source_r
-      Allocate ( XBCbt(MNE),YBCbt(MNE) )
 
       source_max = 0.0
       !print *, "max prec2 = ", maxval(prec2)
 
       DTDPH = 1.0/DTDP
+!$acc parallel loop gang vector private(dpsidx, dpsidy)
       DO 1000 L = 1, NE
 c     nd
          advectqx(l)=0.0
@@ -81,6 +80,7 @@ C.......Compute rain source term if rain is enabled
             IF (rainfall == 1) SOURCE_R =  7.0556e-6 ! 1 inch/hour
 
             IF (SOURCE_R .GT. 0.0) THEN
+!$acc loop seq
               DO I = 1,NAGP(pa)
                 DO K = 1,DOFS(L)
                   RHS_ZE(K,L,IRK) = RHS_ZE(K,L,IRK) +
@@ -124,6 +124,7 @@ C.......Compute derivatives of Lagrange basis functions at nodes
 
 C.......Compute ZE, QX, QY, and HB at each area Gauss quadrature point
 
+!$acc loop seq
          DO I = 1,NAGP(pa)
 
             ZE_IN = ZE(1,L,IRK)
@@ -414,6 +415,7 @@ C.........Build the rhs
             RHS_QX(1,L,IRK) = RHS_QX(1,L,IRK) + SRFAC(1,I,L,pa)*SOURCE_X
             RHS_QY(1,L,IRK) = RHS_QY(1,L,IRK) + SRFAC(1,I,L,pa)*SOURCE_Y
 
+!$acc loop seq
             DO K = 2,DOFS(L)
 
                RHS_ZE(K,L,IRK) = RHS_ZE(K,L,IRK) + XFAC(K,I,L,pa)*FX_IN

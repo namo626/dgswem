@@ -28,6 +28,7 @@ C***********************************************************************
       END SUBROUTINE
 
       FUNCTION computeElemTRR(II) RESULT(SOURCE_R1)
+!$acc routine
         use global, only : sz
         implicit none
         INTEGER, INTENT(IN) :: II ! global index of element
