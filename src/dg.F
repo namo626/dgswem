@@ -59,21 +59,18 @@ C.....Declare real variables
       REAL(SZ) EL_ANG,slimit4, bg_dif,trc_dif,slimit5
       REAL(SZ) FG_L,l2er_global,temperg
       REAL(SZ), TARGET :: slope_weight
-      REAL(SZ) HB_IN, HB_EX, H_TRI
+      REAL(SZ)  H_TRI
       REAL(SZ) MAG1, MAG2
-      REAL(SZ) NX, NY 
       REAL(SZ), TARGET :: kappa,s0,uniform_dif
-      REAL(SZ) SFAC_IN,SFAC_EX
       REAL(SZ) RAMPDG
       REAL(SZ) S1, S2, SAV, SOURCE_X, SOURCE_Y
       REAL(SZ) TIMEDG, TIMEH_DG, TK
-      REAL(SZ) QX_EX, QX_IN, QY_EX, QY_IN
       REAL(SZ) QNAM_GP, QNPH_GP
       REAL(SZ) SL2_M, SL2_NYU
       REAL(SZ) SL3_MD, EVMAvg, SEVDMAvg
       REAL(SZ) UMAG
       REAL(SZ) WSX_GP, WSY_GP
-      REAL(SZ) ZE_EX, ZE_IN, QMag_IN, QMag_EX
+      REAL(SZ) QMag_IN, QMag_EX
       Real(SZ) subphi_IN,subphi_EX
       Real(SZ) iota_EX, iota_IN,iota2_EX, iota2_IN
 

@@ -24,10 +24,14 @@ C.....Use appropriate modules
       USE GLOBAL
       USE DG
       USE sizes, ONLY: myproc,layers
+      use mod_numerical_flux
       IMPLICIT NONE
 
 C.....Declare local variables
 
+      real(sz) :: ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
+     &  hb_in,hb_ex,sfac_in,sfac_ex, nx, ny
+      real(sz) :: f_hat, g_hat, h_hat
       INTEGER L, LED, GED,i,k,ll,IT
       REAL(SZ) TX, TY, W_IN, DEN
       REAL(SZ) LZ_XX_IN, LZ_XY_IN, LZ_YX_IN, LZ_YY_IN
@@ -210,7 +214,8 @@ C.....Compute the x and y components of the external state flow
 
 C.....Compute the flux
 
-            CALL NUMERICAL_FLUX(IT,test_el)
+            call numerical_flux(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
+     &  hb_in,hb_ex,sfac_in,sfac_ex,nx,ny,f_hat,g_hat,h_hat)
             
 C.....Compute the edge integral
 

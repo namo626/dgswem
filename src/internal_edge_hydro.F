@@ -29,11 +29,15 @@ C.....Use appropriate modules
       USE DG
       USE NodalAttributes, ONLY :  ESLM
       use sizes, only:  sz, myproc, layers
+      use mod_numerical_flux
 
       IMPLICIT NONE
 
 C.....Declare local variables
 
+      real(sz) :: ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
+     &  hb_in,hb_ex,sfac_in,sfac_ex, nx, ny
+      real(sz) :: f_hat, g_hat, h_hat
       INTEGER L, LED_IN, LED_EX, GED, GP_IN, GP_EX,k,i,ll,IT
       REAL(SZ), PARAMETER :: ZERO = 1.D-12
       REAL(SZ) TX, TY, W_IN, W_EX
@@ -372,7 +376,8 @@ C.....Compute ZE, QX, QY, and HB at each edge Gauss quadrature point
 
 C.....Compute the numerical flux
             
-            CALL NUMERICAL_FLUX(IT,test_el)
+            call numerical_flux(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
+     &  hb_in,hb_ex,sfac_in,sfac_ex,nx,ny,f_hat,g_hat,h_hat)
 
 C......... dummy
             F_HAT_O  = F_HAT
@@ -486,7 +491,8 @@ C........Check to make sure mass flux is not coming from a dry element
 
                      HB_IN = HB_EX
                      SFAC_IN = SFAC_EX
-                     CALL NUMERICAL_FLUX(IT,test_el)
+                     call numerical_flux(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
+     &  hb_in,hb_ex,sfac_in,sfac_ex,nx,ny,f_hat,g_hat,h_hat)
 
                      F_HAT_O  = F_HAT
                      G_HAT_EX = G_HAT
@@ -522,7 +528,8 @@ C........Check to make sure mass flux is not coming from a dry element
                      NLEQG = 0.0
                      G_TMP = G
                      G = 0.0
-                     CALL NUMERICAL_FLUX(IT,test_el)
+                     call numerical_flux(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
+     &  hb_in,hb_ex,sfac_in,sfac_ex,nx,ny,f_hat,g_hat,h_hat)
                      NLEQG = NLEQG_TMP
                      G = G_TMP
                      G_HAT_IN = G_HAT
@@ -566,7 +573,8 @@ C........Check to make sure mass flux is not coming from a dry element
                      bed_EX(:) = bed_IN(:)
 #endif
 
-                     CALL NUMERICAL_FLUX(IT,test_el)
+                     call numerical_flux(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
+     &  hb_in,hb_ex,sfac_in,sfac_ex,nx,ny,f_hat,g_hat,h_hat)
                      F_HAT_O  = F_HAT
 
 #ifdef TRACE
@@ -600,7 +608,8 @@ C........Check to make sure mass flux is not coming from a dry element
                      NLEQG = 0.0
                      G_TMP = G
                      G = 0.0
-                     CALL NUMERICAL_FLUX(IT,test_el)
+                     call numerical_flux(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
+     &  hb_in,hb_ex,sfac_in,sfac_ex,nx,ny,f_hat,g_hat,h_hat)
                      NLEQG = NLEQG_TMP
                      G = G_TMP
                      G_HAT_EX = G_HAT
@@ -884,11 +893,13 @@ C.....Compute the numerical flux
                NLEQG = 0.0
                G_TMP = G
                G = 0.0
-               CALL NUMERICAL_FLUX(IT,test_el)
+               call numerical_flux(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
+     &  hb_in,hb_ex,sfac_in,sfac_ex,nx,ny,f_hat,g_hat,h_hat)
                NLEQG = NLEQG_TMP
                G = G_TMP
             ELSE
-               CALL NUMERICAL_FLUX(IT,test_el)
+               call numerical_flux(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
+     &  hb_in,hb_ex,sfac_in,sfac_ex,nx,ny,f_hat,g_hat,h_hat)
             ENDIF
             F_HAT = 0.0        ! Ensure zero mass flux
 
@@ -1104,11 +1115,13 @@ C.....Compute the numerical flux
                NLEQG = 0.0
                G_TMP = G
                G = 0.0
-               CALL NUMERICAL_FLUX(IT,test_el)
+               call numerical_flux(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
+     &  hb_in,hb_ex,sfac_in,sfac_ex,nx,ny,f_hat,g_hat,h_hat)
                NLEQG = NLEQG_TMP
                G = G_TMP
             ELSE
-               CALL NUMERICAL_FLUX(IT,test_el)
+               call numerical_flux(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
+     &  hb_in,hb_ex,sfac_in,sfac_ex,nx,ny,f_hat,g_hat,h_hat)
             ENDIF
             F_HAT = 0.0        ! Ensure zero mass flux
 

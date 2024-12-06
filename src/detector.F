@@ -12,11 +12,15 @@ C.....Use appropriate modules
 
       USE GLOBAL
       USE DG
+      use mod_numerical_flux
 
       IMPLICIT NONE
 
 C.....Declare local variables
 
+      real(sz) :: ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
+     &  hb_in,hb_ex,sfac_in,sfac_ex, nx, ny
+      real(sz) :: f_hat, g_hat, h_hat
       INTEGER L,GED,LED_IN,LED_EX,II,IT,GP_IN(NEGP(ph)),
      & GP_EX(NEGP(ph)),I,K,JJ
       REAL(SZ) DEN

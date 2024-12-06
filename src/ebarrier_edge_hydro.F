@@ -4,6 +4,7 @@ C.....Use appropriate modules
 
       USE GLOBAL
       USE DG
+      use mod_numerical_flux
 
       IMPLICIT NONE
 
@@ -11,6 +12,9 @@ C.....Declare local variables
 
       INTEGER GED, LED, L,i,k,ll,IT
       REAL(SZ) ABOVE, SUBSUP, W_IN, TX, TY
+      real(sz) :: ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
+     &  hb_in,hb_ex,sfac_in,sfac_ex, nx, ny
+      real(sz) :: f_hat, g_hat, h_hat
 
 C.....Loop over the external barrier segments
 
@@ -162,7 +166,8 @@ C.........Compute the x and y components of the external state flow
             
 C.........Compute numerical flux
             
-            CALL NUMERICAL_FLUX(IT,test_el)
+            call numerical_flux(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
+     &  hb_in,hb_ex,sfac_in,sfac_ex,nx,ny,f_hat,g_hat,h_hat)
 
             DO K = 1,DOFS(EL)
 

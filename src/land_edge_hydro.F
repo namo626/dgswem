@@ -30,11 +30,15 @@ C.....Use appropriate modules
       USE GLOBAL
       USE DG
       Use SIZES, only: layers
+      use mod_numerical_flux
 
       IMPLICIT NONE
 
 C.....Declare local variables
 
+      real(sz) :: ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
+     &  hb_in,hb_ex,sfac_in,sfac_ex, nx, ny
+      real(sz) :: f_hat, g_hat, h_hat
       INTEGER L, LED, GED, i,k,jj,II,ll,IT,mm
       Real(SZ) DEN2,U_AVG,V_AVG,VEL_NORMAL,q_RoeX, q_RoeY, q_Roe
       REAL(SZ) TX, TY, DEN,ell_1,ell_2,ell_3,HZ_X_IN,HZ_Y_IN
@@ -232,7 +236,8 @@ C.....Compute the x and y components of the external state flow
 
 C.....Compute the Roe flux
 
-            CALL NUMERICAL_FLUX(IT,test_el)
+            call numerical_flux(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
+     &  hb_in,hb_ex,sfac_in,sfac_ex,nx,ny,f_hat,g_hat,h_hat)
 
 C.....Add LDG terms for viscosity
 

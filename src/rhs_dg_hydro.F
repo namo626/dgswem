@@ -32,6 +32,9 @@ C.....Use appropriate modules
 C.....Declare local variables
       ! for rain test
       REAL(SZ) SR1, SR2, SR3, avg_rain
+      real(sz) :: ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
+     &  hb_in,hb_ex,sfac_in,sfac_ex, nx, ny
+      real(sz) :: f_hat, g_hat, h_hat
       INTEGER IT
       INTEGER L,k,i,ll
       REAL(SZ) DPSIDX(3), DPSIDY(3)

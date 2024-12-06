@@ -1,3 +1,7 @@
+      module mod_numerical_flux
+      use sizes, only : sz
+
+      contains
 C***********************************************************************
 C     
 C     SUBROUTINE NUMERICAL_FLUX
@@ -12,23 +16,32 @@ C     06-01-2012 - cem - New fluxes, sediment, etc.
 C     
 C***********************************************************************
 
-      SUBROUTINE NUMERICAL_FLUX(IT,MM)
-      
+
+      SUBROUTINE NUMERICAL_FLUX(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
+     &  hb_in,hb_ex,sfac_in,sfac_ex, nx, ny, f_hat, g_hat, h_hat)
+
       USE DG,ONLY : FLUXTYPE
 
       IMPLICIT NONE
 
-      INTEGER IT,MM
+      real(sz), intent(in) :: ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
+     &  hb_in,hb_ex,sfac_in,sfac_ex, nx, ny
+      real(sz), intent(out) :: f_hat, g_hat, h_hat
+
 
 
       IF(FLUXTYPE.EQ.1) THEN
-         CALL ROE_FLUX(IT,MM)
+         CALL ROE_FLUX(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
+     &  hb_in,hb_ex,sfac_in,sfac_ex, nx, ny, f_hat, g_hat, h_hat)
       ELSEIF(FLUXTYPE.EQ.2) THEN
-         CALL LLF_FLUX()
+         CALL LLF_FLUX(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
+     &  hb_in,hb_ex,sfac_in,sfac_ex, nx, ny, f_hat, g_hat, h_hat)
       ELSEIF (FLUXTYPE.EQ.3) THEN
-         CALL HLLC_FLUX()
+         CALL HLLC_FLUX(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
+     &  hb_in,hb_ex,sfac_in,sfac_ex, nx, ny, f_hat, g_hat, h_hat)
       ELSEIF (FLUXTYPE.EQ.4) THEN
-         CALL NCP_FLUX()
+         CALL NCP_FLUX(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
+     &  hb_in,hb_ex,sfac_in,sfac_ex, nx, ny, f_hat, g_hat, h_hat)
       ELSE
          STOP 'INVALID FLUXTYPE'
       ENDIF
@@ -47,20 +60,30 @@ C
 C     Written by Ethan Kubatko (06-11-2004)
 C     
 C***********************************************************************
-      SUBROUTINE ROE_FLUX(IT,MM)
+      SUBROUTINE ROE_FLUX(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
+     &  hb_in,hb_ex,sfac_in,sfac_ex, nx, ny, f_hat, g_hat, h_hat)
       
 C.....Use appropriate modules
 
-      USE GLOBAL
-      USE DG
-      use sizes, only: layers
       use fparser
       use fparser2
 
+      USE GLOBAL, only : G, nleq, leq, nleqg, g2root, ifnlfa, ifnlct
+      USE DG, only : fg_l
+      use sizes, only: layers, sz
+
       IMPLICIT NONE
-      
+
+      real(sz), intent(in) :: ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
+     &  hb_in,hb_ex,sfac_in,sfac_ex, nx, ny
+      real(sz), intent(out) :: f_hat, g_hat, h_hat
+
 C.....Declare local variables
-      
+
+      REAL(SZ) C_ROE,U_ROE,V_ROE,EIGVAL(4),RI(4,4),LE(4,4),A_ROE(4,4), jump(3)
+      real(sz) :: u_in, u_ex, v_in, v_ex, ht_in, ht_ex, f_avg, g_avg, h_avg
+      real(sz) :: fx_in, fx_ex, fy_in, fy_ex, gx_in, gx_ex, gy_in, gy_ex
+      real(sz) :: hx_in, hx_ex, hy_in, hy_ex
       INTEGER II,GED,ll,w,IT,kk,jj,MM,fast
       REAL(SZ) DEN, U_AVG, V_AVG, VEL_NORMAL, q_RoeX, q_RoeY, q_Roe
       Real(SZ) bedX_IN,bedX_EX,dtildeQx(4),dtildeQy(4)
@@ -748,21 +771,26 @@ C     Written by Ethan Kubatko (07-15-2005)
 C     
 C***********************************************************************
 
-      SUBROUTINE LLF_FLUX()
+      SUBROUTINE LLF_FLUX(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
+     &  hb_in,hb_ex,sfac_in,sfac_ex, nx, ny, f_hat, g_hat, h_hat)
 
 C.....Use appropriate modules
 
-      USE GLOBAL
-      USE DG
-      use sizes, only: layers
+      USE GLOBAL, only : G, nleq, leq, nleqg
+      USE DG, only : fg_l
+      use sizes, only: layers, sz
 
       IMPLICIT NONE
+
+      real(sz), intent(in) :: ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
+     &  hb_in,hb_ex,sfac_in,sfac_ex, nx, ny
+      real(sz), intent(out) :: f_hat, g_hat, h_hat
 
 
 C.....Declare local variables
 
       INTEGER II,l
-      REAL(SZ) EIGVALS(6)
+      REAL(SZ) EIGVALS(6), jump(3), u_in, v_in, u_ex, v_ex, ht_in, ht_ex
       REAL(SZ) EIGMAX, IDEPTH, HUU, HUV, HVV, GH2
       REAL(SZ) C_EX, C_IN, UN_EX, UN_IN, U_AVG, V_AVG, VEL_NORMAL
       REAL(SZ) DEPTH, F1_NL, FU_NL, FV_NL, FG_NL, FH_NL
@@ -1019,7 +1047,8 @@ C     Written by Ethan Kubatko
 C     
 C***********************************************************************
 
-      SUBROUTINE HLLC_FLUX()
+      SUBROUTINE HLLC_FLUX(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
+     &  hb_in,hb_ex,sfac_in,sfac_ex, nx, ny, f_hat, g_hat, h_hat)
 
 C.....Use appropriate modules
 
@@ -1028,6 +1057,9 @@ C.....Use appropriate modules
       use sizes, only: layers
 
       IMPLICIT NONE
+      real(sz), intent(in) :: ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
+     &  hb_in,hb_ex,sfac_in,sfac_ex, nx, ny
+      real(sz), intent(out) :: f_hat, g_hat, h_hat
 
 C.....Declare local variables
 
@@ -1405,7 +1437,8 @@ C     Written by cem interpreted from CM's code revamp
 C     
 C***********************************************************************
 
-      SUBROUTINE NCP_FLUX()
+      SUBROUTINE NCP_FLUX(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
+     &  hb_in,hb_ex,sfac_in,sfac_ex, nx, ny, f_hat, g_hat, h_hat)
 
 C.....Use appropriate modules
 
@@ -1414,6 +1447,9 @@ C.....Use appropriate modules
       use sizes, only: layers
 
       IMPLICIT NONE
+      real(sz), intent(in) :: ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
+     &  hb_in,hb_ex,sfac_in,sfac_ex, nx, ny
+      real(sz), intent(out) :: f_hat, g_hat, h_hat
 
 C.....Declare local variables
 
@@ -1764,3 +1800,5 @@ C.......Compute y momentum fluxes at exterior state
       END SUBROUTINE
       
       
+
+      end module

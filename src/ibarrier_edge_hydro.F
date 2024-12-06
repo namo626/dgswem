@@ -25,11 +25,15 @@ C.....Use appropriate modules
       USE GLOBAL
       USE DG
       USE SIZES, ONLY:  MYPROC, layers
+      use mod_numerical_flux
 
       IMPLICIT NONE
 
 C.....Declare local variables
 
+      real(sz) :: ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
+     &  hb_in,hb_ex,sfac_in,sfac_ex, nx, ny
+      real(sz) :: f_hat, g_hat, h_hat
       INTEGER GEDB, GEDF, LEDB, LEDF, ELB, ELF, GPB, GPF, L, WEIR_FLOW
       INTEGER IT, NB1, NB2, NF1, NF2,i,k,ll
       REAL(SZ) ZEB, QXB, QYB, HBB, ZEF, QXF, QYF, HBF
@@ -330,7 +334,8 @@ C...........Compute the x and y components of the external state flow
 
 C...........Compute the numerical flux
                
-               CALL NUMERICAL_FLUX(IT,test_el)
+               call numerical_flux(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
+     &  hb_in,hb_ex,sfac_in,sfac_ex,nx,ny,f_hat,g_hat,h_hat)
                FB_HAT = F_HAT
                GB_HAT = G_HAT
                HB_HAT = H_HAT
@@ -386,7 +391,8 @@ C...........Compute the numerical flux
                      G_TMP = G
                      G = 0.0
                   ENDIF
-                  CALL NUMERICAL_FLUX(IT,test_el)
+                  call numerical_flux(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
+     &  hb_in,hb_ex,sfac_in,sfac_ex,nx,ny,f_hat,g_hat,h_hat)
                   FF_HAT = F_HAT
                   GF_HAT = G_HAT
                   HF_HAT = H_HAT
@@ -457,7 +463,8 @@ C...........Compute the x and y components of the external state flow
                QX_EX = ( TYF*Q_N_EXT - NYF*Q_T_EXT)/(NXF*TYF - NYF*TXF)
                QY_EX = (-TXF*Q_N_EXT + NXF*Q_T_EXT)/(NXF*TYF - NYF*TXF)
 
-               CALL NUMERICAL_FLUX(IT,test_el)
+               call numerical_flux(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
+     &  hb_in,hb_ex,sfac_in,sfac_ex,nx,ny,f_hat,g_hat,h_hat)
                FF_HAT = F_HAT
                GF_HAT = G_HAT
                HF_HAT = H_HAT
@@ -511,7 +518,8 @@ C...........Compute the x and y components of the external state flow
                      G_TMP = G
                      G = 0.0
                   ENDIF
-                  CALL NUMERICAL_FLUX(IT,test_el)
+                  call numerical_flux(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
+     &  hb_in,hb_ex,sfac_in,sfac_ex,nx,ny,f_hat,g_hat,h_hat)
                   FB_HAT = F_HAT
                   GB_HAT = G_HAT
 
