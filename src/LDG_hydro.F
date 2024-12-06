@@ -244,6 +244,8 @@ C.....Use appropriate modules
 
 C.....Declare local variables
 
+      real(sz) :: ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
+     &  hb_in,hb_ex,sfac_in,sfac_ex, nx, ny
       INTEGER L,LED,GED,k,I,ll
       REAL(SZ) QX_AVG, QY_AVG,ZE_AVG,bed_AVG(layers)
       REAL(SZ) iota_AVG
@@ -398,6 +400,8 @@ C.....Use appropriate modules
 C.....Declare local variables
 
 
+      real(sz) :: ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
+     &  hb_in,hb_ex,sfac_in,sfac_ex, nx, ny
       INTEGER K,L,LED,GED,GP,i,kk,ll
       REAL(SZ) AREA, IMASS
       REAL(SZ) TX, TY, QX_AVG, QY_AVG, bed_AVG(layers)
@@ -554,6 +558,8 @@ C.....Use appropriate modules
 
 C.....Declare local variables
 
+      real(sz) :: ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
+     &  hb_in,hb_ex,sfac_in,sfac_ex, nx, ny
       INTEGER L, LED, GED,k,i,jj,ll
       REAL(SZ) TX, TY, QX_AVG, QY_AVG, bed_AVG(layers)
       REAL(SZ) iota_AVG,ZE_AVG
@@ -733,6 +739,8 @@ C.....Declare local variables
 
       INTEGER L, LED, GED,k,i,ll
       REAL(SZ) TX, TY
+      real(sz) :: ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
+     &  hb_in,hb_ex,sfac_in,sfac_ex, nx, ny
 
       DO 1000 L = 1,NREDS
          
@@ -847,6 +855,8 @@ C.....Use appropriate modules
 
 C.....Declare local variables
 
+      real(sz) :: ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
+     &  hb_in,hb_ex,sfac_in,sfac_ex, nx, ny
       INTEGER L, LED_IN, LED_EX, GED, GP_IN, GP_EX,k,i,ll
       REAL(SZ) ZE_AVG,QX_AVG,QY_AVG,bed_AVG(layers),W_IN,W_EX
       real(sz) iota_AVG
@@ -1143,7 +1153,7 @@ C.....Use appropriate modules
 
       USE SIZES,ONLY : layers,SZ
       USE GLOBAL,ONLY : NE,NM,N1,N2,N3,pdg_el,entrop
-      USE DG,ONLY : QX_IN,QY_IN,LZ,M_INV,SFAC_ELEM,ZE_IN,
+      USE DG,ONLY : LZ,M_INV,SFAC_ELEM,
      &     DRPHI,DSPHI,DRDX,DRDY,DSDX,DSDY,mz,hz,
      &     WAGP,NAGP,DOFS,QX,QY,PHI_AREA,IRK,bed_IN,iota_IN,
      &     slimit1,slimit2,slimit5,balance,
@@ -1152,6 +1162,8 @@ C.....Use appropriate modules
       IMPLICIT NONE
       
 C.....Declare local variables
+      real(sz) :: ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
+     &  hb_in,hb_ex,sfac_in,sfac_ex, nx, ny
       INTEGER L,K,I,pa,ll,kk
       real(sz) ze_sensor1, qx_sensor1, qy_sensor1
       real(sz) ze_sensor2, qx_sensor2, qy_sensor2

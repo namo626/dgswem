@@ -26,6 +26,7 @@ C.....Use appropriate modules
       use SIZES, only: layers
       use fparser
       use fparser2
+      use mod_numerical_flux
 
       IMPLICIT NONE
 
@@ -36,6 +37,9 @@ C.....Declare local variables
       REAL(SZ) TX, TY,HZ_X_IN,HZ_Y_IN,TZ_X_IN,TZ_Y_IN
       REAL(SZ) LZ_XX_IN, LZ_XY_IN, LZ_YX_IN, LZ_YY_IN,W_IN
       Real(SZ) VEI(3,3),chi_pref,C_char,MZ_X_IN(layers),MZ_Y_IN(layers)
+      real(sz) :: ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
+     &  hb_in,hb_ex,sfac_in,sfac_ex, nx, ny
+      real(sz) :: f_hat, g_hat, h_hat
 
       test_el = 0
       DO 1000 L = 1,NFEDS
@@ -254,7 +258,8 @@ C.....Set the exterior bed and surface elevation equal to the interior
 
 #endif
 
-            CALL NUMERICAL_FLUX(IT,L)
+            call numerical_flux(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
+     &  hb_in,hb_ex,sfac_in,sfac_ex,nx,ny,f_hat,g_hat,h_hat)
 
 C.....Add LDG terms
 #ifdef WAVE_DIF
