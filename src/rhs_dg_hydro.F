@@ -54,7 +54,7 @@ C.....Declare local variables
       !print *, "max prec2 = ", maxval(prec2)
 
       DTDPH = 1.0/DTDP
-!$acc parallel loop gang vector private(dpsidx, dpsidy)
+!$acc parallel loop gang vector private(dpsidx, dpsidy) async(1)
       DO 1000 L = 1, NE
 c     nd
          advectqx(l)=0.0

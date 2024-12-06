@@ -36,7 +36,7 @@ C.....Declare local variables
 C.....Transform from modal coordinates to nodal coordinates and average
 C.....to single nodal values
 
-!$acc parallel loop gang vector
+!$acc parallel loop gang vector async(1)
          DO I = 1,MNP
             NO_NBORS = EL_COUNT(I)
 

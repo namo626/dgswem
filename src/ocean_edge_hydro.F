@@ -48,7 +48,7 @@ C.....Declare local variables
       REAL(SZ), dimension(2):: EFA_GPT, EMO_GPT, ARG_GPT, ZE_GPT
 
       test_el = 0
-!$acc parallel loop gang vector private(efa_gpt, emo_gpt, arg_gpt, ze_gpt)
+!$acc parallel loop gang vector private(efa_gpt, emo_gpt, arg_gpt, ze_gpt) async(1)
       DO 1000 L = 1, needs
          
 C.....Retrieve the global and local edge number
