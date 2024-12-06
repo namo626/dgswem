@@ -42,7 +42,6 @@ C.....Declare local variables
       REAL(SZ) FB_HAT, GB_HAT, HB_HAT, FF_HAT, GF_HAT, HF_HAT
       REAL(SZ) ib_hat,if_hat,jb_hat,jf_hat, kf_hat, kb_hat
       REAL(SZ) ABOVEB, ABOVEF
-      REAL(SZ) QNIB(2)
       REAL(SZ) NLEQG_TMP, G_TMP
       REAL(SZ) SUBSUPB, SUBSUPF, WEGPB, WEGPF
       REAL(SZ) NXB, NYB, NXF, NYF, TXB, TYB, TXF, TYF
@@ -53,6 +52,7 @@ C.....Loop over the internal barrier segments (note: an internal barrier
 C.....segment consists of two internal barrier edges -- a "front" edge &
 C.....a "back" edge.
       test_el = 0
+!$acc parallel loop gang vector
       DO 1000 L = 1,NIBSEG
          
 C.......Obtain the global and local edges of the back and front sides
@@ -109,6 +109,7 @@ C.....Set the components for the tangential vector to the edge
          
 C.......Compute the variables at the quadrature points
 
+!$acc loop seq
          DO I = 1,NEGP(pa)
             
             GPB = I
@@ -158,6 +159,7 @@ C.........Obtain the height of the barrier at the quadrature point
 
 
 
+!$acc loop seq
             DO K = 2,dofs(EL)
                ZEB = ZEB + ZE(K,ELB,IRK)*PHI_EDGE(K,GPB,LEDB,pa)
                QXB = QXB + QX(K,ELB,IRK)*PHI_EDGE(K,GPB,LEDB,pa)
@@ -547,6 +549,7 @@ C...........Compute the x and y components of the external state flow
             
  200        CONTINUE
 c     
+!$acc loop seq
             DO K = 1,DOFS(el)
 
                WEGPB = 2.0*M_INV(K,pa)/AREAS(ELB)*XLEN(GEDB)
@@ -554,12 +557,18 @@ c
                WEGPF = 2.0*M_INV(K,pa)/AREAS(ELF)*XLEN(GEDF)
      &              *PHI_EDGE(K,GPF,LEDF,pa)*WEGP(GPF,pa)
 
+!$acc atomic
                RHS_ZE(K,ELB,IRK) = RHS_ZE(K,ELB,IRK) - WEGPB*FB_HAT
+!$acc atomic
                RHS_QX(K,ELB,IRK) = RHS_QX(K,ELB,IRK) - WEGPB*GB_HAT
+!$acc atomic
                RHS_QY(K,ELB,IRK) = RHS_QY(K,ELB,IRK) - WEGPB*HB_HAT
 
+!$acc atomic
                RHS_ZE(K,ELF,IRK) = RHS_ZE(K,ELF,IRK) - WEGPF*FF_HAT
+!$acc atomic
                RHS_QX(K,ELF,IRK) = RHS_QX(K,ELF,IRK) - WEGPF*GF_HAT
+!$acc atomic
                RHS_QY(K,ELF,IRK) = RHS_QY(K,ELF,IRK) - WEGPF*HF_HAT
 
 #ifdef TRACE
