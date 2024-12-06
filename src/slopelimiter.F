@@ -3285,6 +3285,7 @@ C.....Declare local variables
       Real(SZ), Allocatable :: iota2_MIN1(:),iota2_MAX1(:)
       Real(SZ), Allocatable, target :: bed_min1(:,:), bed_max1(:,:)
       Real(SZ), pointer:: arraymin(:),arraymax(:)
+      real(sz) :: ze_tmp, qx_tmp, qy_tmp
 
       Allocate ( ZE_MIN1(NP),ZE_MAX1(NP),QX_MIN1(NP) )
       Allocate ( QY_MIN1(NP),QY_MAX1(NP),QX_MAX1(NP) )
@@ -3296,7 +3297,8 @@ C     FIND THE MAXIMUM AND MINIMUM OF EACH VARIABLE OVER ALL ELEMENTS
 C     SHARING A NODE
 
       bound = 0.0
-
+!$acc parallel loop gang vector
+!$acc+private(zec, zevertex, dif, zemin1,zemax1,qxmin1,qxmax1,qymin1,qymax1)
       DO I = 1,NP
          ZE_MIN1(I)=99999.
          ZE_MAX1(I)=-99999.
@@ -3325,15 +3327,15 @@ C     SHARING A NODE
 #endif
 
          NO_NBORS = EL_COUNT(I)
-
+!$acc loop seq
          DO J = 1,NO_NBORS
             NBOR_EL = ELETAB(I,1+J)
 
 c     IF(WDFLG(NBOR_EL).EQ.0) CYCLE ! DON'T COUNT DRY ELEMENTS  sb 02/26/07
 
-            ZE_DG(J) = ZE(1,NBOR_EL,IRK+1)
-            QX_DG(J) = QX(1,NBOR_EL,IRK+1)
-            QY_DG(J) = QY(1,NBOR_EL,IRK+1)
+            ZE_tmp = ZE(1,NBOR_EL,IRK+1)
+            QX_tmp = QX(1,NBOR_EL,IRK+1)
+            QY_tmp = QY(1,NBOR_EL,IRK+1)
 
 #ifdef TRACE
             iota_DG(J) = iota(1,NBOR_EL,IRK+1)
@@ -3351,26 +3353,14 @@ c     IF(WDFLG(NBOR_EL).EQ.0) CYCLE ! DON'T COUNT DRY ELEMENTS  sb 02/26/07
             enddo
 #endif
 
-C     
-            IF (ZE_DG(J).LT.ZE_MIN1(I))THEN
-               ZE_MIN1(I)=ZE_DG(J)
-            ENDIF
-            IF (ZE_DG(J).GT.ZE_MAX1(I)) THEN
-               ZE_MAX1(I)=ZE_DG(J)
-            ENDIF
-            IF (QX_DG(J).LT.QX_MIN1(I))THEN
-               QX_MIN1(I)=QX_DG(J)
-            ENDIF
-            IF (QX_DG(J).GT.QX_MAX1(I)) THEN
-               QX_MAX1(I)=QX_DG(J)
-            ENDIF
-            IF (QY_DG(J).LT.QY_MIN1(I))THEN
-               QY_MIN1(I)=QY_DG(J)
-            ENDIF
-            IF (QY_DG(J).GT.QY_MAX1(I)) THEN
-               QY_MAX1(I)=QY_DG(J)
-            ENDIF
+            ze_min1(i) = min(ze_min1(i), ze_tmp)
+            qx_min1(i) = min(qx_min1(i), qx_tmp)
+            qy_min1(i) = min(qy_min1(i), qy_tmp)
 
+            ze_max1(i) = max(ze_max1(i), ze_tmp)
+            qx_max1(i) = max(qx_max1(i), qx_tmp)
+            qy_max1(i) = max(qy_max1(i), qy_tmp)
+C     
 #ifdef TRACE
             IF (iota_DG(J).LT.iota_MIN1(I))THEN
                iota_MIN1(I)=iota_DG(J)
@@ -3463,6 +3453,7 @@ C
          varnum = varnum_prev + layers
 #endif
 
+!$acc loop seq
          DO IVAR=1,varnum
 
             IF (IVAR.EQ.1) THEN
@@ -3565,6 +3556,7 @@ C     COMPUTE THE VERTEX VALUES
             ZEVERTEX(1)=ZEC(1)
             ZEVERTEX(2)=ZEC(1)
             ZEVERTEX(3)=ZEC(1)
+!$acc loop seq
             DO KK=2,3
                ZEVERTEX(1)=ZEVERTEX(1)+ PHI_CORNER(KK,1,1)*ZEC(KK)
                ZEVERTEX(2)=ZEVERTEX(2)+ PHI_CORNER(KK,2,1)*ZEC(KK)
@@ -3588,7 +3580,8 @@ C     LOOP OVER THE VERTICES 3 TIMES
 C     IF THE VALUE AT THE VERTEX IS ABOVE (BELOW) THE MAX (MIN) AT THAT
 C     VERTEX THEN SUBTRACT OFF THE DIFFERENCE AND ADD IT TO THE OTHER
 C     VERTICES
-C     
+C
+!$acc loop seq
             DO LL=1,3
                SUMLOC=(ZEVERTEX(1)+ZEVERTEX(2)+ZEVERTEX(3))/3.0
                SUMDIF=(SUMLOC-ZEC(1))*3.0
@@ -3603,7 +3596,8 @@ C
                INC3=0
                IF (DIF(3).GT.0) INC3=1
                KDP=INC1+INC2+INC3
-C     
+C
+!$acc loop seq
                DO K=1,3
                   DIV=MAX(1.0,DFLOAT(KDP))
                   IF (DIF(K).GT.0) THEN
