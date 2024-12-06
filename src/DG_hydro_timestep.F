@@ -234,11 +234,13 @@ C.......Compute elements to finish building the rhs
          CALL RHS_DG_HYDRO(IT)
 
 C.......SSP Runge-Kutta Time Scheme
-
-         DO I = 1,IRK
-            ARK = ATVD(IRK,I)
-            BRK = BTVD(IRK,I)*DT
-            DO J = 1,NE
+!$acc parallel loop gang vector
+         DO J = 1,NE
+!$acc loop seq
+            DO I = 1,IRK
+               ARK = ATVD(IRK,I)
+               BRK = BTVD(IRK,I)*DT
+!$acc loop seq
                DO K = 1,DOFS(J)
 
 #ifdef SED_LAY
@@ -676,7 +678,7 @@ C......Filter chemistry transported terms if flagged
 #endif
       
 !$acc data
-!$acc parallel loop async(1)
+!$acc parallel loop gang vector async(1)
       DO J = 1,MNE
          
          DO K = 1,DOFS(J)
@@ -703,7 +705,7 @@ C......Filter chemistry transported terms if flagged
          ENDDO
       ENDDO
 
-!$acc parallel loop
+!$acc parallel loop gang vector
       DO J = 1,MNE
          DO KK = 2,NRK+1
             DO K = 1,DOFH
