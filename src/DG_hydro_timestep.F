@@ -63,9 +63,9 @@ C.....Compute the current time
 
 C.....Update ETA1 (shintaro: do we need this?)
 
-      DO I = 1,MNP
-         ETA1(I) = ETA2(I)
-      ENDDO
+c$$$      DO I = 1,MNP
+c$$$         ETA1(I) = ETA2(I)
+c$$$      ENDDO
 
 C.....Begin Runge-Kutta time stepper
 

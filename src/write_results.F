@@ -1038,7 +1038,7 @@ C....AND THE NODE NUMBERS AT WHICH THEY OCCUR ON MYPROC=0
 C....IF ELMAX EXCEEDS THRESHOLD, PRINT INFORMATION ON ALL PROCESSORS WHERE
 C....THIS OCCURS 
 C...
-        IF(NSCREEN.EQ.1) THEN
+        IF(NSCREEN.EQ.1 .and. mod(it,nscreen_inc) .eq. 0) THEN
           ELMAX=0.0
           VELMAX=0.0
           KEMAX = 0
@@ -1048,31 +1048,20 @@ c
           elmaxe=0.0
           qmaxe=0.0
           imaxq = 0.0
+!$acc parallel loop reduction(max:elmax,velmax)
           DO I=1,NP
              IF((NODECODE(I).EQ.1).AND.(ABS(ETA2(I)).GT.ELMAX))THEN
                 ELMAX=ABS(ETA2(I))
-                KEMAX=I
+                !KEMAX=I
              ENDIF
              VELABS=UU2(I)*UU2(I)+VV2(I)*VV2(I)
              IF (VELABS.GT.VELMAX) THEN
                 VELMAX=VELABS
-                KVMAX=I
+                !KVMAX=I
              ENDIF
           END DO
 
-          do i=1,ne
-             if (wdflg(i).ne.0) then
-                if (abs(ze(1,i,1)).gt.elmaxe) then
-                   imaxze=i
-                   elmaxe=abs(ze(1,i,1))
-                endif
-                if (sqrt(qx(1,i,1)**2+qy(1,i,1)**2).gt.qmaxe) then
-                   qmaxe=sqrt(qx(1,i,1)**2+qy(1,i,1)**2)
-                   imaxq=i
-                endif
-             endif
-          enddo
-C             
+C
           VELMAX=VELMAX**0.5d0
           ErrorElevExceeded=0
           if (KEMAX .eq. 0) then
@@ -1083,7 +1072,7 @@ C
           IF( (MYPROC.EQ.0).AND.(ELMAX.LT.1000.0).AND.
      &        (MOD(IT,NSCREEN_INC).EQ.0) ) THEN
              WRITE(6,1991) IT,TIME_A/86400.0,
-     $            ETA2(KEMAX),KEMAX,VELMAX,KVMAX,MYPROC
+     $            ELMAX,KEMAX,VELMAX,KVMAX,MYPROC
  1991        FORMAT(1X,'TIME STEP =',I8,5X,'TIME = ',F12.6,
      &            /,2X,'ELMAX = ', E11.4,' AT NODE',I7,
      &            2X,'SPEEDMAX = ',E11.4,' AT NODE',I7,
@@ -1139,9 +1128,9 @@ C
           
           IF(ELMAX.GT.1000.0) THEN
             WRITE(6,1993) IT,TIME_A/86400.0,
-     &            ETA2(KEMAX),KEMAX,VELMAX,KVMAX,MYPROC
+     &            ELMAX,KEMAX,VELMAX,KVMAX,MYPROC
             WRITE(16,1993) IT,TIME_A/86400.0,
-     &           ETA2(KEMAX),KEMAX,VELMAX,KVMAX,MYPROC
+     &           ELMAX,KEMAX,VELMAX,KVMAX,MYPROC
  1993       FORMAT(1X,'TIME STEP =',I8,6X,'TIME =',F12.6,
      &       /,2X,'ELMAX = ', E11.4,' AT NODE',I7,
      &       2X,'SPEEDMAX = ',E11.4,' AT NODE',I7,
@@ -1155,7 +1144,7 @@ C
          ENDIF
 #else
          IF(ELMAX.LT.1000.0.and.(MOD(IT,NSCREEN_INC).EQ.0) ) THEN
-           WRITE(6,1992) IT,TIME_A/86400.0,ETA2(KEMAX),KEMAX,VELMAX,KVMAX
+           WRITE(6,1992) IT,TIME_A/86400.0,ELMAX,KEMAX,VELMAX,KVMAX
  1992      FORMAT(1X,'TIME STEP =',I8,5X,'TIME =',F12.6,
      &           /,2X,'ELMAX = ', E11.4,' AT NODE',I7,
      &           2X,'SPEEDMAX = ',E11.4,' AT NODE',I7)
@@ -1186,9 +1175,9 @@ C
 C
          IF(ELMAX.GT.1000.0) THEN
             WRITE(6,1994) IT,TIME_A/86400.0,
-     $           ETA2(KEMAX),KEMAX,VELMAX,KVMAX
+     $           ELMAX,KEMAX,VELMAX,KVMAX
             WRITE(16,1994) IT,TIME_A/86400.0,
-     $           ETA2(KEMAX),KEMAX,VELMAX,KVMAX
+     $           ELMAX,KEMAX,VELMAX,KVMAX
  1994       FORMAT(1X,'TIME STEP =',I8,6X,'TIME =',F12.6,
      &           /,2X,'ELMAX = ', E11.4,' AT NODE',I7,
      &           2X,'SPEEDMAX = ',E11.4,' AT NODE',I7,
