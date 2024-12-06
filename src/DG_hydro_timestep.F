@@ -675,7 +675,8 @@ C......Filter chemistry transported terms if flagged
       ENDDO
 #endif
       
-
+!$acc data
+!$acc parallel loop async(1)
       DO J = 1,MNE
          
          DO K = 1,DOFS(J)
@@ -702,8 +703,9 @@ C......Filter chemistry transported terms if flagged
          ENDDO
       ENDDO
 
-      DO KK = 2,NRK+1
-         DO J = 1,MNE
+!$acc parallel loop
+      DO J = 1,MNE
+         DO KK = 2,NRK+1
             DO K = 1,DOFH
                ZE(K,J,KK) = 0.0
                QX(K,J,KK) = 0.0
@@ -738,6 +740,6 @@ C......Filter chemistry transported terms if flagged
             ENDDO
          ENDDO
       ENDDO
-
+!$acc end data
       RETURN
       END SUBROUTINE

@@ -1,5 +1,5 @@
-compiler=intel
-#compiler=nvhpc
+#compiler=intel
+compiler=nvhpc
 #compiler=cray_xt3
 #
 #
@@ -50,7 +50,7 @@ ifeq ($(compiler),nvhpc)   # NVIDIA
   PPFC	        :=  nvfortran
   FC	        :=  nvfortran
   PFC	        :=  mpif90
-  FFLAGS1	:=  -r$(sz) -Mextend -traceback -g -O3
+  FFLAGS1	:=  -r$(sz) -Mextend -traceback -g -O3 -acc -gpu=unified -Minfo=accel
   FFLAGS2	:=  $(FFLAGS1)
   FFLAGS3	:=  $(FFLAGS1)
   FFLAGS4	:=  $(FFLAGS1)
