@@ -69,7 +69,7 @@ $(O_DIR):
 PREP_MSRC  =  presizes.F
 PGLO_MSRC  =  pre_global.F
 POST_MSRC  =  post_global.F
-ADC_MSRC   =  sizes.F diff45_41.F global.F dg.F global_3dvs.F nodalattr.F fparser.F90 fparser2.F90 \
+ADC_MSRC   =  sizes.F diff45_41.F global.F dg.F nodalattr.F fparser.F90 fparser2.F90 \
               read_fort_dg.F90
 HARM_MSRC  =  harm.F
 WIND_MSRC  =  vortex.F wind.F
@@ -157,21 +157,17 @@ SWAN_OBJ:= $(patsubst %.f90, $(O_DIR)%.o, $(SWAN_OBJ) )
 $(O_DIR)%.o  : %.F
 #  @echo depend $<
 #  @echo target $@
-	$(CF) -c $(FFLAGS) -o $@  $<
-	if [ "`echo *.mod`" != '*.mod' ]; then mv *.mod $(O_DIR); fi
+	$(CF) -c $(FFLAGS) -o $@  $< -module $(O_DIR)
 
 #Casey 121126: Changed the f90 files to F90 extension to avoid conflict with SWAN.
 $(O_DIR)%.o  : %.F90
-	$(CF) -c $(FFLAGS) -o $@  $<
-	if [ "`echo *.mod`" != '*.mod' ]; then mv *.mod $(O_DIR); fi
+	$(CF) -c $(FFLAGS) -o $@  $< -module $(O_DIR)
 
 #Casey 121126: Added the following rules for the unstructured SWAN.
 $(O_DIR)%.o  : %.f
-	$(CF) -c $(FLAGS_OPT) $(FLAGS_MSC) $(FLAGS_SER) -module $(O_DIR) -o $@  $<
-	if [ "`echo *.mod`" != '*.mod' ]; then mv *.mod $(O_DIR); fi
+	$(CF) -c $(FLAGS_OPT) $(FLAGS_MSC) $(FLAGS_SER) -module $(O_DIR) -o $@  $< -module $(O_DIR)
 $(O_DIR)%.o  : %.f90
-	$(CF) -c $(FLAGS_OPT) $(FLAGS_MSC) $(FLAGS_SER) -module $(O_DIR) -o $@  $<
-	if [ "`echo *.mod`" != '*.mod' ]; then mv *.mod $(O_DIR); fi
+	$(CF) -c $(FLAGS_OPT) $(FLAGS_MSC) $(FLAGS_SER) -module $(O_DIR) -o $@  $< -module $(O_DIR)
 
 $(O_DIR)%.o  : %.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
@@ -179,7 +175,7 @@ $(O_DIR)%.o  : %.cpp
 
 .PHONY: all install metis adcprep adcpost dgswem_serial dgswem #winds
 
-all :  metis adcprep adcpost dgswem_serial dgswem #winds
+all :  adcprep adcpost dgswem_serial dgswem #winds
 
 #winds :
 #	python ./get_winds.py
@@ -190,9 +186,9 @@ ifeq ($(MAKELEVEL),0)
    graphchk:
 	$(MAKE) -C ../metis/Programs/ CC="$(CC)"  CFLAGS="$(CFLAGS)"
 	mv ../metis/graphchk ../work
-   adcprep:
+   adcprep: metis
 	$(MAKE) BUILDTYPE=adcprep  $@
-   adcprep2:
+   adcprep2: metis
 	$(MAKE) BUILDTYPE=adcprep2 $@
    adcpost:
 	$(MAKE) BUILDTYPE=adcpost $@
@@ -208,16 +204,14 @@ ifeq ($(MAKELEVEL),0)
 	@perl ../swan/switch.pl -unix -f95 -pun -adcirc ../swan/*.ftn ../swan/*.ftn90
 	$(MAKE) BUILDTYPE=dgswemswan $@
 else
-   adcprep::  $(O_DIR)
-   adcprep2:: $(O_DIR)
    adcpost::  $(O_DIR)
    dgswem_serial::   $(O_DIR)
    dgswem::  $(O_DIR)
 
-   adcprep ::  $(METIS1_OBJ) $(PREP_OBJ)
+   adcprep : $(O_DIR) $(METIS1_OBJ) $(PREP_OBJ)
 	$(CF) $(FFLAGS) -o $@  $(O_DIR)*.o  $(LIBS) $(LDFLAGS)
 
-   adcprep2 :: $(PMSG_OBJ) $(METIS2_OBJ) $(PREP_OBJ)
+   adcprep2 : $(O_DIR) $(PMSG_OBJ) $(METIS2_OBJ) $(PREP_OBJ)
 	$(CF) $(FFLAGS) -o $@  $(O_DIR)*.o  $(LIBS) $(MSGLIBS) $(LDFLAGS)
 
    adcpost ::  $(POST_OBJ)
@@ -242,7 +236,7 @@ endif
 ########################## Misc Commands ####################################
 
 clean:
-	 rm -f odir*/*.o  odir*/*.mod
+	 rm -f odir*/*.o  odir*/*.mod adcprep adcpost dgswem_serial dgswem
 clobber:
 	rm -r -f odir*
 	rm -f  graphchk adcprep adcprep2 adcpost dgswem_serial dgswem swemswan dgswemswan \
@@ -280,7 +274,7 @@ $(O_DIR)adcprep.o     :  adcprep.F  $(PGLO_MOBJ) $(PMSG_OBJ)
 $(O_DIR)decomp.o      :  decomp.F   $(PGLO_MOBJ)
 $(O_DIR)read_global.o :  read_global.F  $(PGLO_MOBJ)
 $(O_DIR)prep.o        :  prep.F   $(PGLO_MOBJ)
-$(O_DIR)interp.o      :  interp.F
+$(O_DIR)interp.o      :  interp.F  $(PREP_MOBJ)
 $(O_DIR)machdep.o     :  machdep.F
 $(O_DIR)metis.o       :  metis.F $(PGLO_MOBJ)
 $(O_DIR)metis2.o      :  metis2.F $(PGLO_MOBJ)
@@ -294,8 +288,8 @@ $(O_DIR)post_global.o :  post_global.F
 
 $(O_DIR)adcpost.o     :  adcpost.F $(POST_MOBJ)
 $(O_DIR)post.o        :  post.F  $(POST_MOBJ)
-$(O_DIR)compare.o     :  compare.F
-$(O_DIR)diffmerge.o   :  diffmerge.F
+$(O_DIR)compare.o     :  compare.F $(POST_MOBJ)
+$(O_DIR)diffmerge.o   :  diffmerge.F $(POST_MOBJ)
 
 #  adcirc & padcirc modules
 
@@ -305,20 +299,20 @@ $(O_DIR)fparser2.o	                :  fparser2.F90 $(O_DIR)sizes.o
 $(O_DIR)global.o      			:  global.F  $(O_DIR)sizes.o
 $(O_DIR)messenger.o   			:  messenger.F  $(ADC_MOBJ)
 $(O_DIR)messenger_elem.o		:  messenger_elem.F  $(ADC_MOBJ)
-$(O_DIR)harm.o        			:  harm.F
+$(O_DIR)harm.o        			:  harm.F $(O_DIR)sizes.o
 $(O_DIR)vortex.o                        :  vortex.F $(ADC_MOBJ)
 $(O_DIR)wind.o        			:  wind.F $(O_DIR)precipitation.o
 $(O_DIR)itpackv.o     			:  itpackv.F   $(ADC_MOBJ)
-$(O_DIR)dg.o          			:  dg.F sizes.F global.F
-$(O_DIR)diff45_41.o   			:  diff45_41.F
-$(O_DIR)nodalattr.o   			:  nodalattr.F
+$(O_DIR)dg.o          			:  dg.F $(O_DIR)sizes.o global.F
+$(O_DIR)diff45_41.o   			:  diff45_41.F  $(O_DIR)sizes.o
+$(O_DIR)nodalattr.o   			:  nodalattr.F $(O_DIR)sizes.o $(O_DIR)global.o
 #Casey 121126: Added the next line.
 $(O_DIR)globalio.o                      :  globalio.F $(ADC_MOBJ)
 $(O_DIR)couple2swan.o                   :  couple2swan.F $(ADC_MOBJ)
 
-$(ODIR)read_fort_dg.o                   :  read_fort_dg.F90 $(O_DIR)sizes.o $(O_DIR)dg.o $(O_DIR)global.o
+$(O_DIR)read_fort_dg.o                   :  read_fort_dg.F90 $(O_DIR)sizes.o $(O_DIR)dg.o $(O_DIR)global.o
 
-$(O_DIR)precipitation.o                 :  precipitation.F $(ADC_MOBJ)
+$(O_DIR)precipitation.o                 :  precipitation.F $(ADC_MOBJ) $(O_DIR)vortex.o
 $(O_DIR)owi_rain.o                      :  owi_rain.F $(ADC_MOBJ)
 #  adcirc & padcirc
 
@@ -329,7 +323,7 @@ $(O_DIR)hstart.o      			:  hstart.F $(ADC_MOBJ)  $(HARM_MOBJ)  $(WIND_MOBJ)
 $(O_DIR)dgswem.o      			:  dgswem.F $(ADC_MOBJ)  $(HARM_MOBJ) $(WIND_MOBJ) $(OWIRAIN_MOBJ)
 $(O_DIR)calc_normal.o         	:  calc_normal.F $(ADC_MOBJ)
 $(O_DIR)create_edge_data.o    	:  create_edge_data.F $(ADC_MOBJ) $(C_MOBJ) $(O_DIR)count_edges.o
-$(O_DIR)detector.o	      	:  detector.F $(ADC_MOBJ)
+$(O_DIR)detector.o	      	:  detector.F $(ADC_MOBJ) $(FLUX_MOBJ)
 $(O_DIR)DG_timestep.o         	:  DG_timestep.F $(ADC_MOBJ)
 $(O_DIR)DG_hydro_timestep.o   	:  DG_hydro_timestep.F $(ADC_MOBJ)
 $(O_DIR)edge_int_hydro.o      	:  edge_int_hydro.F $(ADC_MOBJ)
@@ -343,23 +337,23 @@ $(O_DIR)prep_DG.o             	:  prep_DG.F $(ADC_MOBJ)
 $(O_DIR)quadrature_v1.o         :  quadrature_v1.F $(ADC_MOBJ)
 $(O_DIR)quad_rules_general.o     :  quad_rules_general.F $(ADC_MOBJ)
 $(O_DIR)read_input.o          	:  read_input.F $(ADC_MOBJ)
-$(O_DIR)rhs_dg_hydro.o        	:  rhs_dg_hydro.F $(ADC_MOBJ) $(FLUX_MOBJ)
+$(O_DIR)rhs_dg_hydro.o        	:  rhs_dg_hydro.F $(ADC_MOBJ) $(FLUX_MOBJ) $(RAIN_MOBJ)
 $(O_DIR)numerical_flux.o      	:  numerical_flux.F $(ADC_MOBJ)
 $(O_DIR)radiation_edge_hydro.o	:  radiation_edge_hydro.F $(ADC_MOBJ) $(FLUX_MOBJ)
 $(O_DIR)tidal_potential.o     	:  tidal_potential.F $(ADC_MOBJ)
 $(O_DIR)ibarrier_edge_hydro.o 	:  ibarrier_edge_hydro.F $(ADC_MOBJ) $(FLUX_MOBJ)
 $(O_DIR)ebarrier_edge_hydro.o       :  ebarrier_edge_hydro.F $(ADC_MOBJ) $(FLUX_MOBJ)
-$(O_DIR)write_results.o             :  write_results.F $(ADC_MOBJ)
+$(O_DIR)write_results.o             :  write_results.F $(ADC_MOBJ) $(RAIN_MOBJ)
 $(O_DIR)pdg_debug.o                 :  pdg_debug.F  $(ADC_MOBJ) $(MSG_MOBJ)
 $(O_DIR)ghost_internal_edge_hydro.o :  ghost_internal_edge_hydro.F  $(ADC_MOBJ) $(MSG_MOBJ)
 $(O_DIR)slopelimiter.o              :  slopelimiter.F  $(ADC_MOBJ)
 $(O_DIR)prep_slopelim.o             :  prep_slopelim.F  $(ADC_MOBJ)
 $(O_DIR)wetdry.o                    :  wetdry.F  $(ADC_MOBJ)
 $(O_DIR)LDG_hydro.o                 :  LDG_hydro.F  $(ADC_MOBJ) $(FLUX_MOBJ)
-$(O_DIR)met_forcing.o               :  met_forcing.F  $(ADC_MOBJ)
+$(O_DIR)met_forcing.o               :  met_forcing.F  $(ADC_MOBJ) $(WIND_MOBJ)
 $(O_DIR)sta_basis.o                 :  sta_basis.F  $(ADC_MOBJ)
 $(O_DIR)modal2nodal.o               :  modal2nodal.F  $(ADC_MOBJ)
-$(O_DIR)write_output.o              :  write_output.F
+$(O_DIR)write_output.o              :  write_output.F $(O_DIR)sizes.o
 #Casey 121126: Added the previous lines for modal2nodal.F and write_output.F.
 
 debug:
