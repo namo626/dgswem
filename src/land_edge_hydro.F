@@ -46,6 +46,7 @@ C.....Declare local variables
       Real(SZ) MZ_X_IN(layers),MZ_Y_IN(layers),TZ_X_IN,TZ_Y_IN
 
       test_el = 0
+!$acc parallel loop gang vector
       DO 1000 L = 1,NLEDS
          
 C.....Retrieve the global and local edge number
@@ -83,6 +84,7 @@ C.....Set the components for the tangential vector to the edge
 
 C.....Compute ZE, QX, QY, and HB at each Gauss point
 
+!$acc loop seq
          DO I = 1,NEGP(pa)
             
             ZE_IN = ZE(1,EL_IN,IRK)
@@ -140,6 +142,7 @@ C.....Compute ZE, QX, QY, and HB at each Gauss point
 C.....Compute the solution at the interior state
 C.....(modified for wetting and drying)
 
+!$acc loop seq
             DO K = 2,DOFS(EL_IN)
                
                ZE_IN = ZE_IN + ZE(K,EL_IN,IRK)*PHI_EDGE(K,I,LED,pa)
@@ -264,6 +267,7 @@ C.....Compute the edge integral
 C.....(modified for wetting and drying) 
 
 C.....Compute the edge integral
+!$acc loop seq
             DO K = 1,DOFS(EL_IN)
 
                W_IN = 2.0*M_INV(K,pa)/AREAS(EL_IN)*XLEN(GED)*

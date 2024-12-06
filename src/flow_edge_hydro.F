@@ -36,12 +36,13 @@ C.....Declare local variables
       Real(SZ) DEN2,U_AVG,V_AVG,VEL_NORMAL,q_RoeX, q_RoeY, q_Roe
       REAL(SZ) TX, TY,HZ_X_IN,HZ_Y_IN,TZ_X_IN,TZ_Y_IN
       REAL(SZ) LZ_XX_IN, LZ_XY_IN, LZ_YX_IN, LZ_YY_IN,W_IN
-      Real(SZ) VEI(3,3),chi_pref,C_char,MZ_X_IN(layers),MZ_Y_IN(layers)
+      Real(SZ) chi_pref,C_char,MZ_X_IN(layers),MZ_Y_IN(layers)
       real(sz) :: ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
      &  hb_in,hb_ex,sfac_in,sfac_ex, nx, ny
       real(sz) :: f_hat, g_hat, h_hat
 
       test_el = 0
+!$acc parallel loop gang vector
       DO 1000 L = 1,NFEDS
          
 C.....Retrieve the global and local edge number
@@ -79,6 +80,7 @@ C.....Set the components for the tangential vector to the edge
          
 C.....Compute ZE, QX, QY, and HB at each edge Gauss quadrature point
 
+!$acc loop seq
          DO I = 1,NEGP(pa)
 
             ZE_IN = 0.0
@@ -139,6 +141,7 @@ C.....Compute ZE, QX, QY, and HB at each edge Gauss quadrature point
 C.....Compute the specified flow boundaries for the exterior state
 
             Q_N_EXT = 0.0
+!$acc loop seq
             DO JJ = 1,MNFFR
                IF (NFFR.EQ.0) THEN
                   ARGJ = 0.0
@@ -173,6 +176,7 @@ C.....Compute the solution at the interior state
 
                                 !HB_IN = BATHED(I,LED,EL_IN,pa)
 
+!$acc loop seq
             DO K = 1,DOFS(EL_IN)
 
                ZE_IN = ZE_IN + ZE(K,EL_IN,IRK)*PHI_EDGE(K,I,LED,pa)
@@ -280,6 +284,7 @@ C.....Add LDG terms
             
 C.....Compute the edge integral
 
+!$acc loop seq
             DO K = 1,DOFS(EL_IN)
 
                W_IN = 2.0*M_INV(K,pa)/AREAS(EL_IN)*XLEN(GED)*
