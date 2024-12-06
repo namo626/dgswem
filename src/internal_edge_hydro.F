@@ -48,11 +48,9 @@ C.....Declare local variables
       REAL(SZ) EDFAC_IN, EDFAC_EX, DEN
       REAL(SZ) XLEN_EL_IN, XLEN_EL_EX,MZ_X_EX(layers),MZ_Y_EX(layers)
       REAL(SZ) MASS_EL_IN, MASS_EL_EX,MZ_X_IN(layers),MZ_Y_IN(layers)
+#ifdef TRACE
       REAL(SZ), SAVE, ALLOCATABLE :: 
-     &     RHS_ZE_IN(:), RHS_QX_IN(:), RHS_QY_IN(:),
-     &     RHS_ZE_EX(:), RHS_QX_EX(:), RHS_QY_EX(:)
-#ifdef TRACE     
-     &     ,RHS_iota_IN(:), RHS_iota_EX(:)
+     &     RHS_iota_IN(:), RHS_iota_EX(:)
 #endif
 #ifdef CHEM
      &     ,RHS_iota_IN(:), RHS_iota_EX(:)
@@ -72,9 +70,8 @@ C.....Declare local variables
       Real(SZ) bed_HAT_IN(layers),bed_HAT_EX(layers)
 c     
 
-      IF(.NOT.ALLOCATED(RHS_ZE_IN)) THEN
-         ALLOCATE ( RHS_ZE_IN(DOFH),RHS_QX_IN(DOFH),RHS_QY_IN(DOFH) )
-         ALLOCATE ( RHS_ZE_EX(DOFH),RHS_QX_EX(DOFH),RHS_QY_EX(DOFH) )
+      real(sz), dimension(3) :: rhs_ze_in, rhs_ze_ex, rhs_qx_in, rhs_qx_ex
+      real(sz), dimension(3) :: rhs_qy_in, rhs_qy_ex
 #ifdef TRACE
          Allocate ( rhs_iota_in(dofh),rhs_iota_ex(dofh) )
 #endif
@@ -85,9 +82,10 @@ c
 #ifdef DYNP
          Allocate ( rhs_dynP_IN(dofh),rhs_dynP_EX(dofh) )
 #endif
-      ENDIF
 
       test_el = 0
+!$acc parallel loop gang vector
+!$acc+private(rhs_ze_in, rhs_ze_ex, rhs_qx_in, rhs_qx_ex, rhs_qy_in, rhs_qy_ex)
       DO 1000 L = 1,NIEDS
 
 C.......Retrieve the global and local edge number
@@ -122,7 +120,7 @@ C.......If both elements on either side of edge are dry then skip
          !test_el = test_el+1
 
 C.....Save the current RHS
-
+!$acc loop seq
          DO K = 1,DOFS(EL)
 
             RHS_ZE_IN(K) = RHS_ZE(K,EL_IN,IRK)
@@ -200,7 +198,7 @@ C.....Set the components for the tangential vector to the edge
          EDFAC_EX = XLEN(GED)/AREAS(EL_EX)
 
 C.....Compute ZE, QX, QY, and HB at each edge Gauss quadrature point
-
+!$acc loop seq
          DO I = 1,NEGP(pa)
 
             GP_IN = I
@@ -287,7 +285,7 @@ C.....Compute ZE, QX, QY, and HB at each edge Gauss quadrature point
             LZ_XY_EX = LZ(1,1,2,EL_EX)
             LZ_YX_EX = LZ(1,2,1,EL_EX)
             LZ_YY_EX = LZ(1,2,2,EL_EX)
-
+!$acc loop seq
             DO K = 2,DOFS(EL)
 
                ZE_IN = ZE_IN + ZE(K,EL_IN,IRK)*PHI_EDGE(K,GP_IN,LED_IN,pa)
@@ -415,7 +413,7 @@ C.....1.01D0 is a safty factor.
 C......namo 5/22 - modify for rain (source term no longer zero)
 
 C...........Put back the saved RHS
-
+!$acc loop seq
                DO K = 1,DOFS(EL)
                   RHS_ZE(K,EL_IN,IRK) = RHS_ZE_IN(K)
                   RHS_QX(K,EL_IN,IRK) = RHS_QX_IN(K)
@@ -678,18 +676,24 @@ cnd try adding the penalty term in the LDG method
 #endif
 
 C.....Compute the edge integral
-
+!$acc loop seq
             DO K = 1,DOFS(EL)
                
                W_IN = EDFAC_IN*EDGEQ(K,GP_IN,LED_IN,pa)
                W_EX = EDFAC_EX*EDGEQ(K,GP_EX,LED_EX,pa)
 
+!$acc atomic
                RHS_ZE(K,EL_IN,IRK) = RHS_ZE(K,EL_IN,IRK) - W_IN*F_HAT_O
+!$acc atomic
                RHS_QX(K,EL_IN,IRK) = RHS_QX(K,EL_IN,IRK) - W_IN*G_HAT_IN
+!$acc atomic
                RHS_QY(K,EL_IN,IRK) = RHS_QY(K,EL_IN,IRK) - W_IN*H_HAT_IN
 
+!$acc atomic
                RHS_ZE(K,EL_EX,IRK) = RHS_ZE(K,EL_EX,IRK) + W_EX*F_HAT_O
+!$acc atomic
                RHS_QX(K,EL_EX,IRK) = RHS_QX(K,EL_EX,IRK) + W_EX*G_HAT_EX
+!$acc atomic
                RHS_QY(K,EL_EX,IRK) = RHS_QY(K,EL_EX,IRK) + W_EX*H_HAT_EX
 
 #ifdef TRACE
@@ -738,7 +742,7 @@ C.....Set the components for the tangential vector to the edge
          TY =  NX
 
 C.....Compute ZE, QX, QY, bed, and HB at each edge Gauss quadrature point
-
+!$acc loop seq
          DO I = 1,NEGP(pa)
 
             GP_IN = I
@@ -795,7 +799,7 @@ C     ----------------------------- EL_IN ------------------------------
             TZ_Y_IN = TZ(1,2,2,EL_IN)
 
 #endif
-
+!$acc loop seq
             DO K = 2,DOFS(EL)
 
                ZE_IN = ZE_IN + ZE(K,EL_IN,IRK)*PHI_EDGE(K,GP_IN,LED_IN,pa)
@@ -931,12 +935,16 @@ C.....Add LDG terms for sediment diffusion
 #endif
 
 C.....Compute the edge integral
+!$acc loop seq
             DO K = 1,DOFS(EL)
 
                W_IN = EDFAC_IN*EDGEQ(K,GP_IN,LED_IN,pa)
 
+!$acc atomic
                RHS_ZE(K,EL_IN,IRK) = RHS_ZE(K,EL_IN,IRK) - W_IN*F_HAT
+!$acc atomic
                RHS_QX(K,EL_IN,IRK) = RHS_QX(K,EL_IN,IRK) - W_IN*G_HAT
+!$acc atomic
                RHS_QY(K,EL_IN,IRK) = RHS_QY(K,EL_IN,IRK) - W_IN*H_HAT
 
 #ifdef TRACE
@@ -1012,6 +1020,7 @@ C     ----------------------------- EL_EX ------------------------------
 
 #endif
 
+!$acc loop seq
             DO K = 2,DOFS(EL)
 
                ZE_EX = ZE_EX + ZE(K,EL_EX,IRK)*PHI_EDGE(K,GP_EX,LED_EX,pa)
@@ -1152,12 +1161,16 @@ C.....Add LDG terms for sediment diffusion
 #endif
 
 C.....Compute the edge integral
+!$acc loop seq
             DO K = 1,DOFS(EL)
 
                W_EX = EDFAC_EX*EDGEQ(K,GP_EX,LED_EX,pa)
 
+!$acc atomic
                RHS_ZE(K,EL_EX,IRK) = RHS_ZE(K,EL_EX,IRK) + W_EX*F_HAT
+!$acc atomic
                RHS_QX(K,EL_EX,IRK) = RHS_QX(K,EL_EX,IRK) + W_EX*G_HAT
+!$acc atomic
                RHS_QY(K,EL_EX,IRK) = RHS_QY(K,EL_EX,IRK) + W_EX*H_HAT
 
 #ifdef TRACE
