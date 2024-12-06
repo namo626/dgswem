@@ -52,7 +52,7 @@ C.....Loop over the internal barrier segments (note: an internal barrier
 C.....segment consists of two internal barrier edges -- a "front" edge &
 C.....a "back" edge.
       test_el = 0
-!$acc parallel loop gang vector
+!$acc parallel loop gang vector async(1)
       DO 1000 L = 1,NIBSEG
          
 C.......Obtain the global and local edges of the back and front sides

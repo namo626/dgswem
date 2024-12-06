@@ -234,7 +234,7 @@ C.......Compute elements to finish building the rhs
          CALL RHS_DG_HYDRO(IT)
 
 C.......SSP Runge-Kutta Time Scheme
-!$acc parallel loop gang vector
+!$acc parallel loop gang vector async(1)
          DO J = 1,NE
             DO I = 1,IRK
                ARK = ATVD(IRK,I)
@@ -675,7 +675,7 @@ C......Filter chemistry transported terms if flagged
       ENDDO
 #endif
       
-!$acc parallel loop gang vector
+!$acc parallel loop gang vector async(1)
       DO J = 1,MNE
          DO K = 1,DOFS(J)
             ZE(K,J,1) = ZE(K,J,NRK+1)
@@ -701,7 +701,7 @@ C......Filter chemistry transported terms if flagged
          ENDDO
       ENDDO
 
-!$acc parallel loop gang vector
+!$acc parallel loop gang vector async(1)
       DO J = 1,MNE
          DO KK = 2,NRK+1
             DO K = 1,DOFH
@@ -738,5 +738,6 @@ C......Filter chemistry transported terms if flagged
             ENDDO
          ENDDO
       ENDDO
+
       RETURN
       END SUBROUTINE

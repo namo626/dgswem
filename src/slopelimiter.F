@@ -3297,7 +3297,7 @@ C     FIND THE MAXIMUM AND MINIMUM OF EACH VARIABLE OVER ALL ELEMENTS
 C     SHARING A NODE
 
       bound = 0.0
-!$acc parallel loop gang vector
+!$acc parallel loop gang vector async(1)
       DO I = 1,NP
          ZE_MIN1(I)=99999.
          ZE_MAX1(I)=-99999.
@@ -3432,7 +3432,7 @@ C
       bb = 1
 
 !$acc parallel loop gang vector
-!$acc+private(zec, zevertex, dif, zemin1,zemax1,qxmin1,qxmax1,qymin1,qymax1)
+!$acc+private(zec, zevertex, dif, zemin1,zemax1,qxmin1,qxmax1,qymin1,qymax1) async(1)
       DO I=1,NE 
          !IF(WDFLG(I).EQ.0) CYCLE ! DON'T COUNT DRY ELEMENTS  sb 02/26/07
          N1=NM(I,1)
