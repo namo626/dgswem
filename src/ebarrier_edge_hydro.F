@@ -18,6 +18,7 @@ C.....Declare local variables
 
 C.....Loop over the external barrier segments
 
+!$acc parallel loop gang vector
       DO 1000 L = 1,NEBSEG
          
 C.......Obtain the global and local edge numbers
@@ -50,6 +51,7 @@ C.....Set the components for the tangential vector to the edge
          
 C.......Compute the variables at the quadrature points
 
+!$acc loop seq
          DO I = 1,NEGP(pa)
             
 C.........Obtain the height of the barrier at the quadrature point
@@ -82,6 +84,7 @@ C.........Obtain the height of the barrier at the quadrature point
 #endif
 
 
+!$acc loop seq
             DO K = 2,DOFS(EL)
                ZE_IN = ZE_IN + ZE(K,EL,IRK)*PHI_EDGE(K,I,LED,pa)
                QX_IN = QX_IN + QX(K,EL,IRK)*PHI_EDGE(K,I,LED,pa)
@@ -169,6 +172,7 @@ C.........Compute numerical flux
             call numerical_flux(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
      &  hb_in,hb_ex,sfac_in,sfac_ex,nx,ny,f_hat,g_hat,h_hat)
 
+!$acc loop seq
             DO K = 1,DOFS(EL)
 
                W_IN = 2.0*M_INV(K,pa)/AREAS(EL)*XLEN(GED)
