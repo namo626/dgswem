@@ -45,7 +45,6 @@ C.....Declare local variables
       REAL(SZ) LZ_XX_IN, LZ_XY_IN, LZ_YX_IN, LZ_YY_IN,W_IN
       Real(SZ) MZ_X_IN(layers),MZ_Y_IN(layers),TZ_X_IN,TZ_Y_IN
 
-      test_el = 0
 !$acc parallel loop gang vector async(1)
       DO 1000 L = 1,NLEDS
          
@@ -70,7 +69,6 @@ C.....If the element is dry then skip the edge calculation
 
          IF (WDFLG(EL_IN).EQ.0) GOTO 1000
 
-         test_el = test_el+1
 
 C.....Retrieve the components of the normal vector to the edge
          
@@ -265,6 +263,7 @@ C.....Add LDG terms for sediment
             
 C.....Compute the edge integral
 C.....(modified for wetting and drying) 
+
 
 C.....Compute the edge integral
 !$acc loop seq
