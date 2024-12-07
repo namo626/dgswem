@@ -51,7 +51,6 @@ C.....Declare local variables
 C.....Loop over the internal barrier segments (note: an internal barrier
 C.....segment consists of two internal barrier edges -- a "front" edge &
 C.....a "back" edge.
-      test_el = 0
 !$acc parallel loop gang vector async(1)
       DO 1000 L = 1,NIBSEG
          
@@ -89,7 +88,6 @@ C.......Obtain the elements of the back and front sides
          NF2 = NEDNO(2,GEDF)
          IF((WDFLG(ELB).EQ.0).AND.(WDFLG(ELF).EQ.0)) GOTO 1000
 
-         test_el = test_el+1
 
 C.......Retrieve the components of the normal vector to the edge
 
