@@ -1048,7 +1048,7 @@ c
           elmaxe=0.0
           qmaxe=0.0
           imaxq = 0.0
-!$acc parallel loop reduction(max:elmax,velmax) async(1)
+!$acc parallel loop reduction(max:elmax,velmax)
           DO I=1,NP
              IF((NODECODE(I).EQ.1).AND.(ABS(ETA2(I)).GT.ELMAX))THEN
                 ELMAX=ABS(ETA2(I))
