@@ -3673,19 +3673,22 @@ c      endif
      &                         wtratio*(ipn(icyc)-ipn(icyc-1)))
       Pc    =  1.0*(icpress(icyc-1) +
      &                         wtratio*(icpress(icyc)-icpress(icyc-1)))
-      crmaxw   =  crmaxw1(:) +
-     &                         wtratio*(crmaxw2(:)-crmaxw1(:))
-      crmaxwTrue   =  crmaxwTrue1(:) +
-     &                         wtratio*(crmaxwTrue2(:)-crmaxwTrue1(:))
-      cHollBs  =  cHollBs1(:) +
-     &                         wtratio*(cHollBs2(:)-cHollBs1(:))
-      cVmwBL   =  cVmwBL1(:) +
-     &                         wtratio*(cVmwBL2(:)-cVmwBL1(:))
+!$acc parallel loop
+      do i=1,np
+         crmaxw(i)   =  crmaxw1(i) +
+     &        wtratio*(crmaxw2(i)-crmaxw1(i))
+         crmaxwTrue(i)   =  crmaxwTrue1(i) +
+     &        wtratio*(crmaxwTrue2(i)-crmaxwTrue1(i))
+         cHollBs(i)  =  cHollBs1(i) +
+     &        wtratio*(cHollBs2(i)-cHollBs1(i))
+         cVmwBL(i)   =  cVmwBL1(i) +
+     &        wtratio*(cVmwBL2(i)-cVmwBL1(i))
+      enddo
       corio = 2.0 * omega * SIN(deg2rad*cLat)
      &
       Rmax  = 1.0*(atcfRMW(icyc-1) + wtratio * (atcfRMW(icyc)-atcfRMW(icyc-1)))
      &
-      Vmax = 1.0*(ispd(icyc-1) + wtratio * (ispd(icyc)-ispd(icyc-1))) 
+      Vmax = 1.0*(ispd(icyc-1) + wtratio * (ispd(icyc)-ispd(icyc-1)))
 !Jie debug GAHM
 !         WRITE(16,700) 'Temporal interpolation:',
 !     &           CycleTime(icyc-1), TIMELOC, CycleTime(icyc)
