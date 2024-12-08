@@ -37,6 +37,8 @@ Casey 110518: Added for Mark Powell's sectorial wind drag.
       
       REAL(SZ) :: WindDragLimit          ! maximum wind drag value
       CHARACTER(len=10) :: DragLawString ! controls wind drag formulation
+      integer, parameter :: dragDefault = 1, dragPowell = 2
+      integer :: dragLawInt
 
       ! jgf52.30.04: Allow the inverted barometer condition to be 
       ! activated on elevation-specified boundaries so that low pressure
@@ -88,10 +90,12 @@ C     ----------------------------------------------------------------
       ! FUNCTION WindIceDrag.
       
       DragLawString = 'default'
+      dragLawInt = dragDefault
 #ifdef POWELL
       ! jgf50.32 Provide backward compatibility with hardcoded POWELL
       ! support.
       DragLawString = 'Powell'
+      dragLawInt = dragPowell
 #endif
       invertedBarometerOnElevationBoundary = .false.
 
@@ -109,12 +113,13 @@ C     jgf46.00 Function to calculate wind drag coefficient from the
 C     windspeed.
 C
 C     ----------------------------------------------------------------
-      REAL(SZ) FUNCTION WindDrag(WindSpeed, NodeNumber)
+      pure REAL(SZ) FUNCTION WindDrag(WindSpeed, NodeNumber)
+!$acc routine
       !Casey 110518: Added variables for Mark Powell's sector-based wind drag.
       USE GLOBAL, ONLY: DEG2RAD, SFEA, SLAM
-      REAL(SZ) WindSpeed
+      REAL(SZ), value :: WindSpeed
       ! jgf50.32: Even if present, NodeNumber is ignored by Garratt formulation
-      INTEGER,OPTIONAL :: NodeNumber
+      INTEGER,value, OPTIONAL :: NodeNumber
 C
       INTRINSIC :: ATAN2
       INTRINSIC :: MOD
@@ -129,14 +134,14 @@ C
       REAL(SZ)  :: StormDirection
       REAL(SZ)  :: Weight(3)
 C
-      SELECT CASE(TRIM(DragLawString))
+      SELECT CASE(dragLawInt)
 C
-      CASE("Garratt","GARRATT","garratt","default")
+      CASE(dragDefault)
          WindDrag = 0.001d0*(0.75d0+0.067d0*WindSpeed)
          IF(WindDrag.gt.WindDragLimit) WindDrag=WindDragLimit
 C
 Casey 110518: Added Mark Powell's sector-based wind drag.
-      CASE("Powell","POWELL","powell")
+      CASE(dragPowell)
 C.. Check whether we have previously found the eye.
          IF((EyeLatR(1).EQ.0.0).OR.(EyeLonR(1).EQ.0.0).OR.
      &      (EyeLatR(2).EQ.0.0).OR.(EyeLonR(2).EQ.0.0).OR.
@@ -283,14 +288,14 @@ C.. Apply a weighted average.
             ENDIF
          ENDIF
 
-      CASE DEFAULT
-         WRITE(16,*) 'ERROR: Wind drag law not recognized:'
-         WRITE(16,'(A10)') DragLawString
-         WRITE(16,*) 'Execution will now be terminated.'
-#ifdef CMPI
-C         call msg_fini()
-#endif
-         STOP
+c$$$      CASE DEFAULT
+c$$$         WRITE(16,*) 'ERROR: Wind drag law not recognized:'
+c$$$         WRITE(16,'(A10)') DragLawString
+c$$$         WRITE(16,*) 'Execution will now be terminated.'
+c$$$#ifdef CMPI
+c$$$C         call msg_fini()
+c$$$#endif
+c$$$         STOP
 C
       END SELECT
 C
