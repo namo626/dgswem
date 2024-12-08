@@ -65,9 +65,8 @@
      &                   omega, mb2pa, rhoAir, kt2ms, nm2m, m2nm,
      &                   ms2kt, Rearth, windReduction, one2ten
       IMPLICIT NONE
-      SAVE
 
-      PUBLIC :: newVortex, calcRmaxes, fitRmaxes,
+      PUBLIC :: newVortex, calcRmaxes, fitRmaxes, rotate,
      &          Rmw, uvp, uvtrans, fang,
      &          latlon2xy, xy2latlon,
      &          getShapeParameter   ,
@@ -94,7 +93,7 @@
       INTEGER, PARAMETER :: nPoints = nQuads+2   ! Number of (theta, Rmax)
                                                  ! points for curve fit
       REAL(sz), DIMENSION(nPoints) :: Rmaxes     ! Radius of maximum winds
-      REAL(sz), DIMENSION(nPoints,4) :: Rmaxes4  ! (nautical miles)
+      REAL(sz), DIMENSION(nPoints,4), target :: Rmaxes4  ! (nautical miles)
       REAL(sz) :: Pn                          ! Ambient surface pressure (mb)
       REAL(sz) :: Pc                          ! Surface pressure at center of
                                               ! storm (mb)
@@ -111,9 +110,9 @@
       REAL(sz), DIMENSION(nPoints) :: Bs        
       REAL(sz), DIMENSION(nPoints) :: Phis    ! Correction factor to B and Vh
       REAL(sz), DIMENSION(nPoints) :: VmBL
-      REAL(sz), DIMENSION(nPoints,4) :: Bs4        
+      REAL(sz), DIMENSION(nPoints,4), target :: Bs4
       REAL(sz), DIMENSION(nPoints,4) :: Phis4    ! Correction factor to B and Vh
-      REAL(sz), DIMENSION(nPoints,4) :: VmBL4
+      REAL(sz), DIMENSION(nPoints,4), target :: VmBL4
       INTEGER,  DIMENSION(nPoints,4) :: QuadFlag4  
       REAL(sz), DIMENSION(nPoints,4) :: QuadIr4        
       REAL(sz), DIMENSION(nQuads) :: VrQuadrant
@@ -763,6 +762,7 @@
       
       SUBROUTINE uvpr(idist,iangle,irmx,irmx_true,iB,iVm,iPhi,
      &                uTrans,vTrans,geof, u,v,p)
+!$acc routine
       REAL(sz), INTENT(IN)  :: idist
       REAL(sz), INTENT(IN)  :: iangle
       REAL(sz), INTENT(IN)  :: irmx
@@ -786,7 +786,7 @@
       REAL(sz) :: uf
       REAL(sz) :: vf
       REAL(sz) :: damp
-      REAL(sz) :: percentCoriolis
+      REAL(sz) :: percentCoriolis, A, cosA, sinA
       INTEGER :: i
       
       rmx=irmx
@@ -834,6 +834,7 @@
      &            *corio/2.0)**2.0)
      &            - nm2m*idist*percentCoriolis*corio/2.0      
       ENDIF
+
       ! jgf20111007: Calculate NWS8-like translation speed
       TransSpdX = (abs(speed/(Vmax*kt2ms)))*uTrans*kt2ms
       TransSpdY = (abs(speed/(Vmax*kt2ms)))*vTrans*kt2ms
@@ -845,10 +846,19 @@
       v =  speed * SIN(deg2rad*iangle)
       !
       ! Alter wind direction by adding a frictional inflow angle
-      CALL rotate(u,v, fang(idist,irmx_true), cLat, uf,vf)
+c$$$      CALL rotate(u,v, fang(idist,irmx_true), cLat, uf,vf)
+c$$$      u = uf
+c$$$      v = vf
+      ! Inline rotate() due to OpenACC error
+      A = SIGN(1.0, cLat) * deg2rad * fang(idist,irmx_true)
+      cosA = COS(A)
+      sinA = SIN(A)
+      uf = u * cosA - v * sinA
+      vf = u * sinA + v * cosA
       u = uf
       v = vf
-      !
+
+
       ! jgf20111007: Add in the translation velocity
       u = u + TransSpdX
       v = v + TransSpdY
@@ -873,7 +883,6 @@
       !   v = 0.0
       !   p = mb2pa * Pn
       !endif
-
       END SUBROUTINE uvpr
       
       !=================================================================
@@ -894,22 +903,24 @@
       ! case(3): 4 situations
       ! case(4): 5 situations                    
       !=================================================================
-      REAL(sz) FUNCTION spInterp(angle,dist,opt)
+      pure REAL(sz) FUNCTION spInterp(angle,dist,opt)
+!$acc routine
       REAL(sz), INTENT(IN) :: angle,dist  
       INTEGER, INTENT(IN)  :: opt
-      REAL(sz), DIMENSION(nPoints,4) :: param 
+      REAL(sz), pointer, DIMENSION(:,:) :: param
       REAL(sz) :: temp1, temp2  
       REAL(sz) :: delta_angle
       INTEGER  :: iquad
 
       if (opt == 1) then
-         param = Rmaxes4
+         param => Rmaxes4
       else if (opt == 2) then
-         param = Bs4
+         param => Bs4
       else if (opt == 3) then
-         param = VmBL4    
-      end if   
-      
+         param => VmBL4
+      end if
+
+
       if (angle.le.45.0) then
          iquad = 5
          delta_angle = 45.0 + angle
@@ -944,17 +955,28 @@
       END FUNCTION spInterp
       
       
-      REAL(sz)  FUNCTION interpR(val,quad,r)
+      pure REAL(sz)  FUNCTION interpR(val,quad,r)
+!$acc routine
       REAL(sz), DIMENSION(nPoints,4),INTENT(IN) :: val 
       INTEGER, INTENT(IN) :: quad
       REAL(sz), INTENT(IN) :: r 
       REAL(sz) :: fac
-      INTEGER  :: total_Isot
+      INTEGER  :: total_Isot, ml, mq, i
       
       total_Isot=sum(QuadFlag4(quad,:))
          select case(total_Isot)
          case(1)
-           interpR = val(quad,maxloc(QuadFlag4(quad,:),1)) 
+            mq = quadFlag4(quad, 1)
+            ml = 1
+            do i = 2,4
+               if (quadFlag4(quad,i) > mq) then
+                  mq = quadFlag4(quad,i)
+                  ml = i
+               endif
+            enddo
+
+           !interpR = val(quad,maxloc(QuadFlag4(quad,:),1))
+           interpR = val(quad,ml)
          case(2)
             if (r > QuadIr4(quad,1)) then
                interpR = val(quad,1)
@@ -1006,8 +1028,8 @@
          case default
          ! For whatever reason if our algorithm fails, add the following
          ! line to avoid run-time errors
-            interpR = val(quad,maxloc(QuadFlag4(quad,:),1)) 
-            write(*,*) "ERROR: interpR failed in nws20get."
+c$$$            interpR = val(quad,maxloc(QuadFlag4(quad,:),1))
+c$$$            write(*,*) "ERROR: interpR failed in nws20get."
          end select  
          
          END function interpR
@@ -1105,7 +1127,8 @@ C     &            + Rmaxes(base_quadrant)
       ! On output:
       !    fang        frictional inflow angle (degrees)
       !=======================================================
-      REAL(sz) FUNCTION fang(r, rmx)
+      pure REAL(sz) FUNCTION fang(r, rmx)
+!$acc routine
       REAL(sz), INTENT(IN) :: r
       REAL(sz), INTENT(IN) :: rmx
 
