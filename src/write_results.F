@@ -179,6 +179,7 @@ C.....to single nodal values
       USE precipitation, only: prec3
       USE GLOBAL
       USE DG
+!@cuf use cudafor
       USE HARM
       use sizes, only:  myproc,layers
 #ifdef CMPI
@@ -192,7 +193,7 @@ C.....Declare local variables
       REAL(SZ) AREA, DEPTH, ANGLE_SUM, FH_NL, DP1, DP2, DP3, DP00, ZE00
       LOGICAL FORCE_WRITE
       real(sz) qmaxe,elmaxe
-      integer :: imaxze,imaxq,ErrorElevExceeded
+      integer :: imaxze,imaxq,ErrorElevExceeded, istat
 C...
 C...OUTPUT ELEVATION RECORDING STATION INFORMATION IF NOUTE<>0 AND THE
 C....TIME STEP FALLS WITHIN THE SPECIFIED WINDOW
@@ -202,7 +203,12 @@ C...
           IF((IT.GT.NTCYSE).AND.(IT.LE.NTCYFE).OR.FORCE_WRITE) THEN
             NSCOUE=NSCOUE+1
             IF(NSCOUE.EQ.NSPOOLE.OR.FORCE_WRITE) THEN
-              DO I=1,NSTAE  
+!@cuf istat = cudaMemPrefetchAsync(eta2, np, cudaCpuDeviceId,0)
+!@cuf istat = cudaMemPrefetchAsync(nodecode, np, cudaCpuDeviceId,0)
+!@cuf istat = cudaMemPrefetchAsync(ze(:,:,1), 3*ne, cudaCpuDeviceId,0)
+!@cuf istat = cudaMemPrefetchAsync(NM, 3*ne, cudaCpuDeviceId,0)
+!@cuf istat = cudaMemPrefetchAsync(dp, np, cudaCpuDeviceId,0)
+              DO I=1,NSTAE
                 if (ModetoNode.eq.1) then              
                   EE1=ETA2(NM(NNE(I),1))
                   EE2=ETA2(NM(NNE(I),2))
@@ -458,6 +464,7 @@ C.....time step falls within the specified window
               WRITE(631,2120) TIME_A, IT
 2120          FORMAT(2X,E20.10,5X,I10)
               if (ModetoNode.eq.1) then
+!$acc update self(eta2)
                 DO I=1,NP
                 
                   IF (ABS(ETA2(I)).LE.(10.0**(-30))) ETA2(I) = 0.0
@@ -1039,6 +1046,8 @@ C....IF ELMAX EXCEEDS THRESHOLD, PRINT INFORMATION ON ALL PROCESSORS WHERE
 C....THIS OCCURS 
 C...
         IF(NSCREEN.EQ.1 .and. mod(it,nscreen_inc) .eq. 0) THEN
+!@cuf istat = cudaMemPrefetchAsync(eta2, np, 0,0)
+!@cuf istat = cudaMemPrefetchAsync(nodecode, np, 0,0)
           ELMAX=0.0
           VELMAX=0.0
           KEMAX = 0
