@@ -51,7 +51,7 @@ C.....Declare local variables
 C.....Loop over the internal barrier segments (note: an internal barrier
 C.....segment consists of two internal barrier edges -- a "front" edge &
 C.....a "back" edge.
-!$acc parallel loop gang vector async(1)
+!$acc parallel loop gang vector async(1) default(present)
       DO 1000 L = 1,NIBSEG
          
 C.......Obtain the global and local edges of the back and front sides

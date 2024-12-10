@@ -45,7 +45,7 @@ C.....Declare local variables
       REAL(SZ) LZ_XX_IN, LZ_XY_IN, LZ_YX_IN, LZ_YY_IN,W_IN
       Real(SZ) MZ_X_IN(layers),MZ_Y_IN(layers),TZ_X_IN,TZ_Y_IN
 
-!$acc parallel loop gang vector async(1)
+!$acc parallel loop gang vector async(1) default(present)
       DO 1000 L = 1,NLEDS
          
 C.....Retrieve the global and local edge number

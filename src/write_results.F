@@ -36,7 +36,7 @@ C.....Declare local variables
 C.....Transform from modal coordinates to nodal coordinates and average
 C.....to single nodal values
 
-!$acc parallel loop gang vector async(1)
+!$acc parallel loop gang vector async(1) default(present)
          DO I = 1,MNP
             NO_NBORS = EL_COUNT(I)
 
@@ -1057,7 +1057,7 @@ c
           elmaxe=0.0
           qmaxe=0.0
           imaxq = 0.0
-!$acc parallel loop reduction(max:elmax,velmax)
+!$acc parallel loop reduction(max:elmax,velmax) default(present)
           DO I=1,NP
              IF((NODECODE(I).EQ.1).AND.(ABS(ETA2(I)).GT.ELMAX))THEN
                 ELMAX=ABS(ETA2(I))

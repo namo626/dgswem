@@ -18,7 +18,7 @@ C.....Declare local variables
 
 C.....Loop over the external barrier segments
 
-!$acc parallel loop gang vector async(1)
+!$acc parallel loop gang vector async(1) default(present)
       DO 1000 L = 1,NEBSEG
          
 C.......Obtain the global and local edge numbers

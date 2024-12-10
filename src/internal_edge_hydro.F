@@ -84,7 +84,7 @@ c
 #endif
 
       test_el = 0
-!$acc parallel loop gang vector
+!$acc parallel loop gang vector default(present)
 !$acc+private(rhs_ze_in, rhs_ze_ex, rhs_qx_in, rhs_qx_ex, rhs_qy_in, rhs_qy_ex) async(1)
       DO 1000 L = 1,NIEDS
 

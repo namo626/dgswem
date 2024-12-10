@@ -3599,7 +3599,7 @@ c      endif
       cLon  =  lon(icyc-1)  +
      &                         wtratio * (lon(icyc)-lon(icyc-1))
       ! locate each node based on the latest hurricane center location
-!$acc parallel loop
+!$acc parallel loop default(present)
       do i=1,np
          dx = deg2rad * Rearth * (xcoor(i) - cLon)*COS(deg2rad*cLat)
          dy = deg2rad * Rearth * (ycoor(i) - cLat)
@@ -3625,7 +3625,7 @@ c      endif
  !        WRITE(16,*) 'Previous: Spatially-interpolated storm parameters',
  !    &                   ' at icyc-1= ', icyc-1,
  !    &                   ' CycleTime=', CycleTime(icyc-1)
-!$acc parallel loop
+!$acc parallel loop default(present)
       do i=1,np
          crmaxw1(i) = spInterp(aziangle(i),dist(i),1)
          crmaxwTrue1(i) = spInterp(aziangle(i),1.0,1)
@@ -3655,7 +3655,7 @@ c      endif
  !        WRITE(16,*) 'After: Spatially-interpolated storm parameters',
  !    &                   ' at icyc= ', icyc,
  !    &                   ' CycleTime=', CycleTime(icyc)
-!$acc parallel loop
+!$acc parallel loop default(present)
       do i=1,np
          crmaxw2(i) = spInterp(aziangle(i),dist(i),1)
          crmaxwTrue2(i) = spInterp(aziangle(i),1.0,1)
@@ -3673,7 +3673,7 @@ c      endif
      &                         wtratio*(ipn(icyc)-ipn(icyc-1)))
       Pc    =  1.0*(icpress(icyc-1) +
      &                         wtratio*(icpress(icyc)-icpress(icyc-1)))
-!$acc parallel loop
+!$acc parallel loop default(present)
       do i=1,np
          crmaxw(i)   =  crmaxw1(i) +
      &        wtratio*(crmaxw2(i)-crmaxw1(i))
@@ -3692,7 +3692,7 @@ c      endif
 !Jie debug GAHM
 !         WRITE(16,700) 'Temporal interpolation:',
 !     &           CycleTime(icyc-1), TIMELOC, CycleTime(icyc)
-!$acc parallel loop
+!$acc parallel loop default(present)
       do i=1,np
          cPhiFactor(i) =  1 +
      &                       cVmwBL(i)*kt2ms*crmaxw(i)*nm2m*corio/
@@ -3773,7 +3773,7 @@ c      endif
       call setVortex(Pn,Pc,cLat,cLon)
       Write (16,*) Pn
 
-!$acc parallel loop
+!$acc parallel loop default(present)
       DO i=1,np
          CALL uvpr(dist(i),aziangle(i),crmaxw(i),crmaxwTrue(i),
      &        cHollBs(i),cVmwBL(i),cPhiFactor(i),stormMotionU,

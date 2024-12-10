@@ -42,7 +42,7 @@ C.....Declare local variables
       real(sz) :: f_hat, g_hat, h_hat
 
       test_el = 0
-!$acc parallel loop gang vector async(1)
+!$acc parallel loop gang vector async(1) default(present)
       DO 1000 L = 1,NFEDS
          
 C.....Retrieve the global and local edge number

@@ -26,7 +26,7 @@ C.....Use appropriate modules
       TIMEH_DG = TIMEH - DTDP + DTVD(IRK)*DTDP
       
 C.....Loop over the nodes
-!$acc parallel loop gang vector async(1)
+!$acc parallel loop gang vector async(1) default(present)
       DO I = 1,NP
       
 C.....Initialize tidal potential terms
