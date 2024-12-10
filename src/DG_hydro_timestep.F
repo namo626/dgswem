@@ -27,7 +27,7 @@ C.....Use appropriate modules
       
       USE GLOBAL
       USE DG
-      use internal_edge_dg
+      use mod_internal_edge
 
 #ifdef CMPI
       USE MESSENGER_ELEM 
@@ -227,7 +227,6 @@ C.......Compute external barrier edges
          IF (NEBEDS.GT.0) CALL EBARRIER_EDGE_HYDRO(IT)
          
 C.......Compute internal edges
-
          CALL INTERNAL_EDGE_HYDRO(IT)
          call add_internal_flux()
 

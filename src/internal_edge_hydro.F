@@ -21,7 +21,7 @@ C
 C     01-02-2007, sb, Modified for LDG
 C     C***********************************************************************
 
-      module internal_edge_dg
+      module mod_internal_edge
 
       USE GLOBAL, only : areas, pdg_el, neled, ne
       USE DG, only : rhs_ze, rhs_qx, rhs_qy, cosnx, sinnx, ze, wdflg, qx, qy, xlen,
@@ -100,6 +100,9 @@ c
 
 
       test_el = 0
+!$acc parallel loop gang vector
+!$acc+private(rhs_ze_in,rhs_qx_in,rhs_qy_in,rhs_ze_ex,rhs_qx_ex,rhs_qy_ex,
+!$acc+ze_ins,qx_ins,qy_ins,ze_exs,qx_exs,qy_exs) async(1) default(present)
       do L = 1, NIEDS
 
         is_large_flux = .false.
@@ -130,7 +133,7 @@ C.......Retrieve the elements which share the edge
 
 C.......If both elements on either side of edge are dry then skip
 
-         IF((WDFLG(EL_IN).EQ.0).AND.(WDFLG(EL_EX).EQ.0)) return
+         IF((WDFLG(EL_IN).EQ.0).AND.(WDFLG(EL_EX).EQ.0)) goto 100
 
          ze_ins = ze(:,el_in,irk)
          qx_ins = qx(:,el_in,irk)
@@ -483,8 +486,7 @@ c$$$                  RHS_QY(K,EL_EX,IRK) = RHS_QY_EX(K)
 
                ENDDO
 
-               EXIT gauss_point_loop
-
+               goto 1000
             ELSE
 
 C........Check to make sure mass flux is not coming from a dry element
@@ -759,6 +761,7 @@ c$$$               tmp = atomicAdd(RHS_QY(K,EL_EX,IRK), W_EX*H_HAT_EX)
 
       ENDDO gauss_point_loop
 
+ 1000  continue
  !100     CONTINUE
 
       if (is_large_flux) then
@@ -1255,7 +1258,7 @@ c$$$         tmp = atomicAdd(RHS_QX(K,EL_in,IRK), rhs_qx_in(k))
 c$$$         tmp = atomicAdd(RHS_QY(K,EL_in,IRK), rhs_qy_in(k))
 c$$$      enddo
 
-
+ 100   continue
       enddo
 
       END SUBROUTINE
@@ -1266,7 +1269,7 @@ c$$$      enddo
 
       real(sz) :: ze_sum, qx_sum, qy_sum
       integer :: l, k, i
-
+!$acc parallel loop gang vector async(1) default(present)
       do l = 1,NE
          do k = 1,3
             ze_sum = 0.
@@ -1293,4 +1296,4 @@ c$$$      enddo
 
       end subroutine
 
-      end module internal_edge_dg
+      end module mod_internal_edge
