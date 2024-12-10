@@ -1,44 +1,55 @@
 C***********************************************************************
-C     
+C
 C     SUBROUTINE INTERNAL_EDGE_HYDRO( )
-C     
+C
 C     This subroutine does the following:
-C     
+C
 C     1.  Calculates the values of the necessary variables at the edge
 C     gauss points for INTERNAL edges
 C     2.  Calls the appropriate subroutine to compute the flux at
 C     these points.
 C     3.  Calls the appropriate subroutine to compute the boundary
 C     integrals.
-C     
+C
 C     Written by Ethan Kubatko (06-11-2004)
-C     
+C
 C     01-10-2011 - cem - adapted for p_enrichment and multicomponent
 C     11-11-2011 - cem - adapted for layered sediment
-C     
+C
 C-----------------------------------------------------------------------
-C     
+C
 C     01-02-2007, sb, Modified for LDG
 C     C***********************************************************************
 
+      module internal_edge_dg
+
+      USE GLOBAL, only : areas, pdg_el, neled, ne
+      USE DG, only : rhs_ze, rhs_qx, rhs_qy, cosnx, sinnx, ze, wdflg, qx, qy, xlen,
+     &     hb, bathed, dofs, edgeq, negp, max_boa_dt, phi_edge, sfaced, lz, nedel, niedn,
+     &     nedsd, elem_edge, ze_edge, qx_edge, qy_edge,
+     &     irk, nieds
+      USE NodalAttributes, ONLY :  ESLM
+      use sizes, only:  sz, myproc
+      use mod_numerical_flux
+
+      contains
+
       SUBROUTINE INTERNAL_EDGE_HYDRO(IT)
 
-C.....Use appropriate modules
-
-      USE GLOBAL
-      USE DG
-      USE NodalAttributes, ONLY :  ESLM
-      use sizes, only:  sz, myproc, layers
-      use mod_numerical_flux
 
       IMPLICIT NONE
 
-C.....Declare local variables
+      integer, value :: it
 
-      real(sz) :: ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
-     &  hb_in,hb_ex,sfac_in,sfac_ex, nx, ny
-      real(sz) :: f_hat, g_hat, h_hat
-      INTEGER L, LED_IN, LED_EX, GED, GP_IN, GP_EX,k,i,ll,IT
+
+C.....Declare local variables
+      real(sz) :: tmp
+      logical :: is_large_flux
+      integer :: el_in, el_ex, pa, el, test_el, ind_ex, ind_in
+      real(sz) :: nx, ny, ze_in, qx_in, qy_in, qx_ex, qy_ex, hb_ex, hb_in
+      real(sz) :: f_hat, g_hat, h_hat, q_n_ext, q_t_ext, q_n_int, q_t_int, ze_ex
+      real(sz) :: sfac_in, sfac_ex
+      INTEGER L, LED_IN, LED_EX, GED, GP_IN, GP_EX,k,i,ll
       REAL(SZ), PARAMETER :: ZERO = 1.D-12
       REAL(SZ) TX, TY, W_IN, W_EX
       REAL(SZ) LZ_XX_IN, LZ_XY_IN, LZ_YX_IN, LZ_YY_IN
@@ -46,32 +57,34 @@ C.....Declare local variables
       REAL(SZ) HZ_X_EX, HZ_Y_EX, HZ_X_IN, HZ_Y_IN
       REAL(SZ) TZ_X_EX, TZ_Y_EX, TZ_X_IN, TZ_Y_IN
       REAL(SZ) EDFAC_IN, EDFAC_EX, DEN
-      REAL(SZ) XLEN_EL_IN, XLEN_EL_EX,MZ_X_EX(layers),MZ_Y_EX(layers)
-      REAL(SZ) MASS_EL_IN, MASS_EL_EX,MZ_X_IN(layers),MZ_Y_IN(layers)
+      real(sz) :: ze_ins(3), ze_exs(3), qx_ins(3), qx_exs(3), qy_ins(3), qy_exs(3)
+      REAL(SZ) XLEN_EL_IN, XLEN_EL_EX
+      REAL(SZ) MASS_EL_IN, MASS_EL_EX
+      REAL(SZ)  ::
+     &     RHS_ZE_IN(3), RHS_QX_IN(3), RHS_QY_IN(3),
+     &     RHS_ZE_EX(3), RHS_QX_EX(3), RHS_QY_EX(3)
 #ifdef TRACE
-      REAL(SZ), SAVE, ALLOCATABLE :: 
-     &     RHS_iota_IN(:), RHS_iota_EX(:)
+     &     ,RHS_iota_IN(:), RHS_iota_EX(:)
 #endif
 #ifdef CHEM
      &     ,RHS_iota_IN(:), RHS_iota_EX(:)
      &     ,RHS_iota2_IN(:), RHS_iota2_EX(:)
 #endif
-#ifdef DYNP     
+#ifdef DYNP
      &     ,RHS_dynP_IN(:), RHS_dynP_EX(:)
 #endif
 
       REAL(SZ) ARK, BRK
       REAL(SZ) MAX_BOA          ! Maximum of beta_il/alpha_il for all l
-      REAL(SZ) NLEQG_TMP, G_TMP
       REAL(SZ) F_HAT_O, G_HAT_O, H_HAT_O,i_hat_o,j_hat_o
       REAL(SZ) G_HAT_IN, H_HAT_IN
       REAL(SZ) G_HAT_EX, H_HAT_EX
       REAL(SZ) K_HAT_O
-      Real(SZ) bed_HAT_IN(layers),bed_HAT_EX(layers)
-c     
-
-      real(sz), dimension(3) :: rhs_ze_in, rhs_ze_ex, rhs_qx_in, rhs_qx_ex
-      real(sz), dimension(3) :: rhs_qy_in, rhs_qy_ex
+c
+#if 0
+      IF(.NOT.ALLOCATED(RHS_ZE_IN)) THEN
+         ALLOCATE ( RHS_ZE_IN(DOFH),RHS_QX_IN(DOFH),RHS_QY_IN(DOFH) )
+         ALLOCATE ( RHS_ZE_EX(DOFH),RHS_QX_EX(DOFH),RHS_QY_EX(DOFH) )
 #ifdef TRACE
          Allocate ( rhs_iota_in(dofh),rhs_iota_ex(dofh) )
 #endif
@@ -82,12 +95,14 @@ c
 #ifdef DYNP
          Allocate ( rhs_dynP_IN(dofh),rhs_dynP_EX(dofh) )
 #endif
+      ENDIF
+#endif
+
 
       test_el = 0
-!$acc parallel loop gang vector default(present)
-!$acc+private(rhs_ze_in, rhs_ze_ex, rhs_qx_in, rhs_qx_ex, rhs_qy_in, rhs_qy_ex) async(1)
-      DO 1000 L = 1,NIEDS
+      do L = 1, NIEDS
 
+        is_large_flux = .false.
 C.......Retrieve the global and local edge number
 
          GED = NIEDN(L)
@@ -104,7 +119,7 @@ C.......Retrieve the elements which share the edge
          if (DOFS(EL_EX).LT.DOFS(EL_IN)) then
             EL = EL_IN
          endif
-         
+
          pa = PDG_EL(EL)
 
 #ifdef P0
@@ -115,22 +130,35 @@ C.......Retrieve the elements which share the edge
 
 C.......If both elements on either side of edge are dry then skip
 
-         IF((WDFLG(EL_IN).EQ.0).AND.(WDFLG(EL_EX).EQ.0)) GOTO 1000
+         IF((WDFLG(EL_IN).EQ.0).AND.(WDFLG(EL_EX).EQ.0)) return
+
+         ze_ins = ze(:,el_in,irk)
+         qx_ins = qx(:,el_in,irk)
+         qy_ins = qy(:,el_in,irk)
+         ze_exs = ze(:,el_ex,irk)
+         qx_exs = qx(:,el_ex,irk)
+         qy_exs = qy(:,el_ex,irk)
 
          !test_el = test_el+1
 
 C.....Save the current RHS
-!$acc loop seq
-         DO K = 1,DOFS(EL)
 
-            RHS_ZE_IN(K) = RHS_ZE(K,EL_IN,IRK)
-            RHS_QX_IN(K) = RHS_QX(K,EL_IN,IRK)
-            RHS_QY_IN(K) = RHS_QY(K,EL_IN,IRK)
+         DO K = 1,3
 
-            RHS_ZE_EX(K) = RHS_ZE(K,EL_EX,IRK)
-            RHS_QX_EX(K) = RHS_QX(K,EL_EX,IRK)
-            RHS_QY_EX(K) = RHS_QY(K,EL_EX,IRK)
+c$$$            RHS_ZE_IN(K) = RHS_ZE(K,EL_IN,IRK)
+c$$$            RHS_QX_IN(K) = RHS_QX(K,EL_IN,IRK)
+c$$$            RHS_QY_IN(K) = RHS_QY(K,EL_IN,IRK)
+c$$$
+c$$$            RHS_ZE_EX(K) = RHS_ZE(K,EL_EX,IRK)
+c$$$            RHS_QX_EX(K) = RHS_QX(K,EL_EX,IRK)
+c$$$            RHS_QY_EX(K) = RHS_QY(K,EL_EX,IRK)
 
+            rhs_ze_in = 0.
+            rhs_qx_in = 0.
+            rhs_qy_in = 0.
+            rhs_ze_ex = 0.
+            rhs_qx_ex = 0.
+            rhs_qy_ex = 0.
 #ifdef TRACE
             RHS_iota_IN(K) = RHS_iota(K,EL_IN,IRK)
             RHS_iota_EX(K) = RHS_iota(K,EL_EX,IRK)
@@ -169,8 +197,8 @@ C.....Compute the sum of the lengths of three edges
 
 C.....Compute the total mass in the elements
 
-         MASS_EL_IN = (ZE(1,EL_IN,IRK)+HB(1,EL_IN,1))*AREAS(EL_IN)*0.5D0
-         MASS_EL_EX = (ZE(1,EL_EX,IRK)+HB(1,EL_EX,1))*AREAS(EL_EX)*0.5D0
+         MASS_EL_IN = (ZE(1,EL_IN,IRK)+HB(1,EL_IN,1))*AREAS(EL_IN)*0.50
+         MASS_EL_EX = (ZE(1,EL_EX,IRK)+HB(1,EL_EX,1))*AREAS(EL_EX)*0.50
 
 
 #ifdef SED_LAY                  !Must add up the layers as they shift
@@ -180,35 +208,33 @@ C.....Compute the total mass in the elements
             HB(1,EL_IN,irk) = HB(1,EL_IN,irk) + bed(1,EL_IN,irk,ll)
             HB(1,EL_EX,irk) = HB(1,EL_EX,irk) + bed(1,EL_EX,irk,ll)
          enddo
-         MASS_EL_IN = (ZE(1,EL_IN,IRK)+HB(1,EL_IN,1))*AREAS(EL_IN)*0.5D0
-         MASS_EL_EX = (ZE(1,EL_EX,IRK)+HB(1,EL_EX,1))*AREAS(EL_EX)*0.5D0
+         MASS_EL_IN = (ZE(1,EL_IN,IRK)+HB(1,EL_IN,1))*AREAS(EL_IN)*0.50
+         MASS_EL_EX = (ZE(1,EL_EX,IRK)+HB(1,EL_EX,1))*AREAS(EL_EX)*0.50
 #endif
-         
+
 C.....Retrieve the components of the normal vector to the edge
 
          NX = COSNX(GED)
          NY = SINNX(GED)
-         
+
 C.....Set the components for the tangential vector to the edge
 
          TX = -NY
          TY =  NX
-         
+
          EDFAC_IN = XLEN(GED)/AREAS(EL_IN)
          EDFAC_EX = XLEN(GED)/AREAS(EL_EX)
-
 C.....Compute ZE, QX, QY, and HB at each edge Gauss quadrature point
-!$acc loop seq
-         DO I = 1,NEGP(pa)
+
+         gauss_point_loop: DO I = 1,NEGP(pa)
 
             GP_IN = I
             GP_EX = NEGP(pa) - I + 1
 
-            ZE_IN = ZE(1,EL_IN,IRK)
-            QX_IN = QX(1,EL_IN,IRK)
-            QY_IN = QY(1,EL_IN,IRK)
+            ZE_IN = ZE_ins(1)
+            QX_IN = QX_ins(1)
+            QY_IN = QY_ins(1)
             HB_IN = BATHED(GP_IN,LED_IN,EL_IN,pa)
-
 #ifdef SED_LAY                  !When layered, these change
             do ll = 1,layers
                bed_IN(ll) = bed(1,EL_IN,irk,ll)
@@ -217,13 +243,12 @@ C.....Compute ZE, QX, QY, and HB at each edge Gauss quadrature point
 #endif
 
             SFAC_IN = SFACED(GP_IN,LED_IN,EL_IN,pa)
-            
-            ZE_EX = ZE(1,EL_EX,IRK)
-            QX_EX = QX(1,EL_EX,IRK)
-            QY_EX = QY(1,EL_EX,IRK)
-            HB_EX = BATHED(GP_EX,LED_EX,EL_EX,pa)
 
-#ifdef SED_LAY 
+            ZE_EX = ZE_exs(1)
+            QX_EX = QX_exs(1)
+            QY_EX = QY_exs(1)
+            HB_EX = BATHED(GP_EX,LED_EX,EL_EX,pa)
+#ifdef SED_LAY
             do ll = 1,layers
                bed_EX(ll) = bed(1,EL_EX,irk,ll)
             enddo
@@ -260,12 +285,12 @@ C.....Compute ZE, QX, QY, and HB at each edge Gauss quadrature point
             do ll = 1,layers
                bed_IN(ll) = bed(1,EL_IN,IRK,ll)
                bed_EX(ll) = bed(1,EL_EX,IRK,ll)
-               
+
                MZ_X_IN(ll) = MZ(1,1,ll,EL_IN)
-               MZ_Y_IN(ll) = MZ(1,2,ll,EL_IN)  
+               MZ_Y_IN(ll) = MZ(1,2,ll,EL_IN)
 
                MZ_X_EX(ll) = MZ(1,1,ll,EL_EX)
-               MZ_Y_EX(ll) = MZ(1,2,ll,EL_EX)  
+               MZ_Y_EX(ll) = MZ(1,2,ll,EL_EX)
             enddo
 #endif
 
@@ -285,16 +310,16 @@ C.....Compute ZE, QX, QY, and HB at each edge Gauss quadrature point
             LZ_XY_EX = LZ(1,1,2,EL_EX)
             LZ_YX_EX = LZ(1,2,1,EL_EX)
             LZ_YY_EX = LZ(1,2,2,EL_EX)
-!$acc loop seq
-            DO K = 2,DOFS(EL)
 
-               ZE_IN = ZE_IN + ZE(K,EL_IN,IRK)*PHI_EDGE(K,GP_IN,LED_IN,pa)
-               QX_IN = QX_IN + QX(K,EL_IN,IRK)*PHI_EDGE(K,GP_IN,LED_IN,pa)
-               QY_IN = QY_IN + QY(K,EL_IN,IRK)*PHI_EDGE(K,GP_IN,LED_IN,pa)
+            DO K = 2,3
 
-               ZE_EX = ZE_EX + ZE(K,EL_EX,IRK)*PHI_EDGE(K,GP_EX,LED_EX,pa)
-               QX_EX = QX_EX + QX(K,EL_EX,IRK)*PHI_EDGE(K,GP_EX,LED_EX,pa)
-               QY_EX = QY_EX + QY(K,EL_EX,IRK)*PHI_EDGE(K,GP_EX,LED_EX,pa)
+               ZE_IN = ZE_IN + ZE_ins(K)*PHI_EDGE(K,GP_IN,LED_IN,pa)
+               QX_IN = QX_IN + QX_ins(K)*PHI_EDGE(K,GP_IN,LED_IN,pa)
+               QY_IN = QY_IN + QY_ins(K)*PHI_EDGE(K,GP_IN,LED_IN,pa)
+
+               ZE_EX = ZE_EX + ZE_exs(K)*PHI_EDGE(K,GP_EX,LED_EX,pa)
+               QX_EX = QX_EX + QX_exs(K)*PHI_EDGE(K,GP_EX,LED_EX,pa)
+               QY_EX = QY_EX + QY_exs(K)*PHI_EDGE(K,GP_EX,LED_EX,pa)
 
 #ifdef TRACE
                iota_IN = iota_IN + iota(K,EL_IN,IRK)*PHI_EDGE(K,GP_IN,LED_IN,pa)
@@ -322,8 +347,8 @@ C.....Compute ZE, QX, QY, and HB at each edge Gauss quadrature point
                   HB_EX = HB_EX + bed(k,EL_EX,irk,ll)*PHI_EDGE(K,GP_EX,LED_EX,pa)
 
                   MZ_X_IN(ll) = MZ_X_IN(ll) + MZ(K,1,ll,EL_IN)*PHI_EDGE(K,GP_IN,LED_IN,pa)
-                  MZ_Y_IN(ll) = MZ_Y_IN(ll) + MZ(K,2,ll,EL_IN)*PHI_EDGE(K,GP_IN,LED_IN,pa)  
-                  
+                  MZ_Y_IN(ll) = MZ_Y_IN(ll) + MZ(K,2,ll,EL_IN)*PHI_EDGE(K,GP_IN,LED_IN,pa)
+
                   MZ_X_EX(ll) = MZ_X_EX(ll) + MZ(K,1,ll,EL_EX)*PHI_EDGE(K,GP_EX,LED_EX,pa)
                   MZ_Y_EX(ll) = MZ_Y_EX(ll) + MZ(K,2,ll,EL_EX)*PHI_EDGE(K,GP_EX,LED_EX,pa)
                enddo
@@ -331,41 +356,41 @@ C.....Compute ZE, QX, QY, and HB at each edge Gauss quadrature point
 
                                 ! LDG terms
 #ifdef WAVE_DIF
-               HZ_X_IN = HZ_X_IN 
+               HZ_X_IN = HZ_X_IN
      &              + HZ(K,1,1,EL_IN)*PHI_EDGE(K,GP_IN,LED_IN,pa)
-               HZ_Y_IN = HZ_Y_IN 
+               HZ_Y_IN = HZ_Y_IN
      &              + HZ(K,2,2,EL_IN)*PHI_EDGE(K,GP_IN,LED_IN,pa)
-               HZ_X_EX = HZ_X_EX 
+               HZ_X_EX = HZ_X_EX
      &              + HZ(K,1,1,EL_EX)*PHI_EDGE(K,GP_EX,LED_EX,pa)
-               HZ_Y_EX = HZ_Y_EX 
+               HZ_Y_EX = HZ_Y_EX
      &              + HZ(K,2,2,EL_EX)*PHI_EDGE(K,GP_EX,LED_EX,pa)
 #endif
-               LZ_XX_IN = LZ_XX_IN 
+               LZ_XX_IN = LZ_XX_IN
      &              + LZ(K,1,1,EL_IN)*PHI_EDGE(K,GP_IN,LED_IN,pa)
-               LZ_XY_IN = LZ_XY_IN 
+               LZ_XY_IN = LZ_XY_IN
      &              + LZ(K,1,2,EL_IN)*PHI_EDGE(K,GP_IN,LED_IN,pa)
-               LZ_YX_IN = LZ_YX_IN 
+               LZ_YX_IN = LZ_YX_IN
      &              + LZ(K,2,1,EL_IN)*PHI_EDGE(K,GP_IN,LED_IN,pa)
-               LZ_YY_IN = LZ_YY_IN 
+               LZ_YY_IN = LZ_YY_IN
      &              + LZ(K,2,2,EL_IN)*PHI_EDGE(K,GP_IN,LED_IN,pa)
 
-               LZ_XX_EX = LZ_XX_EX 
+               LZ_XX_EX = LZ_XX_EX
      &              + LZ(K,1,1,EL_EX)*PHI_EDGE(K,GP_EX,LED_EX,pa)
-               LZ_XY_EX = LZ_XY_EX 
+               LZ_XY_EX = LZ_XY_EX
      &              + LZ(K,1,2,EL_EX)*PHI_EDGE(K,GP_EX,LED_EX,pa)
-               LZ_YX_EX = LZ_YX_EX 
+               LZ_YX_EX = LZ_YX_EX
      &              + LZ(K,2,1,EL_EX)*PHI_EDGE(K,GP_EX,LED_EX,pa)
-               LZ_YY_EX = LZ_YY_EX 
+               LZ_YY_EX = LZ_YY_EX
      &              + LZ(K,2,2,EL_EX)*PHI_EDGE(K,GP_EX,LED_EX,pa)
 
 #ifdef TRACE
-               TZ_X_IN = TZ_X_IN 
+               TZ_X_IN = TZ_X_IN
      &              + TZ(K,1,1,EL_IN)*PHI_EDGE(K,GP_IN,LED_IN,pa)
-               TZ_Y_IN = TZ_Y_IN 
+               TZ_Y_IN = TZ_Y_IN
      &              + TZ(K,2,2,EL_IN)*PHI_EDGE(K,GP_IN,LED_IN,pa)
-               TZ_X_EX = TZ_X_EX 
+               TZ_X_EX = TZ_X_EX
      &              + TZ(K,1,1,EL_EX)*PHI_EDGE(K,GP_EX,LED_EX,pa)
-               TZ_Y_EX = TZ_Y_EX 
+               TZ_Y_EX = TZ_Y_EX
      &              + TZ(K,2,2,EL_EX)*PHI_EDGE(K,GP_EX,LED_EX,pa)
 
 #endif
@@ -373,7 +398,8 @@ C.....Compute ZE, QX, QY, and HB at each edge Gauss quadrature point
             ENDDO
 
 C.....Compute the numerical flux
-            
+
+            !CALL NUMERICAL_FLUX(IT,test_el)
             call numerical_flux(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
      &  hb_in,hb_ex,sfac_in,sfac_ex,nx,ny,f_hat,g_hat,h_hat)
 
@@ -404,24 +430,32 @@ C......... dummy
             H_HAT_EX = H_HAT
 
 C.....Check if the flux is large enough to dry up the elements
-C.....1.01D0 is a safty factor.
+C.....1.010 is a safty factor.
 
-          IF ( (1.01d0*F_HAT*XLEN_EL_IN*MAX_BOA_DT(IRK).GE.MASS_EL_IN)
-     &          .OR.(1.01d0*F_HAT*XLEN_EL_EX*MAX_BOA_DT(IRK)*(-1.0).GE.
+            large_flux: IF ( (1.010*F_HAT*XLEN_EL_IN*MAX_BOA_DT(IRK).GE.MASS_EL_IN)
+     &           .OR.(1.010*F_HAT*XLEN_EL_EX*MAX_BOA_DT(IRK)*(-1.0).GE.
      &           MASS_EL_EX)) THEN
+
+               is_large_flux = .true.
 
 C......namo 5/22 - modify for rain (source term no longer zero)
 
 C...........Put back the saved RHS
-!$acc loop seq
-               DO K = 1,DOFS(EL)
-                  RHS_ZE(K,EL_IN,IRK) = RHS_ZE_IN(K)
-                  RHS_QX(K,EL_IN,IRK) = RHS_QX_IN(K)
-                  RHS_QY(K,EL_IN,IRK) = RHS_QY_IN(K)
 
-                  RHS_ZE(K,EL_EX,IRK) = RHS_ZE_EX(K)
-                  RHS_QX(K,EL_EX,IRK) = RHS_QX_EX(K)
-                  RHS_QY(K,EL_EX,IRK) = RHS_QY_EX(K)
+               DO K = 1,3
+                  rhs_ze_in = 0.
+                  rhs_qx_in = 0.
+                  rhs_qy_in = 0.
+                  rhs_ze_ex = 0.
+                  rhs_qx_ex = 0.
+                  rhs_qy_ex = 0.
+c$$$                  RHS_ZE(K,EL_IN,IRK) = RHS_ZE_IN(K)
+c$$$                  RHS_QX(K,EL_IN,IRK) = RHS_QX_IN(K)
+c$$$                  RHS_QY(K,EL_IN,IRK) = RHS_QY_IN(K)
+c$$$
+c$$$                  RHS_ZE(K,EL_EX,IRK) = RHS_ZE_EX(K)
+c$$$                  RHS_QX(K,EL_EX,IRK) = RHS_QX_EX(K)
+c$$$                  RHS_QY(K,EL_EX,IRK) = RHS_QY_EX(K)
 
 #ifdef TRACE
                   RHS_iota(K,EL_IN,IRK) = RHS_iota_IN(K)
@@ -449,12 +483,13 @@ C...........Put back the saved RHS
 
                ENDDO
 
-               GOTO 100
-            ENDIF
-            
+               EXIT gauss_point_loop
+
+            ELSE
+
 C........Check to make sure mass flux is not coming from a dry element
 
-            IF (abs(F_HAT).gt.1.d-12) THEN
+            dry_flux: IF (abs(F_HAT).gt.1.d-12) THEN
                !
                IF (WDFLG(EL_IN).EQ.0) THEN
                   ! EL_IN is dry !
@@ -489,7 +524,8 @@ C........Check to make sure mass flux is not coming from a dry element
 
                      HB_IN = HB_EX
                      SFAC_IN = SFAC_EX
-                     call numerical_flux(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
+                     !CALL NUMERICAL_FLUX(IT,test_el)
+            call numerical_flux(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
      &  hb_in,hb_ex,sfac_in,sfac_ex,nx,ny,f_hat,g_hat,h_hat)
 
                      F_HAT_O  = F_HAT
@@ -498,8 +534,8 @@ C........Check to make sure mass flux is not coming from a dry element
 
                      ! on the dry side (in): do nothing
 
-                     G_HAT_IN = 0.0 
-                     H_HAT_IN = 0.0 
+                     G_HAT_IN = 0.0
+                     H_HAT_IN = 0.0
 
 #ifdef TRACE
                      I_HAT_O  = I_HAT
@@ -521,24 +557,19 @@ C........Check to make sure mass flux is not coming from a dry element
 
                   ELSE
                      ! Flux coming from wet side (ex)
-                     ! Leave fluxes on ex side intact and use zero gravity flux for dry side      
-                     NLEQG_TMP = NLEQG
-                     NLEQG = 0.0
-                     G_TMP = G
-                     G = 0.0
-                     call numerical_flux(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
+                     ! Leave fluxes on ex side intact and use zero gravity flux for dry side
+                     !CALL NUMERICAL_FLUX(IT,test_el)
+            call numerical_flux(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
      &  hb_in,hb_ex,sfac_in,sfac_ex,nx,ny,f_hat,g_hat,h_hat)
-                     NLEQG = NLEQG_TMP
-                     G = G_TMP
                      G_HAT_IN = G_HAT
                      H_HAT_IN = H_HAT
 #ifdef SED_LAY
                      bed_HAT_IN(:) = bed_HAT(:)
 #endif
                   ENDIF
-                  
+
                ELSEIF (WDFLG(EL_EX).EQ.0) THEN
-                  
+
                   ! EL_EX is dry
                   IF (F_HAT.LT.0) THEN
                      ! Flux comming from dry size (ex)
@@ -571,7 +602,8 @@ C........Check to make sure mass flux is not coming from a dry element
                      bed_EX(:) = bed_IN(:)
 #endif
 
-                     call numerical_flux(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
+                     !CALL NUMERICAL_FLUX(IT,test_el)
+            call numerical_flux(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
      &  hb_in,hb_ex,sfac_in,sfac_ex,nx,ny,f_hat,g_hat,h_hat)
                      F_HAT_O  = F_HAT
 
@@ -592,24 +624,19 @@ C........Check to make sure mass flux is not coming from a dry element
                      bed_HAT_IN(:) = bed_HAT(:)
                      bed_HAT_EX(:) = bed_HAT(:)
 #endif
-                     
+
                      G_HAT_IN = G_HAT
                      H_HAT_IN = H_HAT
 
                      ! zero out momentum flux on the dry side (ex)
-                     G_HAT_EX = 0.0 
-                     H_HAT_EX = 0.0 
+                     G_HAT_EX = 0.0
+                     H_HAT_EX = 0.0
                   ELSE
                      ! Flux comming from the wet side (in)
-                     ! Leave fluxes on in side intact and use zero gravity for flux for dry (ex) side     
-                     NLEQG_TMP = NLEQG
-                     NLEQG = 0.0
-                     G_TMP = G
-                     G = 0.0
-                     call numerical_flux(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
+                     ! Leave fluxes on in side intact and use zero gravity for flux for dry (ex) side
+                     !CALL NUMERICAL_FLUX(IT,test_el)
+            call numerical_flux(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
      &  hb_in,hb_ex,sfac_in,sfac_ex,nx,ny,f_hat,g_hat,h_hat)
-                     NLEQG = NLEQG_TMP
-                     G = G_TMP
                      G_HAT_EX = G_HAT
                      H_HAT_EX = H_HAT
 #ifdef TRACE
@@ -625,113 +652,116 @@ C........Check to make sure mass flux is not coming from a dry element
 #endif
                   ENDIF
                ENDIF
-            ENDIF
+            ENDIF dry_flux
 
                                 !Let us add some diffusive penalties
 #ifdef WAVE_DIF
-        F_HAT_O = F_HAT_O + 0.5D0*(HZ_X_IN*SFAC_IN+HZ_X_EX*SFAC_EX)*NX +
-     &           0.5D0*(HZ_Y_IN+HZ_Y_EX)*NY
-            !F_HAT_EX = F_HAT_EX + 0.5D0*(HZ_X_IN+HZ_X_EX)*SFAC_IN*NX + 
-            !&           0.5D0*(HZ_Y_EX+HZ_Y_EX)*NY
+        F_HAT_O = F_HAT_O + 0.50*(HZ_X_IN*SFAC_IN+HZ_X_EX*SFAC_EX)*NX +
+     &           0.50*(HZ_Y_IN+HZ_Y_EX)*NY
+            !F_HAT_EX = F_HAT_EX + 0.50*(HZ_X_IN+HZ_X_EX)*SFAC_IN*NX +
+            !&           0.50*(HZ_Y_EX+HZ_Y_EX)*NY
 #endif
-            G_HAT_IN = G_HAT_IN + 0.5D0*(LZ_XX_IN*SFAC_IN + 
+            G_HAT_IN = G_HAT_IN + 0.50*(LZ_XX_IN*SFAC_IN +
      &           LZ_XX_EX*SFAC_EX)*NX
-     &           + 0.5D0*(LZ_XY_IN + LZ_XY_EX)*NY
+     &           + 0.50*(LZ_XY_IN + LZ_XY_EX)*NY
 cnd try adding the penalty term in the LDG method
-      !$           +ESLM*.01D0*(QX_IN-QX_EX)
-            H_HAT_IN = H_HAT_IN + 0.5D0*(LZ_YX_IN*SFAC_IN + 
+      !$           +ESLM*.010*(QX_IN-QX_EX)
+            H_HAT_IN = H_HAT_IN + 0.50*(LZ_YX_IN*SFAC_IN +
      &           LZ_YX_EX*SFAC_EX)*NX
-     &           + 0.5D0*(LZ_YY_IN + LZ_YY_EX)*NY
+     &           + 0.50*(LZ_YY_IN + LZ_YY_EX)*NY
 cnd try adding the penalty term in the LDG method
-      !$           +ESLM*.01D0*(QY_IN-QY_EX)
-            G_HAT_EX = G_HAT_EX + 0.5D0*(LZ_XX_IN*SFAC_IN
+      !$           +ESLM*.010*(QY_IN-QY_EX)
+            G_HAT_EX = G_HAT_EX + 0.50*(LZ_XX_IN*SFAC_IN
      &           + LZ_XX_EX*SFAC_EX)*NX
-     &           + 0.5D0*(LZ_XY_IN + LZ_XY_EX)*NY
+     &           + 0.50*(LZ_XY_IN + LZ_XY_EX)*NY
 cnd try adding the penalty term in the LDG method
-      !$           +ESLM*.01D0*(QX_IN-QX_EX)
-            H_HAT_EX = H_HAT_EX + 0.5D0*(LZ_YX_IN*SFAC_IN
+      !$           +ESLM*.010*(QX_IN-QX_EX)
+            H_HAT_EX = H_HAT_EX + 0.50*(LZ_YX_IN*SFAC_IN
      &           + LZ_YX_EX*SFAC_EX)*NX
-     &           + 0.5D0*(LZ_YY_IN + LZ_YY_EX)*NY
+     &           + 0.50*(LZ_YY_IN + LZ_YY_EX)*NY
 cnd try adding the penalty term in the LDG method
-      !$           +ESLM*.01D0*(QY_IN-QY_EX) 
+      !$           +ESLM*.010*(QY_IN-QY_EX)
 
 #ifdef TRACE
 
-        I_HAT_O = I_HAT_O + 0.5D0*(TZ_X_IN*SFAC_IN+TZ_X_EX*SFAC_EX)*NX +
-     &           0.5D0*(TZ_Y_IN+TZ_Y_EX)*NY
-      !&           +ESLM*.01D0*(iota_IN-iota_EX)
+        I_HAT_O = I_HAT_O + 0.50*(TZ_X_IN*SFAC_IN+TZ_X_EX*SFAC_EX)*NX +
+     &           0.50*(TZ_Y_IN+TZ_Y_EX)*NY
+      !&           +ESLM*.010*(iota_IN-iota_EX)
 
 #endif
-     
+
 
                                 !Let us add some sediment diffusion
 #ifdef SED_LAY
             do ll=1,layers
-               bed_HAT_IN(ll) = bed_HAT_IN(ll) + 0.5D0 * ( (MZ_X_IN(ll)+
+               bed_HAT_IN(ll) = bed_HAT_IN(ll) + 0.50 * ( (MZ_X_IN(ll)+
      &             MZ_X_EX(ll))*SFAC_IN*NX+(MZ_Y_IN(ll)+MZ_Y_EX(ll))*NY)
 
-               bed_HAT_EX(ll) = bed_HAT_EX(ll) + 0.5D0 * ( (MZ_X_IN(ll)+
+               bed_HAT_EX(ll) = bed_HAT_EX(ll) + 0.50 * ( (MZ_X_IN(ll)+
      &             MZ_X_EX(ll))*SFAC_IN*NX+(MZ_Y_IN(ll)+MZ_Y_EX(ll))*NY)
             enddo
 #endif
 
 C.....Compute the edge integral
-!$acc loop seq
-            DO K = 1,DOFS(EL)
-               
+
+            DO K = 1,3
+
                W_IN = EDFAC_IN*EDGEQ(K,GP_IN,LED_IN,pa)
                W_EX = EDFAC_EX*EDGEQ(K,GP_EX,LED_EX,pa)
 
-!$acc atomic
-               RHS_ZE(K,EL_IN,IRK) = RHS_ZE(K,EL_IN,IRK) - W_IN*F_HAT_O
-!$acc atomic
-               RHS_QX(K,EL_IN,IRK) = RHS_QX(K,EL_IN,IRK) - W_IN*G_HAT_IN
-!$acc atomic
-               RHS_QY(K,EL_IN,IRK) = RHS_QY(K,EL_IN,IRK) - W_IN*H_HAT_IN
+c$$$               tmp = atomicAdd(RHS_ZE(K,EL_IN,IRK), -W_IN*F_HAT_O  )
+c$$$               tmp = atomicAdd(RHS_QX(K,EL_IN,IRK), -W_IN*G_HAT_IN)
+c$$$               tmp = atomicAdd(RHS_QY(K,EL_IN,IRK), -W_IN*H_HAT_IN)
+c$$$
+c$$$               tmp = atomicAdd(RHS_ZE(K,EL_EX,IRK), W_EX*F_HAT_O)
+c$$$               tmp = atomicAdd(RHS_QX(K,EL_EX,IRK), W_EX*G_HAT_EX)
+c$$$               tmp = atomicAdd(RHS_QY(K,EL_EX,IRK), W_EX*H_HAT_EX)
 
-!$acc atomic
-               RHS_ZE(K,EL_EX,IRK) = RHS_ZE(K,EL_EX,IRK) + W_EX*F_HAT_O
-!$acc atomic
-               RHS_QX(K,EL_EX,IRK) = RHS_QX(K,EL_EX,IRK) + W_EX*G_HAT_EX
-!$acc atomic
-               RHS_QY(K,EL_EX,IRK) = RHS_QY(K,EL_EX,IRK) + W_EX*H_HAT_EX
+               rhs_ze_in(k) = rhs_ze_in(k) - w_in * f_hat_o
+               rhs_qx_in(k) = rhs_qx_in(k) - w_in * g_hat_in
+               rhs_qy_in(k) = rhs_qy_in(k) - w_in * h_hat_in
 
+               rhs_ze_ex(k) = rhs_ze_ex(k) + w_ex * f_hat_o
+               rhs_qx_ex(k) = rhs_qx_ex(k) + w_ex * g_hat_ex
+               rhs_qy_ex(k) = rhs_qy_ex(k) + w_ex * h_hat_ex
 #ifdef TRACE
 
-            RHS_iota(K,EL_IN,IRK) = RHS_iota(K,EL_IN,IRK) - W_IN*I_HAT_O
-            RHS_iota(K,EL_EX,IRK) = RHS_iota(K,EL_EX,IRK) + W_EX*I_HAT_O
+               RHS_iota(K,EL_IN,IRK) = RHS_iota(K,EL_IN,IRK) - W_IN*I_HAT_O
+               RHS_iota(K,EL_EX,IRK) = RHS_iota(K,EL_EX,IRK) + W_EX*I_HAT_O
 #endif
 
 #ifdef CHEM
-          RHS_iota(K,EL_IN,IRK)  = RHS_iota(K,EL_IN,IRK)  - W_IN*I_HAT_O
-          RHS_iota2(K,EL_IN,IRK) = RHS_iota2(K,EL_IN,IRK) - W_IN*J_HAT_O
-          RHS_iota(K,EL_EX,IRK)  = RHS_iota(K,EL_EX,IRK)  + W_EX*I_HAT_O
-          RHS_iota2(K,EL_EX,IRK) = RHS_iota2(K,EL_EX,IRK) + W_EX*J_HAT_O
+               RHS_iota(K,EL_IN,IRK)  = RHS_iota(K,EL_IN,IRK)  - W_IN*I_HAT_O
+               RHS_iota2(K,EL_IN,IRK) = RHS_iota2(K,EL_IN,IRK) - W_IN*J_HAT_O
+               RHS_iota(K,EL_EX,IRK)  = RHS_iota(K,EL_EX,IRK)  + W_EX*I_HAT_O
+               RHS_iota2(K,EL_EX,IRK) = RHS_iota2(K,EL_EX,IRK) + W_EX*J_HAT_O
 #endif
 
 #ifdef DYNP
-           RHS_dynP(K,EL_IN,IRK) = RHS_dynP(K,EL_IN,IRK) - W_IN*K_HAT_O
-           RHS_dynP(K,EL_EX,IRK) = RHS_dynP(K,EL_EX,IRK) + W_EX*K_HAT_O
+               RHS_dynP(K,EL_IN,IRK) = RHS_dynP(K,EL_IN,IRK) - W_IN*K_HAT_O
+               RHS_dynP(K,EL_EX,IRK) = RHS_dynP(K,EL_EX,IRK) + W_EX*K_HAT_O
 #endif
 
 
 #ifdef SED_LAY
                do ll = 1,layers
                   RHS_bed(K,EL_IN,IRK,ll) = RHS_bed(K,EL_IN,IRK,ll) -
-     & W_IN*bed_HAT_IN(ll)
+     &                 W_IN*bed_HAT_IN(ll)
                   RHS_bed(K,EL_EX,IRK,ll) = RHS_bed(K,EL_EX,IRK,ll) +
-     & W_EX*bed_HAT_EX(ll)
+     &                 W_EX*bed_HAT_EX(ll)
                enddo
 #endif
 
             ENDDO
 
-         ENDDO
 
-         GOTO 1000
+      ENDIF large_flux
 
- 100     CONTINUE
+      ENDDO gauss_point_loop
 
+ !100     CONTINUE
+
+      if (is_large_flux) then
 C--------------------------------------------------------------------
 C     Compute reflection flux
 C--------------------------------------------------------------------
@@ -742,7 +772,7 @@ C.....Set the components for the tangential vector to the edge
          TY =  NX
 
 C.....Compute ZE, QX, QY, bed, and HB at each edge Gauss quadrature point
-!$acc loop seq
+
          DO I = 1,NEGP(pa)
 
             GP_IN = I
@@ -750,9 +780,9 @@ C.....Compute ZE, QX, QY, bed, and HB at each edge Gauss quadrature point
 
 C     ----------------------------- EL_IN ------------------------------
 
-            ZE_IN = ZE(1,EL_IN,IRK)
-            QX_IN = QX(1,EL_IN,IRK)
-            QY_IN = QY(1,EL_IN,IRK)
+            ZE_IN = ZE_ins(1)
+            QX_IN = QX_ins(1)
+            QY_IN = QY_ins(1)
             HB_IN = BATHED(GP_IN,LED_IN,EL_IN,pa)
 
             SFAC_IN = SFACED(GP_IN,LED_IN,EL_IN,pa)
@@ -778,7 +808,7 @@ C     ----------------------------- EL_IN ------------------------------
 
                !sediment diffusion
                MZ_X_IN(ll) = MZ(1,1,ll,EL_IN)
-               MZ_Y_IN(ll) = MZ(1,2,ll,EL_IN)  
+               MZ_Y_IN(ll) = MZ(1,2,ll,EL_IN)
             enddo
             HB_IN = HB(1,EL_IN,irk)
 #endif
@@ -799,12 +829,12 @@ C     ----------------------------- EL_IN ------------------------------
             TZ_Y_IN = TZ(1,2,2,EL_IN)
 
 #endif
-!$acc loop seq
-            DO K = 2,DOFS(EL)
 
-               ZE_IN = ZE_IN + ZE(K,EL_IN,IRK)*PHI_EDGE(K,GP_IN,LED_IN,pa)
-               QX_IN = QX_IN + QX(K,EL_IN,IRK)*PHI_EDGE(K,GP_IN,LED_IN,pa)
-               QY_IN = QY_IN + QY(K,EL_IN,IRK)*PHI_EDGE(K,GP_IN,LED_IN,pa)
+            DO K = 2,3
+
+               ZE_IN = ZE_IN + ZE_ins(K)*PHI_EDGE(K,GP_IN,LED_IN,pa)
+               QX_IN = QX_IN + QX_ins(K)*PHI_EDGE(K,GP_IN,LED_IN,pa)
+               QY_IN = QY_IN + QY_ins(K)*PHI_EDGE(K,GP_IN,LED_IN,pa)
 
 #ifdef TRACE
                iota_IN = iota_IN + iota(K,EL_IN,IRK)*PHI_EDGE(K,GP_IN,LED_IN,PA)
@@ -823,9 +853,9 @@ C     ----------------------------- EL_IN ------------------------------
                do ll=1,layers
                   bed_IN(ll) = bed_IN(ll) + bed(k,EL_IN,irk,ll)*PHI_EDGE(K,GP_IN,LED_IN,pa)
                   HB_IN = HB_IN + bed(k,EL_IN,irk,ll)*PHI_EDGE(K,GP_IN,LED_IN,pa)
-                  
+
                   MZ_X_IN(ll) = MZ_X_IN(ll) + MZ(K,1,ll,EL_IN)*PHI_EDGE(K,GP_IN,LED_IN,pa)
-                  MZ_Y_IN(ll) = MZ_Y_IN(ll) + MZ(K,2,ll,EL_IN)*PHI_EDGE(K,GP_IN,LED_IN,pa)  
+                  MZ_Y_IN(ll) = MZ_Y_IN(ll) + MZ(K,2,ll,EL_IN)*PHI_EDGE(K,GP_IN,LED_IN,pa)
                enddo
 #endif
                                 ! LDG terms
@@ -893,16 +923,12 @@ C.....Compute the x and y components of the external state flow
 C.....Compute the numerical flux
 
             IF(WDFLG(EL_IN).EQ.0) THEN
-               NLEQG_TMP = NLEQG
-               NLEQG = 0.0
-               G_TMP = G
-               G = 0.0
-               call numerical_flux(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
+               !CALL NUMERICAL_FLUX(IT,test_el)
+            call numerical_flux(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
      &  hb_in,hb_ex,sfac_in,sfac_ex,nx,ny,f_hat,g_hat,h_hat)
-               NLEQG = NLEQG_TMP
-               G = G_TMP
             ELSE
-               call numerical_flux(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
+               !CALL NUMERICAL_FLUX(IT,test_el)
+            call numerical_flux(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
      &  hb_in,hb_ex,sfac_in,sfac_ex,nx,ny,f_hat,g_hat,h_hat)
             ENDIF
             F_HAT = 0.0        ! Ensure zero mass flux
@@ -929,23 +955,23 @@ C.....Add LDG terms for sediment diffusion
 
 #ifdef SED_LAY
             do ll=1,layers
-               bed_HAT(ll) = bed_HAT(ll) + MZ_X_IN(ll)*SFAC_IN*NX 
+               bed_HAT(ll) = bed_HAT(ll) + MZ_X_IN(ll)*SFAC_IN*NX
      &              + MZ_Y_IN(ll)*NY
             enddo
 #endif
 
 C.....Compute the edge integral
-!$acc loop seq
-            DO K = 1,DOFS(EL)
+            DO K = 1,3
 
                W_IN = EDFAC_IN*EDGEQ(K,GP_IN,LED_IN,pa)
 
-!$acc atomic
-               RHS_ZE(K,EL_IN,IRK) = RHS_ZE(K,EL_IN,IRK) - W_IN*F_HAT
-!$acc atomic
-               RHS_QX(K,EL_IN,IRK) = RHS_QX(K,EL_IN,IRK) - W_IN*G_HAT
-!$acc atomic
-               RHS_QY(K,EL_IN,IRK) = RHS_QY(K,EL_IN,IRK) - W_IN*H_HAT
+c$$$               tmp = atomicAdd(RHS_ZE(K,EL_IN,IRK) , -W_IN*F_HAT)
+c$$$               tmp = atomicAdd(RHS_QX(K,EL_IN,IRK) , -W_IN*G_HAT)
+c$$$               tmp = atomicAdd(RHS_QY(K,EL_IN,IRK) , -W_IN*H_HAT)
+               rhs_ze_in(k) = rhs_ze_in(k) - w_in * f_hat
+               rhs_qx_in(k) = rhs_qx_in(k) - w_in * g_hat
+               rhs_qy_in(k) = rhs_qy_in(k) - w_in * h_hat
+
 
 #ifdef TRACE
              RHS_iota(K,EL_IN,IRK) = RHS_iota(K,EL_IN,IRK) - W_IN*I_HAT
@@ -971,11 +997,10 @@ C.....Compute the edge integral
 
 C     ----------------------------- EL_EX ------------------------------
 
-            ZE_EX = ZE(1,EL_EX,IRK)
-            QX_EX = QX(1,EL_EX,IRK)
-            QY_EX = QY(1,EL_EX,IRK)
+            ZE_EX = ZE_exs(1)
+            QX_EX = QX_exs(1)
+            QY_EX = QY_exs(1)
             HB_EX = BATHED(GP_EX,LED_EX,EL_EX,pa)
-
             SFAC_EX = SFACED(GP_EX,LED_EX,EL_EX,pa)
 
 #ifdef TRACE
@@ -998,7 +1023,7 @@ C     ----------------------------- EL_EX ------------------------------
                HB(1,EL_EX,irk) = HB(1,EL_EX,irk) + bed(1,EL_EX,irk,ll)
                !sediment diffusion
                MZ_X_EX(ll) = MZ(1,1,ll,EL_EX)
-               MZ_Y_EX(ll) = MZ(1,2,ll,EL_EX)  
+               MZ_Y_EX(ll) = MZ(1,2,ll,EL_EX)
             enddo
             HB_EX = HB(1,EL_EX,irk)
 #endif
@@ -1020,12 +1045,11 @@ C     ----------------------------- EL_EX ------------------------------
 
 #endif
 
-!$acc loop seq
-            DO K = 2,DOFS(EL)
+            DO K = 2,3
 
-               ZE_EX = ZE_EX + ZE(K,EL_EX,IRK)*PHI_EDGE(K,GP_EX,LED_EX,pa)
-               QX_EX = QX_EX + QX(K,EL_EX,IRK)*PHI_EDGE(K,GP_EX,LED_EX,pa)
-               QY_EX = QY_EX + QY(K,EL_EX,IRK)*PHI_EDGE(K,GP_EX,LED_EX,pa)
+               ZE_EX = ZE_EX + ZE_exs(K)*PHI_EDGE(K,GP_EX,LED_EX,pa)
+               QX_EX = QX_EX + QX_exs(K)*PHI_EDGE(K,GP_EX,LED_EX,pa)
+               QY_EX = QY_EX + QY_exs(K)*PHI_EDGE(K,GP_EX,LED_EX,pa)
 
 #ifdef TRACE
                iota_EX = iota_EX + iota(K,EL_EX,IRK)*PHI_EDGE(K,GP_EX,LED_EX,pa)
@@ -1044,9 +1068,9 @@ C     ----------------------------- EL_EX ------------------------------
                do ll=1,layers
                   bed_EX(ll) = bed_EX(ll) + bed(k,EL_EX,irk,ll)*PHI_EDGE(K,GP_EX,LED_EX,pa)
                   HB_EX = HB_EX + bed(k,EL_EX,irk,ll)*PHI_EDGE(K,GP_EX,LED_EX,pa)
-                  
+
                   MZ_X_EX(ll) = MZ_X_EX(ll) + MZ(K,1,ll,EL_EX)*PHI_EDGE(K,GP_EX,LED_EX,pa)
-                  MZ_Y_EX(ll) = MZ_Y_EX(ll) + MZ(K,2,ll,EL_EX)*PHI_EDGE(K,GP_EX,LED_EX,pa) 
+                  MZ_Y_EX(ll) = MZ_Y_EX(ll) + MZ(K,2,ll,EL_EX)*PHI_EDGE(K,GP_EX,LED_EX,pa)
                enddo
 #endif
 
@@ -1075,7 +1099,7 @@ C     ----------------------------- EL_EX ------------------------------
 
 #endif
 
-                                ! LDG terms for sediment diffusion               
+                                ! LDG terms for sediment diffusion
 
             ENDDO
 
@@ -1120,16 +1144,12 @@ C.....Compute the x and y components of the external state flow
 C.....Compute the numerical flux
 
             IF(WDFLG(EL_EX).EQ.0) THEN
-               NLEQG_TMP = NLEQG
-               NLEQG = 0.0
-               G_TMP = G
-               G = 0.0
-               call numerical_flux(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
+               !CALL NUMERICAL_FLUX(IT,test_el)
+            call numerical_flux(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
      &  hb_in,hb_ex,sfac_in,sfac_ex,nx,ny,f_hat,g_hat,h_hat)
-               NLEQG = NLEQG_TMP
-               G = G_TMP
             ELSE
-               call numerical_flux(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
+               !CALL NUMERICAL_FLUX(IT,test_el)
+            call numerical_flux(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
      &  hb_in,hb_ex,sfac_in,sfac_ex,nx,ny,f_hat,g_hat,h_hat)
             ENDIF
             F_HAT = 0.0        ! Ensure zero mass flux
@@ -1155,23 +1175,22 @@ C.....Add LDG terms for sediment diffusion
 
 #ifdef SED_LAY
             do ll=1,layers
-               bed_HAT(ll) = bed_HAT(ll) + MZ_X_EX(ll)*SFAC_EX*NX 
+               bed_HAT(ll) = bed_HAT(ll) + MZ_X_EX(ll)*SFAC_EX*NX
      &              + MZ_Y_EX(ll)*NY
             enddo
 #endif
 
 C.....Compute the edge integral
-!$acc loop seq
-            DO K = 1,DOFS(EL)
+            DO K = 1,3
 
                W_EX = EDFAC_EX*EDGEQ(K,GP_EX,LED_EX,pa)
 
-!$acc atomic
-               RHS_ZE(K,EL_EX,IRK) = RHS_ZE(K,EL_EX,IRK) + W_EX*F_HAT
-!$acc atomic
-               RHS_QX(K,EL_EX,IRK) = RHS_QX(K,EL_EX,IRK) + W_EX*G_HAT
-!$acc atomic
-               RHS_QY(K,EL_EX,IRK) = RHS_QY(K,EL_EX,IRK) + W_EX*H_HAT
+c$$$               tmp = atomicAdd(RHS_ZE(K,EL_EX,IRK), W_EX*F_HAT)
+c$$$               tmp = atomicAdd(RHS_QX(K,EL_EX,IRK), W_EX*G_HAT)
+c$$$               tmp = atomicAdd(RHS_QY(K,EL_EX,IRK), W_EX*H_HAT)
+               rhs_ze_ex(k) = rhs_ze_ex(k) + w_ex * f_hat
+               rhs_qx_ex(k) = rhs_qx_ex(k) + w_ex * g_hat
+               rhs_qy_ex(k) = rhs_qy_ex(k) + w_ex * h_hat
 
 #ifdef TRACE
               RHS_iota(K,EL_EX,IRK) = RHS_iota(K,EL_EX,IRK) + W_EX*I_HAT
@@ -1196,8 +1215,82 @@ C.....Compute the edge integral
             ENDDO
 
          ENDDO
-         
- 1000 CONTINUE
 
-      RETURN
+      endif
+
+
+      ind_ex = -1
+      ind_in = -1
+      do k = 1,3
+         if (elem_edge(el_ex, k) == ged) then
+            ind_ex = k
+         endif
+         if (elem_edge(el_in, k) == ged) then
+            ind_in = k
+         endif
+      enddo
+
+
+      do k = 1,3
+         ze_edge(el_ex,ind_ex,k) = rhs_ze_ex(k)
+         qx_edge(el_ex,ind_ex,k) = rhs_qx_ex(k)
+         qy_edge(el_ex,ind_ex,k) = rhs_qy_ex(k)
+
+         ze_edge(el_in,ind_in,k) = rhs_ze_in(k)
+         qx_edge(el_in,ind_in,k) = rhs_qx_in(k)
+         qy_edge(el_in,ind_in,k) = rhs_qy_in(k)
+      enddo
+
+
+
+
+
+c$$$      do k = 1,DOFS(EL)
+c$$$         tmp = atomicAdd(RHS_ZE(K,EL_EX,IRK), rhs_ze_ex(k))
+c$$$         tmp = atomicAdd(RHS_QX(K,EL_EX,IRK), rhs_qx_ex(k))
+c$$$         tmp = atomicAdd(RHS_QY(K,EL_EX,IRK), rhs_qy_ex(k))
+c$$$
+c$$$         tmp = atomicAdd(RHS_ZE(K,EL_in,IRK), rhs_ze_in(k))
+c$$$         tmp = atomicAdd(RHS_QX(K,EL_in,IRK), rhs_qx_in(k))
+c$$$         tmp = atomicAdd(RHS_QY(K,EL_in,IRK), rhs_qy_in(k))
+c$$$      enddo
+
+
+      enddo
+
       END SUBROUTINE
+
+      subroutine add_internal_flux()
+      implicit none
+
+
+      real(sz) :: ze_sum, qx_sum, qy_sum
+      integer :: l, k, i
+
+      do l = 1,NE
+         do k = 1,3
+            ze_sum = 0.
+            qx_sum = 0.
+            qy_sum = 0.
+            do i = 1,3
+               ze_sum = ze_sum + ze_edge(L,i,k)
+               qx_sum = qx_sum + qx_edge(L,i,k)
+               qy_sum = qy_sum + qy_edge(L,i,k)
+            enddo
+
+            rhs_ze(k,L, IRK) = rhs_ze(k,L, IRK) + ze_sum
+            rhs_qx(k,L, IRK) = rhs_qx(k,L, IRK) + qx_sum
+            rhs_qy(k,L, IRK) = rhs_qy(k,L, IRK) + qy_sum
+         enddo
+
+         ze_edge(L,:,:) = 0.
+         qx_edge(L,:,:) = 0.
+         qy_edge(L,:,:) = 0.
+
+      enddo
+
+
+
+      end subroutine
+
+      end module internal_edge_dg

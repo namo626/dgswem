@@ -27,6 +27,7 @@ C.....Use appropriate modules
       
       USE GLOBAL
       USE DG
+      use internal_edge_dg
 
 #ifdef CMPI
       USE MESSENGER_ELEM 
@@ -228,6 +229,7 @@ C.......Compute external barrier edges
 C.......Compute internal edges
 
          CALL INTERNAL_EDGE_HYDRO(IT)
+         call add_internal_flux()
 
 C.......Compute elements to finish building the rhs
          

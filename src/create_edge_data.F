@@ -50,7 +50,7 @@ C--
       INTEGER I1, I2, I3, II, LED(2,3)
       INTEGER NED1, NED2, NED3, NED4, NED5, NED6
       INTEGER NERR, NN1, NN2
-      INTEGER IC1, IC2, IC3
+      INTEGER IC1, IC2, IC3, led_in, led_ex
       INTEGER IERROR
 
 C.....Compute maximum number of edges
@@ -612,6 +612,24 @@ C.....Construct global edge to local edge (1,2, or 3) table
           ENDIF
         ENDDO
       ENDDO
+! create a map : which global internal edge belongs to an element
+      nieds_count = 1
+      elem_edge = -1
+      do i = 1,nieds
+         GED = NIEDN(i)
+         LED_IN = NEDSD(1,GED)
+         LED_EX = NEDSD(2,GED)
+
+C.......Retrieve the elements which share the edge
+
+         EL_IN = NEDEL(1,GED)
+         EL_EX = NEDEL(2,GED)
+
+         elem_edge(el_in, nieds_count(el_in)) = ged
+         nieds_count(el_in) = nieds_count(el_in) + 1
+         elem_edge(el_ex, nieds_count(el_ex)) = ged
+         nieds_count(el_ex) = nieds_count(el_ex) + 1
+      enddo
 
       RETURN
       END SUBROUTINE CREATE_EDGE_DATA
