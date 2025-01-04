@@ -43,7 +43,7 @@ C.....Write out results
 #endif
 #endif
 
-      CALL SCRUTINIZE_SOLUTION()
+      CALL SCRUTINIZE_SOLUTION(IT)
 
       RETURN
       END SUBROUTINE

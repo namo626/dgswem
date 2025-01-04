@@ -66,3 +66,56 @@ ifeq ($(compiler),nvhpc)   # NVIDIA
   LIBS  	:=  -L ../metis  -lmetis
   MSGLIBS	:=
 endif
+
+ifeq ($(compiler),aocc)   # AMD
+  sz            := 8
+  ifeq ($(sz),8)
+    RFLAG = -fdefault-real-8
+  endif
+  PPFC	        :=  flang
+  FC	        :=  flang
+  PFC	        :=  mpif90
+  FFLAGS1	:=  $(RFLAG) -g -O3 -march=native -ffixed-line-length-132
+  FFLAGS2	:=  $(FFLAGS1)
+  FFLAGS3	:=  $(FFLAGS1)
+  FFLAGS4	:=  $(FFLAGS1)
+  DA  	        :=  -DREAL$(sz) -DLINUX -DCSCA -DRKSSP -DSLOPE5
+  DP  	        :=  -DREAL$(sz) -DLINUX -DCSCA -DCMPI -DRKSSP -DSLOPE5
+  DPRE	        :=  -DREAL$(sz) -DLINUX -DRKSSP -DSLOPE5
+  DPRE2         :=  -DREAL$(sz) -DLINUX -DCMPI
+  IMODS 	:=  -I
+  CC            :=  clang
+  CXX    := clang++
+  CXXFLAGS := -O3 -g
+  CFLAGS        :=  -O3 -I.  -DLINUX
+  LIBS  	:=  -L ../metis  -lmetis
+  MSGLIBS	:=
+endif
+
+ifeq ($(compiler),gnu)   # AMD
+  sz            := 8
+  ifeq ($(sz),8)
+    RFLAG = -fdefault-real-8 -fdefault-double-8
+  else
+    RFLAG = -freal-8-real-4
+  endif
+  PPFC	        :=  gfortran
+  FC	        :=  gfortran
+  PFC	        :=  mpif90
+  FFLAGS1	:= $(RFLAG) -g -O3 -march=native -ffixed-line-length-132 -std=legacy -fallow-argument-mismatch
+  FFLAGS2	:=  $(FFLAGS1)
+  FFLAGS3	:=  $(FFLAGS1)
+  FFLAGS4	:=  $(FFLAGS1)
+  DA  	        :=  -DREAL$(sz) -DLINUX -DCSCA -DRKSSP -DSLOPE5
+  DP  	        :=  -DREAL$(sz) -DLINUX -DCSCA -DCMPI -DRKSSP -DSLOPE5
+  DPRE	        :=  -DREAL$(sz) -DLINUX -DRKSSP -DSLOPE5
+  DPRE2         :=  -DREAL$(sz) -DLINUX -DCMPI
+  IMODS 	:=  -I
+  MODULES = -J
+  CC            :=  gcc
+  CXX    := g++
+  CXXFLAGS := -O3 -g
+  CFLAGS        :=  -O3 -I.  -DLINUX
+  LIBS  	:=  -L ../metis  -lmetis
+  MSGLIBS	:=
+endif

@@ -157,17 +157,17 @@ SWAN_OBJ:= $(patsubst %.f90, $(O_DIR)%.o, $(SWAN_OBJ) )
 $(O_DIR)%.o  : %.F
 #  @echo depend $<
 #  @echo target $@
-	$(CF) -c $(FFLAGS) -o $@  $< -module $(O_DIR)
+	$(CF) -c $(FFLAGS) -o $@  $< $(MODULES) $(O_DIR)
 
 #Casey 121126: Changed the f90 files to F90 extension to avoid conflict with SWAN.
 $(O_DIR)%.o  : %.F90
-	$(CF) -c $(FFLAGS) -o $@  $< -module $(O_DIR)
+	$(CF) -c $(FFLAGS) -o $@  $< $(MODULES) $(O_DIR)
 
 #Casey 121126: Added the following rules for the unstructured SWAN.
 $(O_DIR)%.o  : %.f
-	$(CF) -c $(FLAGS_OPT) $(FLAGS_MSC) $(FLAGS_SER) -module $(O_DIR) -o $@  $< -module $(O_DIR)
+	$(CF) -c $(FLAGS_OPT) $(FLAGS_MSC) $(FLAGS_SER) $(MODULES) $(O_DIR) -o $@  $< $(MODULES) $(O_DIR)
 $(O_DIR)%.o  : %.f90
-	$(CF) -c $(FLAGS_OPT) $(FLAGS_MSC) $(FLAGS_SER) -module $(O_DIR) -o $@  $< -module $(O_DIR)
+	$(CF) -c $(FLAGS_OPT) $(FLAGS_MSC) $(FLAGS_SER) $(MODULES) $(O_DIR) -o $@  $< $(MODULES) $(O_DIR)
 
 $(O_DIR)%.o  : %.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
@@ -236,7 +236,7 @@ endif
 ########################## Misc Commands ####################################
 
 clean:
-	 rm -f odir*/*.o  odir*/*.mod adcprep adcpost dgswem_serial dgswem
+	 rm -f *.mod odir*/*.o  odir*/*.mod adcprep adcpost dgswem_serial dgswem
 clobber:
 	rm -r -f odir*
 	rm -f  graphchk adcprep adcprep2 adcpost dgswem_serial dgswem swemswan dgswemswan \
@@ -313,43 +313,43 @@ $(O_DIR)couple2swan.o                   :  couple2swan.F $(ADC_MOBJ)
 $(O_DIR)read_fort_dg.o                   :  read_fort_dg.F90 $(O_DIR)sizes.o $(O_DIR)dg.o $(O_DIR)global.o
 
 $(O_DIR)precipitation.o                 :  precipitation.F $(ADC_MOBJ) $(O_DIR)vortex.o
-$(O_DIR)owi_rain.o                      :  owi_rain.F $(ADC_MOBJ)
+$(O_DIR)owi_rain.o                      :  owi_rain.F $(ADC_MOBJ) $(MSG_MOBJ)
 #  adcirc & padcirc
 
-$(O_DIR)owiwind.o   			:  owiwind.F $(ADC_MOBJ)
+$(O_DIR)owiwind.o   			:  owiwind.F $(ADC_MOBJ) $(MSG_MOBJ)
 $(O_DIR)read_input.o  			:  read_input.F $(ADC_MOBJ) $(HARM_MOBJ) $(WIND_MOBJ)
 $(O_DIR)cstart.o      			:  cstart.F $(ADC_MOBJ)  $(HARM_MOBJ)  $(WIND_MOBJ)
 $(O_DIR)hstart.o      			:  hstart.F $(ADC_MOBJ)  $(HARM_MOBJ)  $(WIND_MOBJ)
-$(O_DIR)dgswem.o      			:  dgswem.F $(ADC_MOBJ)  $(HARM_MOBJ) $(WIND_MOBJ) $(OWIRAIN_MOBJ)
+$(O_DIR)dgswem.o      			:  dgswem.F $(ADC_MOBJ)  $(HARM_MOBJ) $(WIND_MOBJ) $(OWIRAIN_MOBJ) $(MSG_MOBJ)
 $(O_DIR)calc_normal.o         	:  calc_normal.F $(ADC_MOBJ)
-$(O_DIR)create_edge_data.o    	:  create_edge_data.F $(ADC_MOBJ) $(C_MOBJ) $(O_DIR)count_edges.o
+$(O_DIR)create_edge_data.o    	:  create_edge_data.F $(ADC_MOBJ) $(C_MOBJ) $(O_DIR)count_edges.o $(MSG_MOBJ)
 $(O_DIR)detector.o	      	:  detector.F $(ADC_MOBJ) $(FLUX_MOBJ)
-$(O_DIR)DG_timestep.o         	:  DG_timestep.F $(ADC_MOBJ)
-$(O_DIR)DG_hydro_timestep.o   	:  DG_hydro_timestep.F $(ADC_MOBJ)
+$(O_DIR)DG_timestep.o         	:  DG_timestep.F $(ADC_MOBJ) $(MSG_MOBJ)
+$(O_DIR)DG_hydro_timestep.o   	:  DG_hydro_timestep.F $(ADC_MOBJ) $(MSG_MOBJ)
 $(O_DIR)edge_int_hydro.o      	:  edge_int_hydro.F $(ADC_MOBJ)
 $(O_DIR)flow_edge_hydro.o     	:  flow_edge_hydro.F $(ADC_MOBJ) $(FLUX_MOBJ)
 $(O_DIR)internal_edge_hydro.o 	:  internal_edge_hydro.F $(ADC_MOBJ) $(FLUX_MOBJ)
 $(O_DIR)land_edge_hydro.o     	:  land_edge_hydro.F $(ADC_MOBJ) $(FLUX_MOBJ)
 $(O_DIR)ocean_edge_hydro.o    	:  ocean_edge_hydro.F $(ADC_MOBJ) $(FLUX_MOBJ)
 $(O_DIR)orthogonal_basis_v1.o   :  orthogonal_basis_v1.F $(ADC_MOBJ)
-$(O_DIR)p_enrichment.o     	:  p_enrichment.F $(ADC_MOBJ)
-$(O_DIR)prep_DG.o             	:  prep_DG.F $(ADC_MOBJ)
+$(O_DIR)p_enrichment.o     	:  p_enrichment.F $(ADC_MOBJ) $(MSG_MOBJ)
+$(O_DIR)prep_DG.o             	:  prep_DG.F $(ADC_MOBJ) $(MSG_MOBJ)
 $(O_DIR)quadrature_v1.o         :  quadrature_v1.F $(ADC_MOBJ)
 $(O_DIR)quad_rules_general.o     :  quad_rules_general.F $(ADC_MOBJ)
-$(O_DIR)read_input.o          	:  read_input.F $(ADC_MOBJ)
+$(O_DIR)read_input.o          	:  read_input.F $(ADC_MOBJ) $(MSG_MOBJ)
 $(O_DIR)rhs_dg_hydro.o        	:  rhs_dg_hydro.F $(ADC_MOBJ) $(FLUX_MOBJ) $(RAIN_MOBJ)
 $(O_DIR)numerical_flux.o      	:  numerical_flux.F $(ADC_MOBJ)
 $(O_DIR)radiation_edge_hydro.o	:  radiation_edge_hydro.F $(ADC_MOBJ) $(FLUX_MOBJ)
 $(O_DIR)tidal_potential.o     	:  tidal_potential.F $(ADC_MOBJ)
 $(O_DIR)ibarrier_edge_hydro.o 	:  ibarrier_edge_hydro.F $(ADC_MOBJ) $(FLUX_MOBJ)
 $(O_DIR)ebarrier_edge_hydro.o       :  ebarrier_edge_hydro.F $(ADC_MOBJ) $(FLUX_MOBJ)
-$(O_DIR)write_results.o             :  write_results.F $(ADC_MOBJ) $(RAIN_MOBJ)
+$(O_DIR)write_results.o             :  write_results.F $(ADC_MOBJ) $(RAIN_MOBJ) $(MSG_MOBJ)
 $(O_DIR)pdg_debug.o                 :  pdg_debug.F  $(ADC_MOBJ) $(MSG_MOBJ)
 $(O_DIR)ghost_internal_edge_hydro.o :  ghost_internal_edge_hydro.F  $(ADC_MOBJ) $(MSG_MOBJ)
-$(O_DIR)slopelimiter.o              :  slopelimiter.F  $(ADC_MOBJ)
+$(O_DIR)slopelimiter.o              :  slopelimiter.F  $(ADC_MOBJ) $(MSG_MOBJ)
 $(O_DIR)prep_slopelim.o             :  prep_slopelim.F  $(ADC_MOBJ)
 $(O_DIR)wetdry.o                    :  wetdry.F  $(ADC_MOBJ)
-$(O_DIR)LDG_hydro.o                 :  LDG_hydro.F  $(ADC_MOBJ) $(FLUX_MOBJ)
+$(O_DIR)LDG_hydro.o                 :  LDG_hydro.F  $(ADC_MOBJ) $(FLUX_MOBJ) $(MSG_MOBJ)
 $(O_DIR)met_forcing.o               :  met_forcing.F  $(ADC_MOBJ) $(WIND_MOBJ)
 $(O_DIR)sta_basis.o                 :  sta_basis.F  $(ADC_MOBJ)
 $(O_DIR)modal2nodal.o               :  modal2nodal.F  $(ADC_MOBJ)
