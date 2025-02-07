@@ -3235,8 +3235,8 @@ C***********************************************************************
       REAL(sz), SAVE, DIMENSION(4) :: r
       REAL(sz), SAVE :: Pn
       REAL(sz), SAVE :: Pc
-      REAL(sz), SAVE :: cLat
-      REAL(sz), SAVE :: cLon
+      REAL(sz) :: cLat
+      REAL(sz) :: cLon
       REAL(sz), SAVE :: Rmax, Vmax
       REAL(SZ), SAVE :: told
       ! save parameters for each node
@@ -3614,15 +3614,15 @@ c      endif
       cLon  =  lon(icyc-1)  +
      &                         wtratio * (lon(icyc)-lon(icyc-1))
       ! locate each node based on the latest hurricane center location
-!$cuf kernel do <<< *, 128 >>>
-      do i=1,np
-         dx = deg2rad * Rearth * (xcoor(i) - cLon)*COS(deg2rad*cLat)
-         dy = deg2rad * Rearth * (ycoor(i) - cLat)
-         dist(i) = SQRT(dx*dx + dy*dy)* m2nm
-         aziangle(i) = 360.0 + rad2deg * ATAN2(dx,dy)
-         IF (aziangle(i) > 360.0) aziangle(i) = aziangle(i) - 360.0
-      enddo
-      istat = cudaDeviceSynchronize()
+c$$$!$cuf kernel do <<< *, 128 >>>
+c$$$      do i=1,np
+c$$$         dx = deg2rad * Rearth * (xcoor(i) - cLon)*COS(deg2rad*cLat)
+c$$$         dy = deg2rad * Rearth * (ycoor(i) - cLat)
+c$$$         dist(i) = SQRT(dx*dx + dy*dy)* m2nm
+c$$$         !aziangle(i) = 360.0 + rad2deg * ATAN2(dx,dy)
+c$$$         IF (aziangle(i) > 360.0) aziangle(i) = aziangle(i) - 360.0
+c$$$      enddo
+c$$$      istat = cudaDeviceSynchronize()
  ! set parameters at icyc-1
  !        call setQuadFlag4(reshape(quadflag(icyc-1,:,:),(/4,4/)))
  !        call setQuadIr4(reshape(ir(icyc-1,:,:),(/4,4/)))
@@ -3643,6 +3643,11 @@ c      endif
  !    &                   ' CycleTime=', CycleTime(icyc-1)
 !$cuf kernel do <<< *, 128 >>>
       do i=1,np
+         dx = deg2rad * Rearth * (xcoor(i) - cLon)*COS(deg2rad*cLat)
+         dy = deg2rad * Rearth * (ycoor(i) - cLat)
+         dist(i) = SQRT(dx*dx + dy*dy)* m2nm
+         !aziangle(i) = 360.0 + rad2deg * ATAN2(dx,dy)
+         IF (aziangle(i) > 360.0) aziangle(i) = aziangle(i) - 360.0
          crmaxw1(i) = spInterp(aziangle(i),dist(i),1)
          crmaxwTrue1(i) = spInterp(aziangle(i),1.0,1)
          !an artificial number 1.0 is chosen to ensure only
