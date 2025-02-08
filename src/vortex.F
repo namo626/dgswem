@@ -95,7 +95,7 @@
                                                  ! points for curve fit
       REAL(sz), DIMENSION(nPoints) :: Rmaxes     ! Radius of maximum winds
       !REAL(sz), DIMENSION(nPoints,4) :: Rmaxes4  ! (nautical miles)
-      REAL(sz), allocatable, managed :: Rmaxes4(:,:)  ! (nautical miles)
+      REAL(sz), constant :: Rmaxes4(6,4)  ! (nautical miles)
       REAL(sz) :: Pn                          ! Ambient surface pressure (mb)
       REAL(sz) :: Pc                          ! Surface pressure at center of
                                               ! storm (mb)
@@ -113,14 +113,15 @@
       REAL(sz), DIMENSION(nPoints) :: Phis    ! Correction factor to B and Vh
       REAL(sz), DIMENSION(nPoints) :: VmBL
       !REAL(sz), DIMENSION(nPoints,4) :: Bs4
-      REAL(sz), allocatable, managed :: Bs4(:,:)
+      REAL(sz), constant :: Bs4(6,4)
       REAL(sz), DIMENSION(nPoints,4) :: Phis4    ! Correction factor to B and Vh
       !REAL(sz), DIMENSION(nPoints,4) :: VmBL4
-      REAL(sz), allocatable, managed :: VmBL4(:,:)
+      REAL(sz), constant :: VmBL4(6,4)
 c$$$      INTEGER,  DIMENSION(nPoints,4) :: QuadFlag4
 c$$$      REAL(sz), DIMENSION(nPoints,4) :: QuadIr4
-      INTEGER,  allocatable, managed :: QuadFlag4(:,:)
-      REAL(sz), allocatable, managed :: QuadIr4(:,:)
+      !INTEGER,  allocatable, managed :: QuadFlag4(:,:)
+      INTEGER,  constant :: QuadFlag4(6,4)
+      REAL(sz), constant :: QuadIr4(6,4)
       REAL(sz), DIMENSION(nQuads) :: VrQuadrant
       REAL(sz), DIMENSION(nQuads) :: radius   ! Wind radii - the distance
                                               ! winds of velocity Vr extend

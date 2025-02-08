@@ -3324,11 +3324,11 @@ C      call allMessage(DEBUG,"Enter.")
          ALLOCATE (crmaxwTrue(np))
          ALLOCATE (aziangle(np), dist(np))
 
-         allocate( rmaxes4(6,4) )
-         allocate (bs4(6,4) )
-         allocate ( vmbl4(6,4) )
-         allocate( quadflag4(6,4) )
-         allocate ( quadir4(6,4) )
+c$$$         allocate( rmaxes4(6,4) )
+c$$$         allocate (bs4(6,4) )
+c$$$         allocate ( vmbl4(6,4) )
+c$$$         !allocate( quadflag4(6,4) )
+c$$$         allocate ( quadir4(6,4) )
 
          DO i=1,np
             xcoor(i) = slam(i) * rad2deg
