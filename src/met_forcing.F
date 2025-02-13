@@ -18,7 +18,7 @@ C***********************************************************************
 
       contains
 
-      SUBROUTINE MET_FORCING(IT)
+      SUBROUTINE MET_FORCING(IT, IRK)
       USE GLOBAL
       USE DG
       USE HARM
@@ -39,7 +39,7 @@ Casey 101118: We need these values from other places.
       
       REAL(SZ) AsymmetricTime
       REAL(SZ) PRDIFF,PRBCKGRND_MH2O     ! tcm v49.16 20100617 added
-      INTEGER II, IT
+      INTEGER II, IT, irk
       real(sz) :: windx, windy
 
       RampMete = rampdg
@@ -854,7 +854,7 @@ Casey 121019: Added multiplication factor to be used before sending winds to cou
       ENDIF
 
       IF(NWS.EQ.20) THEN
-         CALL NWS20GET(SLAM,SFEA,WVNX2,WVNY2,PRN2,NP,AsymmetricTime,ICS)
+         CALL NWS20GET(SLAM,SFEA,WVNX2,WVNY2,PRN2,NP,AsymmetricTime,ICS,irk)
          call met_nws20<<<mnp/128+1, 128>>>(mnp,loaddireffrlen, G, H0, rhowat0,rampmete, draglaw, foundEye, winddraglimit)
       ENDIF
 

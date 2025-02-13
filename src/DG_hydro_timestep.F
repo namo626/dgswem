@@ -120,7 +120,7 @@ C.......Obtain the meteorological forcing
 
          IF (NWS.NE.0) then
             call nvtxstartrange("met_forcing", 2)
-            CALL MET_FORCING(IT)
+            CALL MET_FORCING(IT, IRK)
             call nvtxendrange
             istat = cudaDeviceSynchronize()
          endif

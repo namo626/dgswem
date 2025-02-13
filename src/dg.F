@@ -31,7 +31,7 @@ C.....Declare integer variables
       INTEGER DOF,dofh,dofl,dofx
       INTEGER EL
       INTEGER, TARGET :: MNES,artdif,tune_by_hand
-      INTEGER, managed :: IRK
+      INTEGER :: IRK
       INTEGER J1, J2, J3,negp_fixed,nagp_fixed
       INTEGER NEDGES, NRK !42 hardwires for ph=7
       integer, allocatable, managed :: nagp(:), negp(:), ncheck(:)

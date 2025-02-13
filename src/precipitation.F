@@ -111,13 +111,12 @@ C***********************************************************************
       end function  
 
 
-      attributes(device,host) SUBROUTINE UPDATE_PREC(i, lat, lon, cLon, cLat, Pn, Pc, rmx, Vmax, model_type)
-        use global, only : Rearth, deg2rad, DTDP, rad2deg
+      attributes(device) SUBROUTINE UPDATE_PREC(i, dtdp, lat, lon, cLon, cLat, Pn, Pc, rmx, Vmax, model_type, IRK)
+        use global, only : Rearth, deg2rad, rad2deg
         use vortex
-        use DG, only : IRK
         implicit none
-        integer, value :: i, model_type
-        real(sz),value  :: lon, lat, cLon, cLat, Pn, Pc, rmx, Vmax
+        integer, value :: i, model_type, irk
+        real(sz),value  :: lon, lat, cLon, cLat, Pn, Pc, rmx, Vmax, dtdp
         real(sz) :: dx, dy, dist, LatestRmax 
 
         dx = deg2rad * Rearth * (lon - cLon) * COS(deg2rad*cLat)

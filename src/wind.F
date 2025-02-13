@@ -3075,10 +3075,6 @@ C     &      "The simulation has run out of meteorological data.")
          ! elevation (meters).
          !-------------------------------------------
          press(i) = press(i) / RhoWatG
-         ! parametric rain update 
-         if (rainfall.eq.1) then
-           call UPDATE_PREC(i, ycoor(i), xcoor(i), cLon, cLat, Pn, Pc,crmaxw(i),Vmax,1)
-         end if
 
          if (writeFullCircleRmaxes.eqv..true.) then
             write(444,*) getLatestRmax(), getLatestAngle()
@@ -3190,10 +3186,10 @@ C***********************************************************************
       !
       !     http://www.unc.edu/~cmattock/ncfs/NCFSreport.pdf
       !=================================================================
-      SUBROUTINE NWS20GET(slam,sfea, wvnx,wvny, press, np, TIMELOC, ics)
+      SUBROUTINE NWS20GET(slam,sfea, wvnx,wvny, press, np, TIMELOC, ics, irk)
       USE VORTEX, ONLY : setVortex, fitRmaxes4,  uvpr, spInterp,
      &                   Rmaxes4, QuadFlag4, QuadIr4, Bs4, VmBL4
-      USE GLOBAL, ONLY : ScreenUnit,
+      USE GLOBAL, ONLY : ScreenUnit, dtdp,
      &    Rearth, pi, deg2rad, rad2deg, e, PRBCKGRND, g, rhoWat0,
      &    sphericalDistance, rhoAir, one2ten, windReduction,
      &    kt2ms, nm2m,deg2rad,omega, Rearth, m2nm, mb2pa, rnday
@@ -3201,7 +3197,7 @@ C***********************************************************************
       USE DG, only : rainfall
       IMPLICIT NONE
 
-      INTEGER  :: np, ics
+      INTEGER  :: np, ics, irk
       INTEGER  :: ient
       INTEGER  :: i, j
       INTEGER  :: num_entry
@@ -3811,7 +3807,7 @@ c$$$      istat = cudaDeviceSynchronize()
          !-------------------------------------------
          ! namo - add rain
          if (rainfall > 2) then
-           call UPDATE_PREC(i, ycoor(i), xcoor(i), cLon, cLat, Pn, Pc, Rmax, Vmax, rainfall)
+           call UPDATE_PREC(i, dtdp, ycoor(i), xcoor(i), cLon, cLat, Pn, Pc, Rmax, Vmax, rainfall,irk)
          end if
 
          press(i) = press(i) / RhoWatG
