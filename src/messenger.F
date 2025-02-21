@@ -6,6 +6,7 @@ C
       MODULE MESSENGER
 C
       USE SIZES
+      use cudafor
       USE GLOBAL, ONLY: C3D
       USE DG, ONLY: dofh
 Csb-PDG1
@@ -44,7 +45,7 @@ Casey 121126: Changed some variables to public.
       LOGICAL,SAVE,PRIVATE,ALLOCATABLE :: RESNODE(:)
 C
 Casey 121126: Changed some variables to public.
-      INTEGER, ALLOCATABLE :: NNODRECV(:),IRECVLOC(:,:)
+      INTEGER, ALLOCATABLE, managed :: NNODRECV(:),IRECVLOC(:,:)
       INTEGER, PRIVATE, ALLOCATABLE :: IPROC(:), NNODELOC(:),
      &    NNODSEND(:), IBELONGTO(:),ISENDLOC(:,:), 
      &    ISENDBUF(:,:), IRECVBUF(:,:)
@@ -57,7 +58,8 @@ C
       INTEGER, PRIVATE, ALLOCATABLE :: REQ_R3D(:), STAT_R3D(:,:)
       INTEGER, PRIVATE, ALLOCATABLE :: REQ_C3D(:), STAT_C3D(:,:)
       INTEGER, PRIVATE, ALLOCATABLE :: INDEX(:)
-      REAL(SZ), PRIVATE,ALLOCATABLE :: SENDBUF(:,:), RECVBUF(:,:)
+      REAL(SZ), PRIVATE,ALLOCATABLE, device :: SENDBUF(:,:), RECVBUF(:,:)
+      INTEGER, PRIVATE, ALLOCATABLE, managed :: gather(:,:), pgather(:,:)
 C--
 C
 
@@ -187,6 +189,26 @@ C
       ENDDO
 C
       CLOSE(18)
+
+      allocate(gather(mnp, neighproc), pgather(mnp, neighproc))
+
+      gather = 0
+      do j=1,neighproc
+         do i=1,nnodsend(j)
+            gather(isendloc(i,j), j) = 1
+         enddo
+      enddo
+
+! prefix sum
+      do j = 1,neighproc
+         pgather(1,j) = gather(1,j)
+         do i=2,mnp
+            pgather(i,j) = gather(i,j) + pgather(i-1,j)
+         enddo
+      enddo
+
+
+
       RETURN
 C
 1130  FORMAT(8X,9I8)
@@ -419,6 +441,42 @@ C
       RETURN
       END SUBROUTINE
 
+      subroutine packNodes(np, gather, pgather, vec1, packed)
+      implicit none
+
+      integer, value :: np
+      real(sz), device, intent(in) :: vec1(:)
+      integer,  managed, intent(in) :: gather(:), pgather(:)
+      real(sz), device, intent(out) :: packed(:)
+
+      integer :: j, istat
+!$cuf kernel do <<< *, 128 >>>
+      do j = 1,np
+         if (gather(j) == 1) then
+            packed(pgather(j)) = vec1(j)
+         endif
+      enddo
+
+      end subroutine
+
+      subroutine unpackNodes(nrecv, irecvloc, packed, vec1)
+      implicit none
+
+      integer, value :: nrecv
+      real(sz), device, intent(in) :: packed(:)
+      integer, managed, intent(in) :: irecvloc(:)
+      real(sz), device, intent(out) :: vec1(:)
+
+      integer :: j, istat
+
+!$cuf kernel do <<< *, 128 >>>
+      do j = 1,nrecv
+         vec1(irecvloc(j)) = packed(j)
+      enddo
+
+      end subroutine
+
+
 
       SUBROUTINE UPDATER( VEC1, VEC2, VEC3, NMSG )
 C
@@ -429,35 +487,44 @@ C
 C  vjp  8/06/1999
 C--------------------------------------------------------------------------
 C 
+      use nvtx
       IMPLICIT NONE
 #ifndef HAVE_MPI_MOD
       include 'mpif.h'
 #endif
 C
       INTEGER,  INTENT(IN) ::  NMSG
-      REAL(SZ), INTENT(INOUT) ::  VEC1(*),VEC2(*),VEC3(*)
-      INTEGER :: N,I,J,NCOUNT,NFINI,TOT
+      REAL(SZ), device, INTENT(INOUT) ::  VEC1(:),VEC2(:),VEC3(:)
+      INTEGER :: N,I,J,NCOUNT,NFINI,TOT, istat
 C
                              !..Pack 1, 2, or 3 Messages
+      call nvtxStartRange("UPDATER", 5)
       DO J=1,NEIGHPROC
          NCOUNT = 0
-         DO I=1,NNODSEND(J)
-            NCOUNT = NCOUNT+1
-            SENDBUF(NCOUNT,J)=VEC1(ISENDLOC(I,J))
-         ENDDO
+c$$$         DO I=1,NNODSEND(J)
+c$$$            NCOUNT = NCOUNT+1
+c$$$            SENDBUF(NCOUNT,J)=VEC1(ISENDLOC(I,J))
+c$$$         ENDDO
+         call packNodes(MNP, gather(:,j), pgather(:,j), vec1, sendbuf(:,j) )
+         NCOUNT = NNODSEND(J) + 1
          IF (NMSG.GT.1) THEN
-           DO I=1,NNODSEND(J)
-              NCOUNT = NCOUNT+1
-              SENDBUF(NCOUNT,J)=VEC2(ISENDLOC(I,J))
-           ENDDO
+c$$$           DO I=1,NNODSEND(J)
+c$$$              NCOUNT = NCOUNT+1
+c$$$              SENDBUF(NCOUNT,J)=VEC2(ISENDLOC(I,J))
+c$$$           ENDDO
+            call packNodes(MNP, gather(:,j), pgather(:,j), vec2, sendbuf(ncount:,j) )
+            NCOUNT = 2*NNODSEND(J) + 1
          ENDIF
          IF (NMSG.GT.2) THEN
-           DO I=1,NNODSEND(J)
-              NCOUNT = NCOUNT+1
-              SENDBUF(NCOUNT,J)=VEC3(ISENDLOC(I,J))
-           ENDDO
+c$$$           DO I=1,NNODSEND(J)
+c$$$              NCOUNT = NCOUNT+1
+c$$$              SENDBUF(NCOUNT,J)=VEC3(ISENDLOC(I,J))
+c$$$           ENDDO
+            call packNodes(MNP, gather(:,j), pgather(:,j), vec3, sendbuf(ncount:,j) )
+            NCOUNT = 3*NNODSEND(J) + 1
          ENDIF
       ENDDO
+      istat = cudaDeviceSynchronize()
 C                    
               ! Send/receive messages to/from all neighbors
 C
@@ -531,19 +598,25 @@ cdebug     print *, myproc, tot,nfini,index(1),index(2)
               IF (INDEX(N).GT.0.AND.INDEX(N).LE.RDIM)  THEN
                 IF (INDEX(N).LE.NEIGHPROC) THEN
                   J = INDEX(N)
-                  NCOUNT = 0
-                  DO I=1,NNODRECV(J)
-                     NCOUNT = NCOUNT+1
-                     VEC1(IRECVLOC(I,J)) = RECVBUF(NCOUNT,J)
-                  ENDDO
-                  DO I=1,NNODRECV(J)
-                     NCOUNT = NCOUNT+1
-                     VEC2(IRECVLOC(I,J)) = RECVBUF(NCOUNT,J)
-                  ENDDO
-                  DO I=1,NNODRECV(J)
-                     NCOUNT = NCOUNT+1
-                     VEC3(IRECVLOC(I,J)) = RECVBUF(NCOUNT,J)
-                  ENDDO
+                  NCOUNT = 1
+c$$$                  DO I=1,NNODRECV(J)
+c$$$                     NCOUNT = NCOUNT+1
+c$$$                     VEC1(IRECVLOC(I,J)) = RECVBUF(NCOUNT,J)
+c$$$                  ENDDO
+                  call unpackNodes(nnodrecv(j), irecvloc(:,j), recvbuf(ncount:,j), vec1)
+                  ncount = nnodrecv(j) + 1
+                  call unpackNodes(nnodrecv(j), irecvloc(:,j), recvbuf(ncount:,j), vec2)
+                  ncount = 2*nnodrecv(j) + 1
+                  call unpackNodes(nnodrecv(j), irecvloc(:,j), recvbuf(ncount:,j), vec3)
+
+c$$$                  DO I=1,NNODRECV(J)
+c$$$                     NCOUNT = NCOUNT+1
+c$$$                     VEC2(IRECVLOC(I,J)) = RECVBUF(NCOUNT,J)
+c$$$                  ENDDO
+c$$$                  DO I=1,NNODRECV(J)
+c$$$                     NCOUNT = NCOUNT+1
+c$$$                     VEC3(IRECVLOC(I,J)) = RECVBUF(NCOUNT,J)
+c$$$                  ENDDO
                 ENDIF
               ENDIF
            ENDDO
@@ -552,6 +625,9 @@ cdebug     print *, myproc, tot,nfini,index(1),index(2)
       ENDIF
 C 
  999  continue
+      istat = cudaDeviceSynchronize()
+
+      call nvtxEndRange()
       RETURN
       END SUBROUTINE
 

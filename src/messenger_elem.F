@@ -8,6 +8,7 @@ C
       MODULE MESSENGER_ELEM
 C
       USE SIZES
+      use cudafor
       USE GLOBAL!, ONLY: C3D
       USE DG, ONLY: DOFH
       USE DIFF45_41,ONLY : MNODES
@@ -46,7 +47,7 @@ Csb-PDG1
       INTEGER,SAVE,PRIVATE ::  TAG = 101
       LOGICAL,SAVE,ALLOCATABLE :: RESELEM(:)
 C
-      INTEGER, PRIVATE, ALLOCATABLE ::IPROC_R(:),IPROC_S(:),NELEMLOC(:),
+      INTEGER, PRIVATE, ALLOCATABLE, managed ::IPROC_R(:),IPROC_S(:),NELEMLOC(:),
      &    NELEMSEND(:), NELEMRECV(:),ISENDLOC(:,:), IBELONGTO(:),
      &    IRECVLOC(:,:), ISENDBUF(:,:), IRECVBUF(:,:)
 C
@@ -59,7 +60,8 @@ C
       INTEGER, PRIVATE, ALLOCATABLE :: REQ_R3D(:), STAT_R3D(:,:)
       INTEGER, PRIVATE, ALLOCATABLE :: REQ_C3D(:), STAT_C3D(:,:)
       INTEGER, PRIVATE, ALLOCATABLE :: INDEX(:)
-      REAL(SZ), PRIVATE,ALLOCATABLE :: SENDBUF(:,:), RECVBUF(:,:)
+      REAL(SZ), PRIVATE,ALLOCATABLE, managed :: SENDBUF(:,:), RECVBUF(:,:)
+      integer, PRIVATE,ALLOCATABLE, managed :: gather(:,:), pgather(:,:), scatter(:,:)
 C--
 C
 
@@ -201,7 +203,8 @@ C
 #ifndef HAVE_MPI_MOD
       include 'mpif.h'
 #endif
-      INTEGER :: IDPROC,NLOCAL,I,J,JJ,NEIGH
+      INTEGER :: IDPROC,NLOCAL,I,J,JJ,NEIGH,k, ii, ncount
+      logical :: first
 C
       OPEN(18,FILE=DIRNAME(1:LNAME)//'/'//'DG.18')
 C
@@ -251,6 +254,40 @@ C
       ENDDO
 C
       CLOSE(18)
+
+      allocate(gather(mne*dofh, neighproc_s), pgather(mne*dofh, neighproc_s))
+
+      gather = 0
+      do j=1,neighproc_s
+         do i=1,nelemsend(j)
+            gather(DOFH*(isendloc(i,j)-1)+1:DOFH*(isendloc(i,j)-1)+DOFH, j) = 1
+         enddo
+      enddo
+
+
+
+      do j = 1,neighproc_s
+         ncount = 0
+         do i = 1,nelemsend(j)
+            ii = isendloc(i,j)
+            do k = 1,DOFH
+               ncount = ncount + 1
+               pgather(DOFH*(ii-1)+k ,j) = ncount
+            enddo
+         enddo
+      enddo
+
+
+      allocate(scatter(mne*dofh, neighproc_r))
+      do j=1,neighproc_R
+         do i=1,nelemrecv(j)
+            do k = 1,dofh
+               scatter(DOFH*(i-1)+k, j) = DOFH*(irecvloc(i,j) - 1) + k
+            enddo
+         enddo
+      enddo
+
+
       RETURN
 C
 1130  FORMAT(8X,9I8)
@@ -507,6 +544,42 @@ C
       RETURN
       END SUBROUTINE
 
+      subroutine packElems(dof, ne, gather, pgather, vec1, packed)
+      implicit none
+
+      integer, value :: ne, dof
+      real(sz), managed, intent(in) :: vec1(ne*dof)
+      integer,  managed, intent(in) :: gather(:), pgather(:)
+      real(sz), managed, intent(out) :: packed(:)
+
+      integer :: j, istat
+
+!$cuf kernel do <<<* , 128>>>
+      do j = 1,ne*dof
+         if (gather(j) == 1) then
+            packed(pgather(j)) = vec1(j)
+         endif
+      enddo
+
+      end subroutine
+
+      subroutine unpackElems(dof, ne, nrecv, scatter, packed, vec1)
+      implicit none
+
+      integer, value :: nrecv, dof, ne
+      real(sz), managed, intent(in) :: packed(:)
+      integer,  managed, intent(in) :: scatter(:)
+      real(sz), managed, intent(out) :: vec1(ne*dof)
+
+      integer :: j, istat
+
+!$cuf kernel do <<<* , 128>>>
+      do j = 1,nrecv*dof
+         vec1(scatter(j)) = packed(j)
+      enddo
+
+
+      end subroutine
 
       SUBROUTINE UPDATER_ELEM( VEC1, VEC2, VEC3, IRK, NMSG )
 C
@@ -790,6 +863,58 @@ C
       RETURN
       END SUBROUTINE
 
+      SUBROUTINE UPDATER_ELEM_dummy()
+C
+C--------------------------------------------------------------------------
+C  Update 1, 2, or 3 Real Arrays's Ghost Cells using asynchronous
+C  and persistent message-passing.
+C
+C  vjp  8/06/1999
+C--------------------------------------------------------------------------
+C
+      use nvtx
+
+      IMPLICIT NONE
+#ifndef HAVE_MPI_MOD
+      include 'mpif.h'
+#endif
+C
+      INTEGER :: N,I,J,JJ,K,NCOUNT,NFINI,TOT, istat
+
+      call nvtxStartRange("UPDATER_ELEM_DUMMY", 7)
+C
+                             !..Pack 1, 2, or 3 Messages
+      istat = cudaDeviceSynchronize()
+      DO J=1,NEIGHPROC_S
+
+         ! Start sending a message
+            CALL MPI_START ( REQ_R3(J+NEIGHPROC_R), IERR )
+      ENDDO
+C
+              ! Send/receive messages to/from all neighbors
+C
+        CALL MPI_STARTALL ( RDIM-NEIGHPROC_S, REQ_R3, IERR )
+C
+              !..Unpack Received messages as they arrive
+C
+        TOT = 0
+        DO WHILE (TOT.LT.RDIM)
+           DO N=1, RDIM
+              INDEX(N) = 0
+           ENDDO
+           CALL MPI_WAITSOME( RDIM,REQ_R3,NFINI,INDEX,STAT_R3,IERR )
+           TOT = TOT + NFINI
+cdebug     print *, myproc, tot,nfini,index(1),index(2)
+        ENDDO
+        GOTO 999
+C
+ 999  continue
+
+      istat = cudaDeviceSynchronize()
+
+      call nvtxEndRange()
+      RETURN
+      END SUBROUTINE
 
       SUBROUTINE UPDATER_ELEM_MOD( VEC1, VEC2, VEC3, IRK, NMSG )
 C
@@ -800,43 +925,35 @@ C
 C  vjp  8/06/1999
 C--------------------------------------------------------------------------
 C 
+      use nvtx
+
       IMPLICIT NONE
 #ifndef HAVE_MPI_MOD
       include 'mpif.h'
 #endif
 C
       INTEGER,  INTENT(IN) ::  IRK, NMSG
-      REAL(SZ), INTENT(INOUT) ::  VEC1(:,:,:),VEC2(:,:,:),VEC3(:,:,:)
-      INTEGER :: N,I,J,JJ,K,NCOUNT,NFINI,TOT
+      REAL(SZ), managed, INTENT(INOUT) ::  VEC1(:,:,:),VEC2(:,:,:),VEC3(:,:,:)
+      INTEGER :: N,I,J,JJ,K,NCOUNT,NFINI,TOT, istat
+
+      call nvtxStartRange("UPDATER_ELEM", 6)
 C
                              !..Pack 1, 2, or 3 Messages
 C      DO JJ=1,NEIGHPROC_S
 C         J = MOD(JJ-1+MYPROC,NEIGHPROC_S)+1
       DO J=1,NEIGHPROC_S
          NCOUNT = 0
-         DO I=1,NELEMSEND(J)
-            DO K=1,DOFH
-              NCOUNT = NCOUNT+1
-              SENDBUF(NCOUNT,J)=VEC1(K,ISENDLOC(I,J),IRK)
-            ENDDO
-         ENDDO
+         call packElems(DOFH, MNE, gather(:,j), pgather(:,j), vec1(:,:,irk), sendbuf(:,j) )
+         NCOUNT = nelemsend(J)*DOFH + 1
          IF (NMSG.GT.1) THEN
-           DO I=1,NELEMSEND(J)
-             DO K=1,DOFH
-               NCOUNT = NCOUNT+1
-               SENDBUF(NCOUNT,J)=VEC2(K,ISENDLOC(I,J),IRK)
-             ENDDO
-           ENDDO
+            call packElems(DOFH, MNE, gather(:,j), pgather(:,j), vec2(:,:,irk), sendbuf(ncount:,j) )
+            NCOUNT = 2*nelemsend(J)*DOFH + 1
          ENDIF
          IF (NMSG.GT.2) THEN
-           DO I=1,NELEMSEND(J)
-             DO K=1,DOFH
-               NCOUNT = NCOUNT+1
-               SENDBUF(NCOUNT,J)=VEC3(K,ISENDLOC(I,J),IRK)
-             ENDDO
-           ENDDO
+            call packElems(DOFH, MNE, gather(:,j), pgather(:,j), vec3(:,:,irk), sendbuf(ncount:,j) )
          ENDIF
 
+         istat = cudaDeviceSynchronize()
          ! Start sending a message
          IF (NMSG.EQ.1) THEN
             CALL MPI_START ( REQ_R1(J+NEIGHPROC_R), IERR )
@@ -926,25 +1043,14 @@ cdebug     print *, myproc, tot,nfini,index(1),index(2)
               IF (INDEX(N).GT.0.AND.INDEX(N).LE.RDIM)  THEN
                 IF (INDEX(N).LE.NEIGHPROC_R) THEN
                   J = INDEX(N)
-                  NCOUNT = 0
-                  DO I=1,NELEMRECV(J)
-                    DO K=1,DOFH
-                      NCOUNT = NCOUNT+1
-                      VEC1(K,IRECVLOC(I,J),IRK) = RECVBUF(NCOUNT,J)
-                    ENDDO
-                  ENDDO
-                  DO I=1,NELEMRECV(J)
-                    DO K=1,DOFH
-                      NCOUNT = NCOUNT+1
-                      VEC2(K,IRECVLOC(I,J),IRK) = RECVBUF(NCOUNT,J)
-                    ENDDO
-                  ENDDO
-                  DO I=1,NELEMRECV(J)
-                    DO K=1,DOFH
-                      NCOUNT = NCOUNT+1
-                      VEC3(K,IRECVLOC(I,J),IRK) = RECVBUF(NCOUNT,J)
-                    ENDDO
-                  ENDDO
+                  call unpackElems(dofh, mne, nelemrecv(j), scatter(:,j), recvbuf(:,j), vec1(:,:,irk))
+                  NCOUNT = DOFH*nelemrecv(j) + 1
+
+                  call unpackElems(dofh, mne, nelemrecv(j), scatter(:,j), recvbuf(ncount:,j), vec2(:,:,irk))
+                  NCOUNT = 2*DOFH*nelemrecv(j) + 1
+
+                  call unpackElems(dofh, mne, nelemrecv(j), scatter(:,j), recvbuf(ncount:,j), vec3(:,:,irk))
+
                 ENDIF
               ENDIF
            ENDDO
@@ -953,6 +1059,10 @@ cdebug     print *, myproc, tot,nfini,index(1),index(2)
       ENDIF
 C 
  999  continue
+
+      istat = cudaDeviceSynchronize()
+
+      call nvtxEndRange()
       RETURN
       END SUBROUTINE
 
