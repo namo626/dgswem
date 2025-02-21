@@ -657,6 +657,7 @@ C.......p_enrich soln and update
          endif
 #ifdef CMPI
 
+         istat = cudaDeviceSynchronize()
          CALL UPDATER_ELEM_MOD(ZE,QX,QY,IRK+1,3)
 
 #ifdef TRACE

@@ -37,6 +37,7 @@ C***********************************************************************
       integer :: istat, i
       real(sz) :: umag
 
+      if (myproc == 0) then
       IF((MOD(IT,NSCREEN_INC).EQ.0) ) THEN
          velmax = 0.
          elmax = 0.
@@ -52,6 +53,7 @@ C***********************************************************************
  1992    FORMAT(1X,'TIME STEP =',I8,5X,'TIME =',F12.6,
      &        /,2X,'ELMAX = ', E11.4,
      &        2X,'SPEEDMAX = ',E11.4)
+      endif
       endif
 
 
@@ -1120,6 +1122,7 @@ c
           qmaxe=0.0
           imaxq = 0.0
 C
+#if 0
 #ifdef CMPI
           IF( (MYPROC.EQ.0).AND.(ELMAX.LT.1000.0).AND.
      &        (MOD(IT,NSCREEN_INC).EQ.0) ) THEN
@@ -1195,6 +1198,8 @@ C
             stop
          ENDIF
 #endif
+#endif
+
            if (padapt.eq.1) then
                
                do k=pl,ph
