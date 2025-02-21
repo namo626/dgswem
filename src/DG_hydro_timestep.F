@@ -553,9 +553,9 @@ C.......Compute the dynamic pressure if flagged
 #endif
 
 #ifdef CMPI
-         istat = cudaDeviceSynchronize()
+         !istat = cudaDeviceSynchronize()
          CALL UPDATER_ELEM_MOD(ZE,QX,QY,IRK+1,3)
-         CALL UPDATER_ELEM_DUMMY()
+         !CALL UPDATER_ELEM_DUMMY()
 #ifdef TRACE
          CALL UPDATER_ELEM_MOD(iota,iota2,QY,IRK+1,2 )
 #endif
@@ -625,9 +625,9 @@ C...drying is being used
 
 #ifdef CMPI
          if (SLOPEFLAG.NE.0.OR.NOLIFA.GE.2) THEN
-            istat = cudaDeviceSynchronize()
+            !istat = cudaDeviceSynchronize()
             CALL UPDATER_ELEM_MOD(ZE,QX,QY,IRK+1,3)
-            CALL UPDATER_ELEM_DUMMY()
+            !CALL UPDATER_ELEM_DUMMY()
             
 #ifdef TRACE
             CALL UPDATER_ELEM_MOD(iota,iota2,QY,IRK+1,2 )
@@ -659,7 +659,7 @@ C.......p_enrich soln and update
          endif
 #ifdef CMPI
 
-         istat = cudaDeviceSynchronize()
+         !istat = cudaDeviceSynchronize()
          CALL UPDATER_ELEM_MOD(ZE,QX,QY,IRK+1,3)
 
 #ifdef TRACE

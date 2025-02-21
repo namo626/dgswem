@@ -58,7 +58,7 @@ C
       INTEGER, PRIVATE, ALLOCATABLE :: REQ_R3D(:), STAT_R3D(:,:)
       INTEGER, PRIVATE, ALLOCATABLE :: REQ_C3D(:), STAT_C3D(:,:)
       INTEGER, PRIVATE, ALLOCATABLE :: INDEX(:)
-      REAL(SZ), PRIVATE,ALLOCATABLE, device :: SENDBUF(:,:), RECVBUF(:,:)
+      REAL(SZ), PRIVATE,ALLOCATABLE, managed :: SENDBUF(:,:), RECVBUF(:,:)
       INTEGER, PRIVATE, ALLOCATABLE, managed :: gather(:,:), pgather(:,:)
 C--
 C
@@ -456,6 +456,8 @@ C
             packed(pgather(j)) = vec1(j)
          endif
       enddo
+
+      istat = cudaDeviceSynchronize()
 
       end subroutine
 

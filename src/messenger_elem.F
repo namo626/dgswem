@@ -560,6 +560,7 @@ C
             packed(pgather(j)) = vec1(j)
          endif
       enddo
+      istat = cudaDeviceSynchronize()
 
       end subroutine
 
