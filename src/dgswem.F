@@ -34,6 +34,8 @@ Casey 101118: We need the following information to couple to unstructured SWAN.
 #endif
 #ifdef CMPI
       USE MESSENGER_ELEM
+#endif
+
 C--   
       IMPLICIT NONE
       real(4) crain_time1, crain_time2, crain_timinc
@@ -43,27 +45,18 @@ C     sb-PDG1
       REAL(4) TARRAY(2)
 c     nd
       character*80 tecfile,tecfile_max
+      integer :: i, istat
 
-      CALL MESSAGE_INIT()       ! Init MPI and get MPI-rank of this cpu
 
                                 ! <ezpp-begin>
+#ifdef CMPI
+      CALL MESSAGE_INIT()       ! Init MPI and get MPI-rank of this cpu
       IF(MYPROC.EQ.0)THEN
          write(*,*) 'mnproc ',mnproc
       ENDIF
+#endif
       CALL MAKE_DIRNAME()       ! Establish Working Directory Name
       CALL READ_INPUT()         ! Establish sizes by reading fort.14 and fort.15
-#else
-      IMPLICIT NONE
-      real(4) crain_time1, crain_time2, crain_timinc
-      
-      REAL(4) CPU_TIME,CPU_SEC(2)
-      REAL(4) TARRAY(2)
-      INTEGER TESTFLAG,OUTITER,i, istat
-      character*80 tecfile, tecfile_max
-
-      CALL MAKE_DIRNAME()       ! Establish Working Directory Name
-      CALL READ_INPUT()         ! Establish sizes by reading fort.14 and fort.15
-#endif         
 
 
       if (rainfall.gt.0) then

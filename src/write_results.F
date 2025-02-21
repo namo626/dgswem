@@ -246,6 +246,7 @@ C.....to single nodal values
       INTEGER Minp(0:8)
       REAL(SZ) AREA, DEPTH, ANGLE_SUM, FH_NL, DP1, DP2, DP3, DP00, ZE00
       real(sz) qmaxe,elmaxe, iota_int, iota_error
+      real(sz) :: elmax, velmax, kemax, kvmax
       integer :: imaxze,imaxq,ErrorElevExceeded, k,j , i, kk
       logical :: wrote_noutge, wrote_noute
       integer :: istat
