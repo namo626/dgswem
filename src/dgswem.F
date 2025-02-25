@@ -5,6 +5,7 @@ C******************************************************************************
 
       PROGRAM DGSWEM
 
+        use partition
         ! rainfall
       use precipitation, only : alloc_precipitation, prec2
       use owi_rain, only : ncrain1_init, ncrain_get

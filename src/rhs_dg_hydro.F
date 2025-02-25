@@ -19,6 +19,7 @@ C***********************************************************************
 
 C.....Use appropriate modules
 
+        use partition
       USE GLOBAL
       USE DG
       USE NodalAttributes, ONLY : TAU, IFLINBF, IFHYBF, HBREAK, FTHETA,
@@ -36,7 +37,7 @@ C.....Declare local variables
      &  hb_in,hb_ex,sfac_in,sfac_ex, nx, ny
       real(sz) :: f_hat, g_hat, h_hat
       INTEGER IT
-      INTEGER L,k,i,ll
+      INTEGER L,k,i,ll, ii
       REAL(SZ) DPSIDX(3), DPSIDY(3)
       REAL(SZ) AREA, IMASS, TKX, TKY, Xpart, Ypart,H_0,C_1
       REAL(SZ) PHI_AREA_KI,MN_IN, MassAction1st,MassAction2nd,fx,fy
@@ -56,7 +57,9 @@ C.....Declare local variables
       !print *, "max prec2 = ", maxval(prec2)
 
       DTDPH = 1.0/DTDP
-      DO 1000 L = 1, NE
+      DO ii = 1, numDomains
+      NE = domains(i)%NE
+      DO 1000 L = 1,NE
 c     nd
          advectqx(l)=0.0
          advectqx(l)=0.0
@@ -92,20 +95,20 @@ C.......Compute rain source term if rain is enabled
 
 C.......If element is dry then skip calculations
 
-         IF (WDFLG(L).EQ.0) then
+         IF (domains%WDFLG(L).EQ.0) then
             GOTO 1000
          endif
 
 C.......Retrieve the global node numbers for the element
 
-         N1 = NM(L,1)
-         N2 = NM(L,2)
-         N3 = NM(L,3)
+         N1 = domains%NM(L,1)
+         N2 = domains%NM(L,2)
+         N3 = domains%NM(L,3)
 
 C.......Compute avaraged values
 C.......These will be used later when bottom friction is computed
 
-         DEPTH_C = HB(1,L,1) + ZE(1,L,IRK)
+         DEPTH_C = domains%HB(1,L,1) + ZE(1,L,IRK)
          FH_NL_C = 1.0/(NLEQ*DEPTH_C + LEQ)
          UX_C = QX(1,L,IRK)*FH_NL_C
          UY_C = QY(1,L,IRK)*FH_NL_C
@@ -297,10 +300,10 @@ C.........Compute y momentum fluxes
 
 C.........Compute the friction factor
             if (LoadManningsN) then
-               fric_el(L)=G*
-     $              ((ManningsN(n1)+ManningsN(n2)+ManningsN(n3))/3.)**2
+              domains%fric_el(L)=G*
+     $              ((domains%ManningsN(n1)+domains%ManningsN(n2)+domains%ManningsN(n3))/3.)**2
      $              /(DEPTH**(1.0/3.0))
-               if (fric_el(L).lt.CF) fric_el(L)=CF
+              if (fric_el(L).lt.CF) domains%fric_el(L)=CF
             endif
             TAU = FRIC_EL(L)
 C     Modified to compute TAU using elemental averages.
@@ -414,10 +417,10 @@ C.........Build the rhs
             RHS_QX(1,L,IRK) = RHS_QX(1,L,IRK) + SRFAC(1,I,L,pa)*SOURCE_X
             RHS_QY(1,L,IRK) = RHS_QY(1,L,IRK) + SRFAC(1,I,L,pa)*SOURCE_Y
 
-            DO K = 2,DOFS(L)
+            DO K = 2,domains%DOFS(L)
 
-               RHS_ZE(K,L,IRK) = RHS_ZE(K,L,IRK) + XFAC(K,I,L,pa)*FX_IN
-     &                + YFAC(K,I,L,pa)*FY_IN
+            RHS_ZE(K,L,IRK) = RHS_ZE(K,L,IRK) + domains%XFAC(K,I,L,pa)*FX_IN
+     &                + domains%YFAC(K,I,L,pa)*FY_IN
                RHS_QX(K,L,IRK) = RHS_QX(K,L,IRK) + XFAC(K,I,L,pa)*GX_IN
      &              + YFAC(K,I,L,pa)*GY_IN + SRFAC(K,I,L,pa)*SOURCE_X
                RHS_QY(K,L,IRK) = RHS_QY(K,L,IRK) + XFAC(K,I,L,pa)*HX_IN
@@ -465,7 +468,9 @@ C.........Build the rhs
          ENDDO
 
 
+
  1000 CONTINUE
+         ENDDO
       !print *, "max source = ", source_max
       RETURN
       END SUBROUTINE

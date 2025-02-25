@@ -81,6 +81,7 @@ RAIN_MSRC = precipitation.F
 OWIRAIN_MSRC = owi_rain.F
 C_MSRC = c_interface.F90
 FLUX_MSRC = numerical_flux.F
+PART_MSRC = partition.F
 
 PREP_MOBJ:= $(patsubst %.F, $(O_DIR)%.o, $(PREP_MSRC) )
 PGLO_MOBJ:= $(patsubst %.F, $(O_DIR)%.o, $(PGLO_MSRC) )
@@ -97,6 +98,7 @@ FLUX_MOBJ := $(patsubst %.F, $(O_DIR)%.o, $(FLUX_MSRC)  )
 RAIN_MOBJ := $(patsubst %.F, $(O_DIR)%.o, $(RAIN_MSRC)  )
 C_MOBJ := $(patsubst %.F90, $(O_DIR)%.o, $(C_MSRC)  )
 OWIRAIN_MOBJ := $(patsubst %.F, $(O_DIR)%.o, $(OWIRAIN_MSRC)  )
+PART_MOBJ := $(patsubst %.F, $(O_DIR)%.o, $(PART_MSRC)  )
 
 ############################# Source & Object Files ##############################
 
@@ -317,10 +319,11 @@ $(O_DIR)owi_rain.o                      :  owi_rain.F $(ADC_MOBJ) $(MSG_MOBJ)
 #  adcirc & padcirc
 
 $(O_DIR)owiwind.o   			:  owiwind.F $(ADC_MOBJ) $(MSG_MOBJ)
+$(O_DIR)partition.o   			:  partition.F $(ADC_MOBJ) 
 $(O_DIR)read_input.o  			:  read_input.F $(ADC_MOBJ) $(HARM_MOBJ) $(WIND_MOBJ)
 $(O_DIR)cstart.o      			:  cstart.F $(ADC_MOBJ)  $(HARM_MOBJ)  $(WIND_MOBJ)
 $(O_DIR)hstart.o      			:  hstart.F $(ADC_MOBJ)  $(HARM_MOBJ)  $(WIND_MOBJ)
-$(O_DIR)dgswem.o      			:  dgswem.F $(ADC_MOBJ)  $(HARM_MOBJ) $(WIND_MOBJ) $(OWIRAIN_MOBJ) $(MSG_MOBJ)
+$(O_DIR)dgswem.o      			:  dgswem.F $(ADC_MOBJ)  $(HARM_MOBJ) $(WIND_MOBJ) $(OWIRAIN_MOBJ) $(MSG_MOBJ) $(PART_MOBJ)
 $(O_DIR)calc_normal.o         	:  calc_normal.F $(ADC_MOBJ)
 $(O_DIR)create_edge_data.o    	:  create_edge_data.F $(ADC_MOBJ) $(C_MOBJ) $(O_DIR)count_edges.o $(MSG_MOBJ)
 $(O_DIR)detector.o	      	:  detector.F $(ADC_MOBJ) $(FLUX_MOBJ)
@@ -337,7 +340,7 @@ $(O_DIR)prep_DG.o             	:  prep_DG.F $(ADC_MOBJ) $(MSG_MOBJ)
 $(O_DIR)quadrature_v1.o         :  quadrature_v1.F $(ADC_MOBJ)
 $(O_DIR)quad_rules_general.o     :  quad_rules_general.F $(ADC_MOBJ)
 $(O_DIR)read_input.o          	:  read_input.F $(ADC_MOBJ) $(MSG_MOBJ)
-$(O_DIR)rhs_dg_hydro.o        	:  rhs_dg_hydro.F $(ADC_MOBJ) $(FLUX_MOBJ) $(RAIN_MOBJ)
+$(O_DIR)rhs_dg_hydro.o        	:  rhs_dg_hydro.F $(ADC_MOBJ) $(FLUX_MOBJ) $(RAIN_MOBJ) $(PART_MOBJ)
 $(O_DIR)numerical_flux.o      	:  numerical_flux.F $(ADC_MOBJ)
 $(O_DIR)radiation_edge_hydro.o	:  radiation_edge_hydro.F $(ADC_MOBJ) $(FLUX_MOBJ)
 $(O_DIR)tidal_potential.o     	:  tidal_potential.F $(ADC_MOBJ)
