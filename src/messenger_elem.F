@@ -18,6 +18,7 @@ C
       IMPLICIT NONE
 #else
       IMPLICIT NONE
+      include 'mpif.h'
 #endif
 C
 C--------------------------------------------------------------------------
@@ -40,6 +41,7 @@ Csb-PDG1
       INTEGER, SAVE :: MPI_COMM_ADCIRC
       INTEGER, SAVE ::  COMM_COMP     
       INTEGER, SAVE ::  GROUP_WORLD, GROUP_COMP
+      integer, private :: shmcomm ! shared memory communicator
 
       INTEGER,SAVE,PRIVATE :: REALTYPE, DBLETYPE, COMM   
       INTEGER,SAVE,PRIVATE ::  NEIGHPROC_R, NEIGHPROC_S, RDIM, IERR
@@ -85,6 +87,14 @@ c
 c
       RETURN
       END  SUBROUTINE
+
+      subroutine init_shmem()
+      implicit none
+
+      call mpi_comm_split_type(MPI_COMM_WORLD, MPI_COMM_TYPE_SHARED,
+     & myproc, MPI_INFO_NULL, shmcomm, ierr)
+
+      end subroutine
 
 
       SUBROUTINE MESSAGE_INIT ()
