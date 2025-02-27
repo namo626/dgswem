@@ -176,6 +176,7 @@ C.....Create the edge based data
 #ifdef CMPI
       CALL MESSAGE_START_ELEM() ! Startup persistent message passing
       IF (SLOPEFLAG.ge.4) CALL MESSAGE_START()
+      call init_shmem()
 #endif
 
 C.....Re-arrange elevation specified boundary segment data for DG

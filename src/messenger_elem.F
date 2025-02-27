@@ -11,6 +11,7 @@ C
       USE GLOBAL!, ONLY: C3D
       USE DG, ONLY: DOFH
       USE DIFF45_41,ONLY : MNODES
+      use, intrinsic :: iso_c_binding
 
 
 #ifdef HAVE_MPI_MOD
@@ -62,6 +63,10 @@ C
       INTEGER, PRIVATE, ALLOCATABLE :: REQ_C3D(:), STAT_C3D(:,:)
       INTEGER, PRIVATE, ALLOCATABLE :: INDEX(:)
       REAL(SZ), PRIVATE,ALLOCATABLE :: SENDBUF(:,:), RECVBUF(:,:)
+
+!! Shmem
+      integer, private :: window
+      type(c_ptr) :: c_win_ptr
 C--
 C
 
@@ -93,6 +98,9 @@ c
 
       call mpi_comm_split_type(MPI_COMM_WORLD, MPI_COMM_TYPE_SHARED,
      & myproc, MPI_INFO_NULL, shmcomm, ierr)
+
+      call mpi_win_allocate_shared(SZ*MNE*3*4, SZ, MPI_INFO_NULL, shmcomm,
+     &  c_win_ptr, window, ierr)
 
       end subroutine
 
