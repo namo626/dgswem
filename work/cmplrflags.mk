@@ -29,9 +29,9 @@ endif
 ifeq ($(compiler),intel)
   PPFC          :=  ifx
   FC            :=  ifx
-  PFC           :=  mpif90
+  PFC           :=  mpiifx
   CC            :=  icx
-  FFLAGS1       :=  -r8 $(INCDIRS) -O2 -msse3 -132  #-traceback -check all #-prof-gen -prof-dir /bevo2/michoski/v21/work -pg -prof-use
+  FFLAGS1       :=  -r8 $(INCDIRS) -O3 -xHost -msse3 -132  #-traceback -check all #-prof-gen -prof-dir /bevo2/michoski/v21/work -pg -prof-use
   FFLAGS2       :=  $(FFLAGS1)
   FFLAGS3       :=  $(FFLAGS1)
   FFLAGS4       :=  $(FFLAGS1)
@@ -40,7 +40,7 @@ ifeq ($(compiler),intel)
   DPRE          :=  -DREAL8 -DLINUX -DRKSSP -DSLOPE5 #-DOUT_TEC #-DSWAN #-DARTDIF  # -DWETDR #-DSED_LAY -DSWAN #-DOUT_TEC #-DSWAN -DRKC -DTRACE -DSED_LAY -DCHEM -DP0 -DP_AD -DSLOPEALL
   DPRE2         :=  -DREAL8 -DLINUX -DCMPI 
   CFLAGS        :=  -O3 -xSSSE3 -I. -Wno-implicit-function-declaration
-  IMODS         :=  -I
+  IMODS         :=  -module
   LIBS          :=  -L ../metis -lmetis
   MSGLIBS       :=
 endif
@@ -50,7 +50,7 @@ ifeq ($(compiler),nvhpc)   # NVIDIA
   PPFC	        :=  nvfortran
   FC	        :=  nvfortran
   PFC	        :=  mpif90
-  FFLAGS1	:=  -r$(sz) -Mextend -traceback -g -O3
+  FFLAGS1	:=  -r$(sz) -Mextend -traceback -g -O3 -tp=native
   FFLAGS2	:=  $(FFLAGS1)
   FFLAGS3	:=  $(FFLAGS1)
   FFLAGS4	:=  $(FFLAGS1)
@@ -58,7 +58,7 @@ ifeq ($(compiler),nvhpc)   # NVIDIA
   DP  	        :=  -DREAL$(sz) -DLINUX -DCSCA -DCMPI -DRKSSP -DSLOPE5
   DPRE	        :=  -DREAL$(sz) -DLINUX -DRKSSP -DSLOPE5
   DPRE2         :=  -DREAL$(sz) -DLINUX -DCMPI
-  IMODS 	:=  -I
+  IMODS 	:=  -module
   CC            :=  nvc
   CXX    := nvc++
   CXXFLAGS := -O3 -g
@@ -110,8 +110,7 @@ ifeq ($(compiler),gnu)   # AMD
   DP  	        :=  -DREAL$(sz) -DLINUX -DCSCA -DCMPI -DRKSSP -DSLOPE5
   DPRE	        :=  -DREAL$(sz) -DLINUX -DRKSSP -DSLOPE5
   DPRE2         :=  -DREAL$(sz) -DLINUX -DCMPI
-  IMODS 	:=  -I
-  MODULES = -J
+  IMODS 	:=  -J
   CC            :=  gcc
   CXX    := g++
   CXXFLAGS := -O3 -g
