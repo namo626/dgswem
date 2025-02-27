@@ -13,7 +13,7 @@ include ../swan/macros.inc
 ifeq ($(BUILDTYPE),adcprep)
   CF:= $(PPFC)
   O_DIR:=odir1/
-  FFLAGS:= $(FFLAGS1) $(DPRE) $(IMODS)$(O_DIR)
+  FFLAGS:= $(FFLAGS1) $(DPRE) $(IMODS) $(O_DIR)
   VPATH :=  ../prep
   PMSG_OBJ:=
 endif
@@ -21,14 +21,14 @@ endif
 ifeq ($(BUILDTYPE),adcpost)
   CF:= $(PPFC)
   O_DIR:=odir3/
-  FFLAGS:= $(FFLAGS1) $(DPRE) $(IMODS)$(O_DIR)
+  FFLAGS:= $(FFLAGS1) $(DPRE) $(IMODS) $(O_DIR)
   VPATH :=  ../prep
 endif
 #                                      adcirc
 ifeq ($(BUILDTYPE),dgswem_serial)
   CF:= $(PPFC)
   O_DIR:=odir4/
-  FFLAGS:= $(FFLAGS3) $(DA) $(IMODS)$(O_DIR)
+  FFLAGS:= $(FFLAGS3) $(DA) $(IMODS) $(O_DIR)
   VPATH:=  ../src
   MSG_MOBJ:=
 endif
@@ -45,7 +45,7 @@ endif
 ifeq ($(BUILDTYPE),dgswem)
   CF:= $(PFC)
   O_DIR:=odir5/
-  FFLAGS:= $(FFLAGS4) $(DP) $(IMODS)$(O_DIR)
+  FFLAGS:= $(FFLAGS4) $(DP) $(IMODS) $(O_DIR)
   VPATH :=  ../src
   MSG_MOBJ:= $(O_DIR)messenger_elem.o $(O_DIR)messenger.o
   MSG_OBJ:=
@@ -55,7 +55,7 @@ endif
 ifeq ($(BUILDTYPE),dgswemswan)
   CF:= $(PFC)
   O_DIR:=odir55/
-  FFLAGS:= $(FFLAGS4) -DSWAN $(DP) $(IMODS)$(O_DIR)
+  FFLAGS:= $(FFLAGS4) -DSWAN $(DP) $(IMODS) $(O_DIR)
   VPATH :=  ../src:../swan
   MSG_MOBJ:= $(O_DIR)messenger_elem.o $(O_DIR)messenger.o $(O_DIR)globalio.o
   MSG_OBJ:=
@@ -157,17 +157,17 @@ SWAN_OBJ:= $(patsubst %.f90, $(O_DIR)%.o, $(SWAN_OBJ) )
 $(O_DIR)%.o  : %.F
 #  @echo depend $<
 #  @echo target $@
-	$(CF) -c $(FFLAGS) -o $@  $< $(MODULES) $(O_DIR)
+	$(CF) -c $(FFLAGS) -o $@  $<
 
 #Casey 121126: Changed the f90 files to F90 extension to avoid conflict with SWAN.
 $(O_DIR)%.o  : %.F90
-	$(CF) -c $(FFLAGS) -o $@  $< $(MODULES) $(O_DIR)
+	$(CF) -c $(FFLAGS) -o $@  $<
 
 #Casey 121126: Added the following rules for the unstructured SWAN.
 $(O_DIR)%.o  : %.f
-	$(CF) -c $(FLAGS_OPT) $(FLAGS_MSC) $(FLAGS_SER) $(MODULES) $(O_DIR) -o $@  $< $(MODULES) $(O_DIR)
+	$(CF) -c $(FLAGS_OPT) $(FLAGS_MSC) $(FLAGS_SER) $(IMODS) $(O_DIR) -o $@
 $(O_DIR)%.o  : %.f90
-	$(CF) -c $(FLAGS_OPT) $(FLAGS_MSC) $(FLAGS_SER) $(MODULES) $(O_DIR) -o $@  $< $(MODULES) $(O_DIR)
+	$(CF) -c $(FLAGS_OPT) $(FLAGS_MSC) $(FLAGS_SER) $(IMODS) $(O_DIR) -o $@
 
 $(O_DIR)%.o  : %.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
