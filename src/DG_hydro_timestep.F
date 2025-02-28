@@ -490,7 +490,10 @@ C.......Compute the dynamic pressure if flagged
 #endif
 
 #ifdef CMPI
-         CALL UPDATER_ELEM_MOD(ZE,QX,QY,IRK+1,3)
+         !CALL UPDATER_ELEM_MOD(ZE,QX,QY,IRK+1,3)
+         call send_recv_elems(ze(:,:,IRK+1))
+         call send_recv_elems(qx(:,:,IRK+1))
+         call send_recv_elems(qy(:,:,IRK+1))
 #ifdef TRACE
          CALL UPDATER_ELEM_MOD(iota,iota2,QY,IRK+1,2 )
 #endif

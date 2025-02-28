@@ -18,6 +18,7 @@ C
       IMPLICIT NONE
 #else
       IMPLICIT NONE
+      include 'mpif.h'
 #endif
 C
 C--------------------------------------------------------------------------
@@ -37,6 +38,7 @@ C
 Csb-PDG1
       PUBLIC
 
+      INTEGER, private :: NCOMMELEM_S,NCOMMELEM_R
       INTEGER, SAVE :: MPI_COMM_ADCIRC
       INTEGER, SAVE ::  COMM_COMP     
       INTEGER, SAVE ::  GROUP_WORLD, GROUP_COMP
@@ -60,6 +62,7 @@ C
       INTEGER, PRIVATE, ALLOCATABLE :: REQ_C3D(:), STAT_C3D(:,:)
       INTEGER, PRIVATE, ALLOCATABLE :: INDEX(:)
       REAL(SZ), PRIVATE,ALLOCATABLE :: SENDBUF(:,:), RECVBUF(:,:)
+      REAL(SZ), PRIVATE,ALLOCATABLE :: SENDBUF1(:,:), RECVBUF1(:,:)
 C--
 C
 
@@ -272,7 +275,7 @@ C
 #ifndef HAVE_MPI_MOD
       include 'mpif.h'
 #endif
-      INTEGER :: J,NCOMMELEM_S,NCOMMELEM_R
+      integer :: j
 C
       NCOMMELEM_R = 0
       NCOMMELEM_S = 0
@@ -293,6 +296,9 @@ C         ALLOCATE ( RECVBUF(2*MNP*MNODES,NEIGHPROC) )
       ELSE
          ALLOCATE ( SENDBUF(NCOMMELEM_S*DOFH*4,NEIGHPROC_S) )
          ALLOCATE ( RECVBUF(NCOMMELEM_R*DOFH*4,NEIGHPROC_R) )
+
+         ALLOCATE ( sendBUF1(NCOMMELEM_R*DOFH,NEIGHPROC_S) )
+         ALLOCATE ( RECVBUF1(NCOMMELEM_R*DOFH,NEIGHPROC_R) )
       ENDIF
 C
       ALLOCATE ( REQ_I1(RDIM),REQ_I2(RDIM) )
@@ -789,6 +795,49 @@ C
 
       RETURN
       END SUBROUTINE
+
+      subroutine send_recv_elems(vec)
+      implicit none
+
+      real(sz), INTENT(INout) :: vec(DOFH*MNE)
+
+      integer :: i, j, ierror, requests(neighproc_s)
+      logical :: mask_send(DOFH*MNE, neighproc_s)
+      logical :: mask_recv(DOFH*MNE, neighproc_r)
+
+      ! Fill the send mask array
+      mask_send = .false.
+      DO J=1,NEIGHPROC_S
+         DO I=1,NELEMSEND(J)
+            mask_send(ISENDLOC(I,J):ISENDLOC(I,J)+DOFH-1, J) = .true.
+         ENDDO
+      ENDDO
+!! Pack the elements to send
+      DO j = 1,NEIGHPROC_S
+         sendbuf1(1:DOFH*nelemsend(j), j) = PACK(vec, MASK=mask_send(:,j))
+         call MPI_Isend(sendbuf1(1,j), DOFH*nelemsend(j), realtype,
+     &        iproc_s(j), 0, MPI_COMM_WORLD, requests(j), ierror)
+      ENDDO
+
+!! Fill the recv mask arrays
+      mask_recv = .false.
+      DO J=1,NEIGHPROC_R
+         DO I=1,NELEMRECV(j)
+            mask_recv(IRECVLOC(I,J):IRECVLOC(I,J)+DOFH-1, J) = .true.
+         ENDDO
+      ENDDO
+
+!! Wait to receive elements from neighbors
+      DO j = 1,NEIGHPROC_R
+         call MPI_Recv(recvbuf1(1,j), DOFH*NELEMRECV(j), realtype,
+     &        iproc_r(j), 0, MPI_COMM_WORLD, MPI_status_ignore, ierror)
+         vec = UNPACK(recvbuf1(1:DOFH*NELEMRECV(j), j), mask_recv(:,j), vec)
+      ENDDO
+
+!! Wait for send buffer to clear
+      call MPI_waitall(NEIGHPROC_S, requests, MPI_status_ignore, ierror)
+
+      end subroutine
 
 
       SUBROUTINE UPDATER_ELEM_MOD( VEC1, VEC2, VEC3, IRK, NMSG )

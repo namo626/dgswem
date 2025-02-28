@@ -50,7 +50,7 @@ ifeq ($(compiler),nvhpc)   # NVIDIA
   PPFC	        :=  nvfortran
   FC	        :=  nvfortran
   PFC	        :=  mpif90
-  FFLAGS1	:=  -r$(sz) -Mextend -traceback -g -O3 -tp=native
+  FFLAGS1	:=  -r$(sz) -Mextend -traceback -g -O0 -tp=native
   FFLAGS2	:=  $(FFLAGS1)
   FFLAGS3	:=  $(FFLAGS1)
   FFLAGS4	:=  $(FFLAGS1)
