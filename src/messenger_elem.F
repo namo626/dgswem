@@ -801,7 +801,7 @@ C
 
       real(sz), INTENT(INout) :: vec(DOFH*MNE)
 
-      integer :: i, j, ierror, requests(neighproc_s)
+      integer :: i, j, ierror, requests(neighproc_s), el
       logical :: mask_send(DOFH*MNE, neighproc_s)
       logical :: mask_recv(DOFH*MNE, neighproc_r)
 
@@ -809,7 +809,8 @@ C
       mask_send = .false.
       DO J=1,NEIGHPROC_S
          DO I=1,NELEMSEND(J)
-            mask_send(ISENDLOC(I,J):ISENDLOC(I,J)+DOFH-1, J) = .true.
+            el = DOFH*(isendloc(i,j)-1) + 1
+            mask_send(el:el+DOFH-1, J) = .true.
          ENDDO
       ENDDO
 !! Pack the elements to send
@@ -823,7 +824,8 @@ C
       mask_recv = .false.
       DO J=1,NEIGHPROC_R
          DO I=1,NELEMRECV(j)
-            mask_recv(IRECVLOC(I,J):IRECVLOC(I,J)+DOFH-1, J) = .true.
+            el = DOFH*(irecvloc(i,j)-1) + 1
+            mask_recv(el:el+DOFH-1, J) = .true.
          ENDDO
       ENDDO
 
