@@ -494,6 +494,7 @@ C.......Compute the dynamic pressure if flagged
          call send_recv_elems(ze(:,:,IRK+1))
          call send_recv_elems(qx(:,:,IRK+1))
          call send_recv_elems(qy(:,:,IRK+1))
+         !call send_recv_elems3(ze(:,:,IRK+1), qx(:,:,IRK+1), qy(:,:,IRK+1))
 #ifdef TRACE
          CALL UPDATER_ELEM_MOD(iota,iota2,QY,IRK+1,2 )
 #endif
