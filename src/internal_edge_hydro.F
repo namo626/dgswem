@@ -34,12 +34,12 @@ C     C***********************************************************************
 
       contains
 
-      SUBROUTINE INTERNAL_EDGE_HYDRO(IT)
+      SUBROUTINE INTERNAL_EDGE_HYDRO(IT, edgecount, indices)
 
 
       IMPLICIT NONE
 
-      integer, value :: it
+      integer, intent(in) :: it, edgecount, indices(edgecount)
 
 
 C.....Declare local variables
@@ -103,7 +103,8 @@ c
 !$acc parallel loop gang vector
 !$acc+private(rhs_ze_in,rhs_qx_in,rhs_qy_in,rhs_ze_ex,rhs_qx_ex,rhs_qy_ex,
 !$acc+ze_ins,qx_ins,qy_ins,ze_exs,qx_exs,qy_exs) async(1) default(present)
-      do L = 1, NIEDS
+      do LL = 1, edgecount
+        L = indices(LL)
 
         is_large_flux = .false.
 C.......Retrieve the global and local edge number
