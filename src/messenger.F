@@ -449,7 +449,7 @@ C
       real(sz), intent(out) :: packed(:)
 
       integer :: j, istat
-!$acc parallel loop
+!$acc parallel loop default(present) async(1)
       do j = 1,np
          if (gather(j) == 1) then
             packed(pgather(j)) = vec1(j)
@@ -469,7 +469,7 @@ C
 
       integer :: j, istat
 
-!$acc parallel loop
+!$acc parallel loop default(present) async(1)
       do j = 1,nrecv
          vec1(irecvloc(j)) = packed(j)
       enddo
@@ -537,6 +537,7 @@ C
 C                    
               ! Send/receive messages to/from all neighbors
 C
+!$acc wait
       IF (NMSG.EQ.1) THEN
         CALL MPI_STARTALL ( RDIM, REQ_R1, IERR )
       ELSEIF (NMSG.EQ.2) THEN
