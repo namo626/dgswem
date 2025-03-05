@@ -553,7 +553,7 @@ C
 
       integer :: j, istat
 
-!$acc parallel loop
+!$acc parallel loop default(present) async(1)
       do j = 1,ne*dof
          if (gather(j) == 1) then
             packed(pgather(j)) = vec1(j)
@@ -572,7 +572,7 @@ C
 
       integer :: j, istat
 
-!$acc parallel loop
+!$acc parallel loop default(present) async(1)
       do j = 1,nrecv*dof
          vec1(scatter(j)) = packed(j)
       enddo
@@ -888,6 +888,7 @@ C
                              !..Pack 1, 2, or 3 Messages
 C      DO JJ=1,NEIGHPROC_S
 C         J = MOD(JJ-1+MYPROC,NEIGHPROC_S)+1
+!$acc wait
       DO J=1,NEIGHPROC_S
          NCOUNT = 0
          call packElems(DOFH, MNE, gather(:,j), pgather(:,j), vec1(:,:,irk), sendbuf(:,j) )
@@ -902,6 +903,7 @@ C         J = MOD(JJ-1+MYPROC,NEIGHPROC_S)+1
 
          !istat = cudaDeviceSynchronize()
          ! Start sending a message
+!$acc wait
          IF (NMSG.EQ.1) THEN
             CALL MPI_START ( REQ_R1(J+NEIGHPROC_R), IERR )
          ELSEIF (NMSG.EQ.2) THEN
