@@ -493,14 +493,14 @@ C
 #endif
 C
       INTEGER,  INTENT(IN) ::  NMSG
-      REAL(SZ), INTENT(INOUT) ::  VEC1(:),VEC2(:),VEC3(:)
+      REAL(SZ), INTENT(INOUT) ::  VEC1(MNP),VEC2(MNP),VEC3(MNP)
       INTEGER :: N,I,J,NCOUNT,NFINI,TOT, istat
 C
                              !..Pack 1, 2, or 3 Messages
 !$acc wait
       DO J=1,NEIGHPROC
          NCOUNT = 0
-#define SERIAL 1
+#define SERIAL 0
 #if SERIAL
          DO I=1,NNODSEND(J)
             NCOUNT = NCOUNT+1
