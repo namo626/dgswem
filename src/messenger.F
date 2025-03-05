@@ -58,6 +58,7 @@ C
       INTEGER, PRIVATE, ALLOCATABLE :: REQ_C3D(:), STAT_C3D(:,:)
       INTEGER, PRIVATE, ALLOCATABLE :: INDEX(:)
       REAL(SZ), PRIVATE,ALLOCATABLE :: SENDBUF(:,:), RECVBUF(:,:)
+      INTEGER, PRIVATE, ALLOCATABLE :: gather(:,:), pgather(:,:)
 C--
 C
 
@@ -187,6 +188,26 @@ C
       ENDDO
 C
       CLOSE(18)
+
+      allocate(gather(mnp, neighproc), pgather(mnp, neighproc))
+
+      gather = 0
+      do j=1,neighproc
+         do i=1,nnodsend(j)
+            gather(isendloc(i,j), j) = 1
+         enddo
+      enddo
+
+! prefix sum
+      do j = 1,neighproc
+         pgather(1,j) = gather(1,j)
+         do i=2,mnp
+            pgather(i,j) = gather(i,j) + pgather(i-1,j)
+         enddo
+      enddo
+
+
+
       RETURN
 C
 1130  FORMAT(8X,9I8)
@@ -419,6 +440,43 @@ C
       RETURN
       END SUBROUTINE
 
+      subroutine packNodes(np, gather, pgather, vec1, packed)
+      implicit none
+
+      integer, value :: np
+      real(sz), intent(in) :: vec1(:)
+      integer,   intent(in) :: gather(:), pgather(:)
+      real(sz), intent(out) :: packed(:)
+
+      integer :: j, istat
+!$acc parallel loop
+      do j = 1,np
+         if (gather(j) == 1) then
+            packed(pgather(j)) = vec1(j)
+         endif
+      enddo
+
+
+      end subroutine
+
+      subroutine unpackNodes(nrecv, irecvloc, packed, vec1)
+      implicit none
+
+      integer, value :: nrecv
+      real(sz), intent(in) :: packed(:)
+      integer,  intent(in) :: irecvloc(:)
+      real(sz), intent(out) :: vec1(:)
+
+      integer :: j, istat
+
+!$acc parallel loop
+      do j = 1,nrecv
+         vec1(irecvloc(j)) = packed(j)
+      enddo
+
+      end subroutine
+
+
 
       SUBROUTINE UPDATER( VEC1, VEC2, VEC3, NMSG )
 C
@@ -435,30 +493,47 @@ C
 #endif
 C
       INTEGER,  INTENT(IN) ::  NMSG
-      REAL(SZ), INTENT(INOUT) ::  VEC1(*),VEC2(*),VEC3(*)
-      INTEGER :: N,I,J,NCOUNT,NFINI,TOT
-!$acc wait
+      REAL(SZ), INTENT(INOUT) ::  VEC1(:),VEC2(:),VEC3(:)
+      INTEGER :: N,I,J,NCOUNT,NFINI,TOT, istat
 C
                              !..Pack 1, 2, or 3 Messages
+!$acc wait
       DO J=1,NEIGHPROC
          NCOUNT = 0
+#define SERIAL 1
+#if SERIAL
          DO I=1,NNODSEND(J)
             NCOUNT = NCOUNT+1
             SENDBUF(NCOUNT,J)=VEC1(ISENDLOC(I,J))
          ENDDO
+#else
+         call packNodes(MNP, gather(:,j), pgather(:,j), vec1, sendbuf(:,j) )
+         NCOUNT = NNODSEND(J) + 1
+#endif
          IF (NMSG.GT.1) THEN
+#if SERIAL
            DO I=1,NNODSEND(J)
               NCOUNT = NCOUNT+1
               SENDBUF(NCOUNT,J)=VEC2(ISENDLOC(I,J))
            ENDDO
+#else
+            call packNodes(MNP, gather(:,j), pgather(:,j), vec2, sendbuf(ncount:,j) )
+            NCOUNT = 2*NNODSEND(J) + 1
+#endif
          ENDIF
          IF (NMSG.GT.2) THEN
+#if SERIAL
            DO I=1,NNODSEND(J)
               NCOUNT = NCOUNT+1
               SENDBUF(NCOUNT,J)=VEC3(ISENDLOC(I,J))
            ENDDO
+#else
+            call packNodes(MNP, gather(:,j), pgather(:,j), vec3, sendbuf(ncount:,j) )
+            NCOUNT = 3*NNODSEND(J) + 1
+#endif
          ENDIF
       ENDDO
+      !istat = cudaDeviceSynchronize()
 C                    
               ! Send/receive messages to/from all neighbors
 C
@@ -532,19 +607,28 @@ cdebug     print *, myproc, tot,nfini,index(1),index(2)
               IF (INDEX(N).GT.0.AND.INDEX(N).LE.RDIM)  THEN
                 IF (INDEX(N).LE.NEIGHPROC) THEN
                   J = INDEX(N)
+#if SERIAL
                   NCOUNT = 0
-                  DO I=1,NNODRECV(J)
-                     NCOUNT = NCOUNT+1
-                     VEC1(IRECVLOC(I,J)) = RECVBUF(NCOUNT,J)
-                  ENDDO
-                  DO I=1,NNODRECV(J)
-                     NCOUNT = NCOUNT+1
-                     VEC2(IRECVLOC(I,J)) = RECVBUF(NCOUNT,J)
-                  ENDDO
-                  DO I=1,NNODRECV(J)
-                     NCOUNT = NCOUNT+1
-                     VEC3(IRECVLOC(I,J)) = RECVBUF(NCOUNT,J)
-                  ENDDO
+                 DO I=1,NNODRECV(J)
+                    NCOUNT = NCOUNT+1
+                    VEC1(IRECVLOC(I,J)) = RECVBUF(NCOUNT,J)
+                 ENDDO
+                 DO I=1,NNODRECV(J)
+                    NCOUNT = NCOUNT+1
+                    VEC2(IRECVLOC(I,J)) = RECVBUF(NCOUNT,J)
+                 ENDDO
+                 DO I=1,NNODRECV(J)
+                    NCOUNT = NCOUNT+1
+                    VEC3(IRECVLOC(I,J)) = RECVBUF(NCOUNT,J)
+                 ENDDO
+#else
+                  NCOUNT = 1
+                  call unpackNodes(nnodrecv(j), irecvloc(:,j), recvbuf(ncount:,j), vec1)
+                  ncount = nnodrecv(j) + 1
+                  call unpackNodes(nnodrecv(j), irecvloc(:,j), recvbuf(ncount:,j), vec2)
+                  ncount = 2*nnodrecv(j) + 1
+                  call unpackNodes(nnodrecv(j), irecvloc(:,j), recvbuf(ncount:,j), vec3)
+#endif
                 ENDIF
               ENDIF
            ENDDO
