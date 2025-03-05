@@ -28,6 +28,7 @@ C.....Use appropriate modules
       USE GLOBAL
       USE DG
       use mod_internal_edge
+      use cudafor
 
 #ifdef CMPI
       USE MESSENGER_ELEM 
@@ -46,7 +47,7 @@ C.....Declare local variables
       real(sz) avg_rain
 
       INTEGER IT,L,GED,NBOREL,NNBORS,NDRYNBORS,NQEDS,Istop,k,j,kk,i,mm
-      INTEGER Detected,flagger,store
+      INTEGER Detected,flagger,store, istat
       REAL(SZ) QBCT1,QBCT2,QBC1,QBC2,ZP(3),QXP(3),QXP_OLD(3),
      $     QYP(3),QYP_OLD(3),ZP_OLD(3),ell_1,ell_2,ell_3
       REAL(SZ) DPAVG, ITDT, ARK, BRK, CRK, DRK, ERK,s,alph,eta,seta
@@ -232,7 +233,12 @@ C.......Compute elements to finish building the rhs
          CALL RHS_DG_HYDRO(IT)
 
 C.......Compute internal edges
-         CALL INTERNAL_EDGE_HYDRO(IT, nieds, (/(l, l=1,nieds)/))
+#ifdef CMPI
+
+         !istat = cudaMemPrefetchAsync(indIntEdgeSend, numIntEdgesend, 0,1)
+         CALL INTERNAL_EDGE_HYDRO(IT, numIntEdgeSend, indIntEdgeSend)
+#endif
+         CALL INTERNAL_EDGE_HYDRO(IT, nieds, niedss)
          call add_internal_flux()
 
 C.......SSP Runge-Kutta Time Scheme

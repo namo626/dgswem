@@ -27,10 +27,11 @@ C     C***********************************************************************
       USE DG, only : rhs_ze, rhs_qx, rhs_qy, cosnx, sinnx, ze, wdflg, qx, qy, xlen,
      &     hb, bathed, dofs, edgeq, negp, max_boa_dt, phi_edge, sfaced, lz, nedel, niedn,
      &     nedsd, elem_edge, ze_edge, qx_edge, qy_edge,
-     &     irk, nieds
+     &     irk, nieds, dofh
       USE NodalAttributes, ONLY :  ESLM
-      use sizes, only:  sz, myproc
+      use sizes, only:  sz, myproc, mne
       use mod_numerical_flux
+      use cudafor
 
       contains
 
@@ -45,7 +46,7 @@ C     C***********************************************************************
 C.....Declare local variables
       real(sz) :: tmp
       logical :: is_large_flux
-      integer :: el_in, el_ex, pa, el, test_el, ind_ex, ind_in
+      integer :: el_in, el_ex, pa, el, test_el, ind_ex, ind_in, istat
       real(sz) :: nx, ny, ze_in, qx_in, qy_in, qx_ex, qy_ex, hb_ex, hb_in
       real(sz) :: f_hat, g_hat, h_hat, q_n_ext, q_t_ext, q_n_int, q_t_int, ze_ex
       real(sz) :: sfac_in, sfac_ex

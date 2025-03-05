@@ -101,6 +101,7 @@ C.....Declare real variable arrays
       
 C.....Declare allocatable integer arrays
 
+      INTEGER, ALLOCATABLE :: niedss(:)
       INTEGER, ALLOCATABLE :: DOFS(:), PCOUNT(:), PDG(:)
       INTEGER, ALLOCATABLE :: NCOUNT(:)
       INTEGER, ALLOCATABLE :: NEDEL(:,:), NEDNO(:,:), NEDSD(:,:), NEDNO1(:), NEDNO2(:)
