@@ -437,6 +437,7 @@ C
       INTEGER,  INTENT(IN) ::  NMSG
       REAL(SZ), INTENT(INOUT) ::  VEC1(*),VEC2(*),VEC3(*)
       INTEGER :: N,I,J,NCOUNT,NFINI,TOT
+!$acc wait
 C
                              !..Pack 1, 2, or 3 Messages
       DO J=1,NEIGHPROC
