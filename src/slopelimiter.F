@@ -3269,9 +3269,13 @@ C.....Use appropriate modules
 #endif
 
       IMPLICIT NONE
+#ifdef CMPI
+      include 'mpif.h'
+#endif
 
 C.....Declare local variables
 
+      integer :: ierr
       INTEGER L, LL, INC1,INC2,INC3,KDP,NN,IVAR,I,J,kk,k,varnum,bb,varnum_prev
       REAL(SZ) ZEC(3),ZEVERTEX(3),DIF(3),SUMLOC,SUMDIF,SIGNDIF,
      $     DIV,REDFAC,REDMAX,tmp1,tmp2,tmp3,bound
@@ -3404,8 +3408,9 @@ C
       ENDDO
 #ifdef CMPI
 
-      CALL UPDATER(ZE_MIN1,ZE_MAX1,QX_MIN1,3)
-      CALL UPDATER(QX_MAX1,QY_MIN1,QY_MAX1,3)
+      !CALL UPDATER(ZE_MIN1,ZE_MAX1,QX_MIN1,3)
+      !call MPI_Barrier(MPI_COMM_WORLD, ierr)
+      !CALL UPDATER(QX_MAX1,QY_MIN1,QY_MAX1,3)
 
 #ifdef TRACE
       CALL UPDATER(iota_MAX1,iota_MIN1,QY_MAX1,2)
