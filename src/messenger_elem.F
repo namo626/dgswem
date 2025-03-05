@@ -900,9 +900,10 @@ C         J = MOD(JJ-1+MYPROC,NEIGHPROC_S)+1
          IF (NMSG.GT.2) THEN
             call packElems(DOFH, MNE, gather(:,j), pgather(:,j), vec3(:,:,irk), sendbuf(ncount:,j) )
          ENDIF
-
          !istat = cudaDeviceSynchronize()
          ! Start sending a message
+#define START 0
+#if START
 !$acc wait
          IF (NMSG.EQ.1) THEN
             CALL MPI_START ( REQ_R1(J+NEIGHPROC_R), IERR )
@@ -911,10 +912,13 @@ C         J = MOD(JJ-1+MYPROC,NEIGHPROC_S)+1
          ELSE
             CALL MPI_START ( REQ_R3(J+NEIGHPROC_R), IERR )
          ENDIF
+
+#endif
       ENDDO
 C                    
               ! Send/receive messages to/from all neighbors
 C
+#if START
       IF (NMSG.EQ.1) THEN
         CALL MPI_STARTALL ( RDIM-NEIGHPROC_S, REQ_R1, IERR )
       ELSEIF (NMSG.EQ.2) THEN
@@ -922,6 +926,17 @@ C
       ELSE
         CALL MPI_STARTALL ( RDIM-NEIGHPROC_S, REQ_R3, IERR )
       ENDIF
+#else
+!$acc wait
+      IF (NMSG.EQ.1) THEN
+        CALL MPI_STARTALL ( RDIM, REQ_R1, IERR )
+      ELSEIF (NMSG.EQ.2) THEN
+        CALL MPI_STARTALL ( RDIM, REQ_R2, IERR )
+      ELSE
+        CALL MPI_STARTALL ( RDIM, REQ_R3, IERR )
+      ENDIF
+#endif
+
 C
               !..Unpack Received messages as they arrive     
 C
