@@ -61,6 +61,9 @@ C
       INTEGER, PRIVATE, ALLOCATABLE :: INDEX(:)
       REAL(SZ), PRIVATE,ALLOCATABLE :: SENDBUF(:,:), RECVBUF(:,:)
       integer, PRIVATE,ALLOCATABLE :: gather(:,:), pgather(:,:), scatter(:,:)
+      integer, ALLOCATABLE :: gatherIntEdge(:)
+      integer, allocatable :: indIntEdgeSend(:), gatherElem(:), indElemSend(:)
+      integer :: numIntEdgeSend, numElemSend
 C--
 C
 
@@ -198,11 +201,12 @@ C
 C  vjp  8/06/1999
 C--------------------------------------------------------------------------
 C
+        use DG, only : nieds, nedel, niedn
       IMPLICIT NONE
 #ifndef HAVE_MPI_MOD
       include 'mpif.h'
 #endif
-      INTEGER :: IDPROC,NLOCAL,I,J,JJ,NEIGH,k, ii, ncount
+      INTEGER :: IDPROC,NLOCAL,I,J,JJ,NEIGH,k, ii, ncount, ged
       logical :: first
 C
       OPEN(18,FILE=DIRNAME(1:LNAME)//'/'//'DG.18')
@@ -255,15 +259,54 @@ C
       CLOSE(18)
 
       allocate(gather(mne*dofh, neighproc_s), pgather(mne*dofh, neighproc_s))
+      allocate(gatherElem(mne))
 
       gather = 0
+      gatherElem = 0
       do j=1,neighproc_s
          do i=1,nelemsend(j)
+           gatherElem(isendloc(i,j)) = 1
             gather(DOFH*(isendloc(i,j)-1)+1:DOFH*(isendloc(i,j)-1)+DOFH, j) = 1
          enddo
       enddo
 
+       numElemSend = sum(gatherElem)
+       allocate(indElemSend(numElemSend))
 
+       ncount = 0
+       do j = 1,MNE
+         if (gatherElem(j) == 1) then
+           ncount = ncount + 1
+           indElemSend(ncount) = j
+         endif
+       enddo
+
+       ! ghost
+       ! internal
+       ! edges
+       allocate(gatherIntEdge(nieds))
+       gatherIntEdge = 0
+       do j = 1,nieds
+         GED = NIEDN(j)
+         EL_IN = NEDEL(1,GED)
+         EL_EX = NEDEL(2,GED)
+         if (gatherElem(el_in) == 1 .or.  gatherElem(el_ex) == 1) then
+           gatherIntEdge(j) = 1
+         endif
+      enddo
+       numIntEdgeSend = sum(gatherIntEdge)
+       allocate(indIntEdgeSend(numIntEdgeSend))
+
+       ncount = 0
+       do j = 1,nieds
+         if (gatherIntEdge(j) == 1) then
+         ncount = ncount + 1
+         indIntEdgeSend(ncount) = j
+       endif
+      enddo
+
+       print *, 'numElemSend = ', numElemSend
+       print *, 'numIntEdgeSend = ', numIntEdgeSend
 
       do j = 1,neighproc_s
          ncount = 0
