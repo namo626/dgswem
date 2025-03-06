@@ -238,287 +238,53 @@ C.......Compute internal edges
          !istat = cudaMemPrefetchAsync(ghostEdges, numIntEdgesend, 0,1)
          CALL INTERNAL_EDGE_HYDRO(IT, size(ghostEdges), ghostEdges)
          call add_internal_flux(size(ghostElems), ghostElems)
+
+!$acc parallel loop gang vector async(1)  default(present)
+         DO JJ = 1,size(ghostElems)
+            J = ghostElems(JJ)
+            DO I = 1,IRK
+               ARK = ATVD(IRK,I)
+               BRK = BTVD(IRK,I)*DT
+               DO K = 1,DOFS(J)
+                  ZE(K,J,IRK+1) = ZE(K,J,irk+1) + ARK*ZE(K,J,I)
+     &                 + BRK*RHS_ZE(K,J,I)
+                  QX(K,J,IRK+1) = QX(K,J,irk+1) + ARK*QX(K,J,I)
+     &                 + BRK*RHS_QX(K,J,I)
+                  QY(K,J,IRK+1) = QY(K,J,irk+1) + ATVD(IRK,I)*QY(K,J,I)
+     &                 + BRK*RHS_QY(K,J,I)
+               ENDDO
+            ENDDO
+         ENDDO
+         call pack3(ze, qx, qy, irk+1, 3)
+!$acc wait
 #endif
          CALL INTERNAL_EDGE_HYDRO(IT, size(innerEdges), innerEdges)
          call add_internal_flux(size(innerElems), innerElems)
 
 C.......SSP Runge-Kutta Time Scheme
 !$acc parallel loop gang vector async(1) default(present)
-         DO J = 1,NE
+         DO JJ = 1,size(innerElems)
+            J = innerElems(JJ)
             DO I = 1,IRK
                ARK = ATVD(IRK,I)
                BRK = BTVD(IRK,I)*DT
                DO K = 1,DOFS(J)
-
-#ifdef SED_LAY
-
-                  do l = 1,layers                
-                     bed(K,J,IRK+1,l) = bed(K,J,irk+1,l) 
-     &                  + ARK*bed(K,J,I,l) + BRK*RHS_bed(K,J,I,l)
-
-                     !adjust for state variable represenation
-                     ZE(K,J,IRK+1) = ZE(K,J,IRK+1)-BRK*RHS_bed(K,J,I,l)
-
-
-                  enddo
-#endif
-
                   ZE(K,J,IRK+1) = ZE(K,J,irk+1) + ARK*ZE(K,J,I)
      &                 + BRK*RHS_ZE(K,J,I) 
                   QX(K,J,IRK+1) = QX(K,J,irk+1) + ARK*QX(K,J,I)
      &                 + BRK*RHS_QX(K,J,I)
                   QY(K,J,IRK+1) = QY(K,J,irk+1) + ATVD(IRK,I)*QY(K,J,I)
      &                 + BRK*RHS_QY(K,J,I)
-C.......Compute the transported tracer term if flagged
-
-#ifdef TRACE
-                  iota(K,J,IRK+1) = iota(K,J,irk+1) + ARK*iota(K,J,I)
-     &                 + BRK*RHS_iota(K,J,I)
-#endif
-
-C......Compute chemistry transported terms if flagged
-
-#ifdef CHEM
-                  iota(K,J,IRK+1) = iota(K,J,irk+1) + ARK*iota(K,J,I)
-     &                 + BRK*RHS_iota(K,J,I)
-                  iota2(K,J,IRK+1) = iota2(K,J,irk+1) + ARK*iota2(K,J,I)
-     &                 + BRK*RHS_iota2(K,J,I)
-#endif
-
-C.......Compute the dynamic pressure if flagged
-
-#ifdef DYNP
-                  dynP(K,J,IRK+1) = dynP(K,J,irk+1) + ARK*dynP(K,J,I)
-     &                 + BRK*RHS_dynP(K,J,I)
-#endif
-
-
                ENDDO
             ENDDO
          ENDDO
 
 #endif
 
-#ifdef RKC
-
-         TIMEDG = TIME_A - DTDP + RKC_c(IRK)*DTDP
-         RAMPDG = 1.0
-         RAMPExtFlux = 1.0
-         IF (NRAMP.GE.1) THEN
-            IF (NRAMP.EQ.1) THEN
-               RAMPDG = TANH((2.0*(IT + RKC_c(IRK))*DTDP/86400.0)
-     &            /DRAMP)
-               RAMPExtFlux = 
-     &              TANH((2.0*(IT + RKC_c(IRK))*DTDP/86400.0)
-     &            /DRAMPExtFlux)
-            ENDIF
-            IF (NRAMP.EQ.2) THEN
-               RAMPDG = TANH((2.0*(IT + RKC_c(IRK))*DTDP/86400.0)
-     &            /DRAMP)
-               RAMPExtFlux = 
-     &              TANH((2.0*(IT + RKC_c(IRK))*DTDP/86400.0)
-     &           /DRAMPExtFlux)
-            ENDIF
-            IF (NRAMP.EQ.3) THEN
-               WRITE(*,*) 'NRAMP = 3 not supported '
-               STOP
-            ENDIF
-         ENDIF
-         RAMP = RAMPDG
-         
-C.......Obtain the meteorological forcing
-
-         IF (NWS.NE.0) CALL MET_FORCING(IT)
-         
-C.......Compute tidal potential terms
-
-         IF (NTIP.NE.0) CALL TIDAL_POTENTIAL()
-
-C.......Compute LDG auxiliary equations
-         
-         IF (EVMSUM.NE.0.0.or.artdif.eq.1) CALL LDG_HYDRO(IT)
-         
-C.......Compute elevation specified edges
-
-         IF (NEEDS.GT.0)  CALL OCEAN_EDGE_HYDRO(IT)
-
-C.......Compute no-normal flow edges
-
-         IF (NLEDS.GT.0)  CALL LAND_EDGE_HYDRO(IT)
-
-C.......Compute non-zero flow edges
-
-         IF (NFEDS.GT.0)  CALL FLOW_EDGE_HYDRO(IT)
-         
-C.......Compute radiation edges
-
-         IF (NREDS.GT.0)  CALL RADIATION_EDGE_HYDRO(IT)
-
-C.......Compute internal barrier edges
-
-         IF (NIBEDS.GT.0) CALL IBARRIER_EDGE_HYDRO(IT)
-         
-C.......Compute external barrier edges
-
-         IF (NEBEDS.GT.0) CALL EBARRIER_EDGE_HYDRO(IT)
-         
-C.......Compute internal edges
-
-         CALL INTERNAL_EDGE_HYDRO(IT)
-
-C.......Compute elements to finish building the rhs
-         
-         CALL RHS_DG_HYDRO(IT)
-
-C.......RKC Time Scheme
-
-         if (irk.eq.1) then
-
-            BRK = RKC_tildemu(1)*dt
-
-            DO J = 1,NE
-               DO K = 1,DOFS(J)
-
-#ifdef SED_LAY
-                  do l = 1,layers
-                     
-                     bed(K,J,IRK+1,l) = bed(K,J,irk+1,l) + bed(K,J,1,l) 
-     &                    + BRK*RHS_bed(K,J,1,l)
-
-                   !adjust for state variable represenation
-                     ZE(K,J,IRK+1) = ZE(K,J,IRK+1)-BRK*RHS_bed(K,J,1,l)
-                     
-                  enddo
-#endif
-                  
-                  ZE(K,J,IRK+1) = ZE(K,J,irk+1) + ZE(K,J,1)
-     &                 + BRK*RHS_ZE(K,J,1)
-                  QX(K,J,IRK+1) = QX(K,J,irk+1) + QX(K,J,1)
-     &                 + BRK*RHS_QX(K,J,1)
-                  QY(K,J,IRK+1) = QY(K,J,irk+1)  + QY(K,J,1)
-     &                 + BRK*RHS_QY(K,J,1)
-                  
-C.......Compute the transported tracer term if flagged
-                  
-#ifdef TRACE
-                  iota(K,J,IRK+1) = iota(K,J,irk+1) + iota(K,J,1)
-     &                 + BRK*RHS_iota(K,J,1)
-#endif
-                  
-C......Compute chemistry transported terms if flagged
-                  
-#ifdef CHEM
-                  iota(K,J,IRK+1) = iota(K,J,irk+1) + iota(K,J,1)
-     &                 + BRK*RHS_iota(K,J,1)
-                  iota2(K,J,IRK+1) = iota2(K,J,irk+1) + iota2(K,J,1)
-     &                 + BRK*RHS_iota2(K,J,1)
-#endif
-
-C.......Compute the dynamic pressure if flagged
-                  
-#ifdef DYNP
-                  dynP(K,J,IRK+1) = dynP(K,J,irk+1) + dynP(K,J,1)
-     &                 + BRK*RHS_dynP(K,J,1)
-#endif
-               ENDDO
-            ENDDO
-            
-         else
-
-            ARK = 1.0 - RKC_mu(irk)-RKC_nu(irk)
-            CRK = RKC_mu(irk)
-            DRK = RKC_nu(irk)
-
-            BRK = RKC_tildemu(irk)*dt
-            ERK = RKC_gamma(irk)*dt
-
-             DO J = 1,NE
-               DO K = 1,DOFS(J)
-
-#ifdef SED_LAY
-                  do l = 1,layers
-                     
-                     bed(K,J,IRK+1,l) = bed(K,J,irk+1,l) 
-     &                   + ARK*bed(K,J,1,l) + CRK*bed(K,J,irk,l)
-     &                   + DRK*bed(K,J,irk-1,l) + BRK*RHS_bed(K,J,irk,l)
-     &                   + ERK*RHS_bed(K,J,1,l)
-
-
-                   !adjust for state variable represenation
-                     ZE(K,J,IRK+1) = ZE(K,J,IRK+1) 
-     &                   - BRK*RHS_bed(K,J,irk,l) - ERK*RHS_bed(K,J,1,l)
-                     
-                  enddo
-#endif
-                  ZE(K,J,IRK+1) = ZE(K,J,irk+1) + ARK*ZE(K,J,1) 
-     &                + CRK*ZE(K,J,irk) + DRK*ZE(K,J,irk-1) 
-     &                + BRK*RHS_ZE(K,J,irk) + ERK*RHS_ZE(K,J,1)
-                  QX(K,J,IRK+1) = QX(K,J,irk+1) + ARK*QX(K,J,1)
-     &                + CRK*QX(K,J,irk) + DRK*QX(K,J,irk-1) 
-     &                + BRK*RHS_QX(K,J,irk) + ERK*RHS_QX(K,J,1)
-                  QY(K,J,IRK+1) = QY(K,J,irk+1) + ARK*QY(K,J,1) 
-     &                + CRK*QY(K,J,irk) + DRK*QY(K,J,irk-1)
-     &                + BRK*RHS_QY(K,J,irk) + ERK*RHS_QY(K,J,1)
-
-
-C.......Compute the transported tracer term if flagged
-
-#ifdef TRACE
-                  iota(K,J,IRK+1) = iota(K,J,irk+1) + ARK*iota(K,J,1) 
-     &                + CRK*iota(K,J,irk) + DRK*iota(K,J,irk-1) 
-     &                + BRK*RHS_iota(K,J,irk) + ERK*RHS_iota(K,J,1)
-
-#endif
-
-C......Compute chemistry transported terms if flagged
-
-#ifdef CHEM
-                  iota(K,J,IRK+1) =  iota(K,J,irk+1) + ARK*iota(K,J,1) 
-     &                 + CRK*iota(K,J,irk) + DRK*iota(K,J,irk-1) 
-     &                 + BRK*RHS_iota(K,J,irk) + ERK*RHS_iota(K,J,1)
-                  iota2(K,J,IRK+1) = iota2(K,J,irk+1) + ARK*iota2(K,J,1)
-     &                 + CRK*iota2(K,J,irk) + DRK*iota2(K,J,irk-1) 
-     &                 + BRK*RHS_iota2(K,J,irk) + ERK*RHS_iota2(K,J,1)
-
-#endif
-
-C.......Compute the dynamic pressure if flagged
-
-#ifdef DYNP
-                  dynP(K,J,IRK+1) = dynP(K,J,irk+1) + ARK*dynP(K,J,1) 
-     &                 + CRK*dynP(K,J,irk) + DRK*dynP(K,J,irk-1) 
-     &                 + BRK*RHS_dynP(K,J,irk) + ERK*RHS_dynP(K,J,1)
-
-#endif
-
-               ENDDO
-            ENDDO
-
-         endif
-
-#endif
 
 #ifdef CMPI
          CALL UPDATER_ELEM_MOD(ZE,QX,QY,IRK+1,3)
-#ifdef TRACE
-         CALL UPDATER_ELEM_MOD(iota,iota2,QY,IRK+1,2 )
-#endif
-
-#ifdef DYNP
-         CALL UPDATER_ELEM_MOD(dynP,iota2,QY,IRK+1,2 )
-#endif
-
-#ifdef CHEM
-         CALL UPDATER_ELEM_MOD(iota,iota2,QY,IRK+1,2 )
-#endif
-
-#ifdef SED_LAY
-         do l = 1,layers
-            arrayfix => bed(:,:,:,l) 
-            CALL UPDATER_ELEM_MOD(arrayfix,QX,QY,IRK+1,1 )
-         enddo
-#endif
-
+!$acc wait
 #endif
 
 C.......Apply the slopelimiter if appropriate
@@ -563,26 +329,6 @@ C...drying is being used
 #ifdef CMPI
          if (SLOPEFLAG.NE.0.OR.NOLIFA.GE.2) THEN
             CALL UPDATER_ELEM_MOD(ZE,QX,QY,IRK+1,3)
-            
-#ifdef TRACE
-            CALL UPDATER_ELEM_MOD(iota,iota2,QY,IRK+1,2 )
-#endif
-
-#ifdef CHEM
-            CALL UPDATER_ELEM_MOD(iota,iota2,QY,IRK+1,2 )
-#endif
-
-#ifdef DYNP
-            CALL UPDATER_ELEM_MOD(dynP,iota2,QY,IRK+1,2 )
-#endif
-
-
-#ifdef SED_LAY
-            do l = 1,layers
-               arrayfix => bed(:,:,:,l)
-               CALL UPDATER_ELEM_MOD(arrayfix,QX,QY,IRK+1,1 )
-            enddo
-#endif
          endif
 #endif
 

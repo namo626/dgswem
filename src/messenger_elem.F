@@ -915,6 +915,31 @@ C
       END SUBROUTINE
 
 
+      subroutine pack3(vec1, vec2, vec3, irk, nmsg)
+
+      IMPLICIT NONE
+#ifndef HAVE_MPI_MOD
+      include 'mpif.h'
+#endif
+C
+      INTEGER,  INTENT(IN) ::  IRK, nmsg
+      REAL(SZ), managed, INTENT(INOUT) ::  VEC1(:,:,:),VEC2(:,:,:),VEC3(:,:,:)
+      INTEGER :: N,I,J,JJ,K,NCOUNT,NFINI,TOT, istat
+
+      DO J=1,NEIGHPROC_S
+         NCOUNT = 0
+         call packElems(DOFH, MNE, gather(:,j), pgather(:,j), vec1(:,:,irk), sendbuf(:,j) )
+         NCOUNT = nelemsend(J)*DOFH + 1
+         IF (NMSG.GT.1) THEN
+            call packElems(DOFH, MNE, gather(:,j), pgather(:,j), vec2(:,:,irk), sendbuf(ncount:,j) )
+            NCOUNT = 2*nelemsend(J)*DOFH + 1
+         ENDIF
+         IF (NMSG.GT.2) THEN
+            call packElems(DOFH, MNE, gather(:,j), pgather(:,j), vec3(:,:,irk), sendbuf(ncount:,j) )
+         ENDIF
+      ENDDO
+      end subroutine
+
       SUBROUTINE UPDATER_ELEM_MOD( VEC1, VEC2, VEC3, IRK, NMSG )
 C
 C--------------------------------------------------------------------------
@@ -935,51 +960,7 @@ C
       REAL(SZ), managed, INTENT(INOUT) ::  VEC1(:,:,:),VEC2(:,:,:),VEC3(:,:,:)
       INTEGER :: N,I,J,JJ,K,NCOUNT,NFINI,TOT, istat
 
-      !call nvtxStartRange("UPDATER_ELEM", 6)
-C
-                             !..Pack 1, 2, or 3 Messages
-C      DO JJ=1,NEIGHPROC_S
-C         J = MOD(JJ-1+MYPROC,NEIGHPROC_S)+1
-!$acc wait
-      DO J=1,NEIGHPROC_S
-         NCOUNT = 0
-         call packElems(DOFH, MNE, gather(:,j), pgather(:,j), vec1(:,:,irk), sendbuf(:,j) )
-         NCOUNT = nelemsend(J)*DOFH + 1
-         IF (NMSG.GT.1) THEN
-            call packElems(DOFH, MNE, gather(:,j), pgather(:,j), vec2(:,:,irk), sendbuf(ncount:,j) )
-            NCOUNT = 2*nelemsend(J)*DOFH + 1
-         ENDIF
-         IF (NMSG.GT.2) THEN
-            call packElems(DOFH, MNE, gather(:,j), pgather(:,j), vec3(:,:,irk), sendbuf(ncount:,j) )
-         ENDIF
-         !istat = cudaDeviceSynchronize()
-         ! Start sending a message
-#define START 0
-#if START
-!$acc wait
-         IF (NMSG.EQ.1) THEN
-            CALL MPI_START ( REQ_R1(J+NEIGHPROC_R), IERR )
-         ELSEIF (NMSG.EQ.2) THEN
-            CALL MPI_START ( REQ_R2(J+NEIGHPROC_R), IERR )
-         ELSE
-            CALL MPI_START ( REQ_R3(J+NEIGHPROC_R), IERR )
-         ENDIF
-
-#endif
-      ENDDO
-C                    
-              ! Send/receive messages to/from all neighbors
-C
-#if START
-      IF (NMSG.EQ.1) THEN
-        CALL MPI_STARTALL ( RDIM-NEIGHPROC_S, REQ_R1, IERR )
-      ELSEIF (NMSG.EQ.2) THEN
-        CALL MPI_STARTALL ( RDIM-NEIGHPROC_S, REQ_R2, IERR )
-      ELSE
-        CALL MPI_STARTALL ( RDIM-NEIGHPROC_S, REQ_R3, IERR )
-      ENDIF
-#else
-!$acc wait
+!$acc wait(1)
       IF (NMSG.EQ.1) THEN
         CALL MPI_STARTALL ( RDIM, REQ_R1, IERR )
       ELSEIF (NMSG.EQ.2) THEN
@@ -987,7 +968,6 @@ C
       ELSE
         CALL MPI_STARTALL ( RDIM, REQ_R3, IERR )
       ENDIF
-#endif
 
 C
               !..Unpack Received messages as they arrive     
