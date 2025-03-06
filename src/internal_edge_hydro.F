@@ -1265,14 +1265,17 @@ c$$$      enddo
 
       END SUBROUTINE
 
-      subroutine add_internal_flux()
+      subroutine add_internal_flux(cnt, indices)
       implicit none
+
+      integer, intent(in) :: cnt, indices(cnt)
 
 
       real(sz) :: ze_sum, qx_sum, qy_sum
-      integer :: l, k, i
+      integer :: l, ll, k, i
 !$acc parallel loop gang vector async(1) default(present)
-      do l = 1,NE
+      do ll = 1,cnt
+         l = indices(ll)
          do k = 1,3
             ze_sum = 0.
             qx_sum = 0.

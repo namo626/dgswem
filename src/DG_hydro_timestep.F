@@ -235,11 +235,12 @@ C.......Compute elements to finish building the rhs
 C.......Compute internal edges
 #ifdef CMPI
 
-         !istat = cudaMemPrefetchAsync(indIntEdgeSend, numIntEdgesend, 0,1)
-         CALL INTERNAL_EDGE_HYDRO(IT, numIntEdgeSend, indIntEdgeSend)
+         !istat = cudaMemPrefetchAsync(ghostEdges, numIntEdgesend, 0,1)
+         CALL INTERNAL_EDGE_HYDRO(IT, size(ghostEdges), ghostEdges)
+         call add_internal_flux(size(ghostElems), ghostElems)
 #endif
-         CALL INTERNAL_EDGE_HYDRO(IT, nieds, niedss)
-         call add_internal_flux()
+         CALL INTERNAL_EDGE_HYDRO(IT, size(innerEdges), innerEdges)
+         call add_internal_flux(size(innerElems), innerElems)
 
 C.......SSP Runge-Kutta Time Scheme
 !$acc parallel loop gang vector async(1) default(present)

@@ -61,8 +61,9 @@ C
       INTEGER, PRIVATE, ALLOCATABLE :: INDEX(:)
       REAL(SZ), PRIVATE,ALLOCATABLE :: SENDBUF(:,:), RECVBUF(:,:)
       integer, PRIVATE,ALLOCATABLE :: gather(:,:), pgather(:,:), scatter(:,:)
-      integer, ALLOCATABLE :: gatherIntEdge(:)
-      integer, allocatable :: indIntEdgeSend(:), gatherElem(:), indElemSend(:)
+      integer, ALLOCATABLE :: gatherEdge(:)
+      integer, allocatable :: ghostEdges(:), gatherElem(:), ghostElems(:)
+      integer, allocatable :: innerEdges(:), innerElems(:)
       integer :: numIntEdgeSend, numElemSend
 C--
 C
@@ -271,39 +272,47 @@ C
       enddo
 
        numElemSend = sum(gatherElem)
-       allocate(indElemSend(numElemSend))
+       allocate(ghostElems(numElemSend))
+       allocate(innerElems(MNE - numElemSend))
 
-       ncount = 0
-       do j = 1,MNE
-         if (gatherElem(j) == 1) then
-           ncount = ncount + 1
-           indElemSend(ncount) = j
-         endif
-       enddo
+       ghostElems = pack([(j,j=1,MNE)], gatherElem == 1)
+       innerElems = pack([(j,j=1,MNE)], gatherElem == 0)
+
+c$$$       ncount = 0
+c$$$       do j = 1,MNE
+c$$$         if (gatherElem(j) == 1) then
+c$$$           ncount = ncount + 1
+c$$$           ghostElems(ncount) = j
+c$$$         endif
+c$$$       enddo
 
        ! ghost
        ! internal
        ! edges
-       allocate(gatherIntEdge(nieds))
-       gatherIntEdge = 0
+       allocate(gatherEdge(nieds))
+       gatherEdge = 0
        do j = 1,nieds
          GED = NIEDN(j)
          EL_IN = NEDEL(1,GED)
          EL_EX = NEDEL(2,GED)
          if (gatherElem(el_in) == 1 .or.  gatherElem(el_ex) == 1) then
-           gatherIntEdge(j) = 1
+           gatherEdge(j) = 1
          endif
       enddo
-       numIntEdgeSend = sum(gatherIntEdge)
-       allocate(indIntEdgeSend(numIntEdgeSend))
+       numIntEdgeSend = sum(gatherEdge)
+       allocate(ghostEdges(numIntEdgeSend))
+       allocate(innerEdges(nieds - numIntEdgeSend))
 
-       ncount = 0
-       do j = 1,nieds
-         if (gatherIntEdge(j) == 1) then
-         ncount = ncount + 1
-         indIntEdgeSend(ncount) = j
-       endif
-      enddo
+       ghostEdges = pack([(j,j=1,nieds)], gatherEdge == 1)
+       innerEdges = pack([(j,j=1,nieds)], gatherEdge == 0)
+
+c$$$       ncount = 0
+c$$$       do j = 1,nieds
+c$$$         if (gatherEdge(j) == 1) then
+c$$$         ncount = ncount + 1
+c$$$         ghostEdges(ncount) = j
+c$$$       endif
+c$$$      enddo
 
        print *, 'numElemSend = ', numElemSend
        print *, 'numIntEdgeSend = ', numIntEdgeSend
