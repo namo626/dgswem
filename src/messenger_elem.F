@@ -62,7 +62,7 @@ C
       REAL(SZ), PRIVATE,ALLOCATABLE :: SENDBUF(:,:), RECVBUF(:,:)
       integer, PRIVATE,ALLOCATABLE :: gather(:,:), pgather(:,:), scatter(:,:)
       integer, ALLOCATABLE :: gatherEdge(:)
-      integer, allocatable :: ghostEdges(:), gatherElem(:), ghostElems(:)
+      integer, allocatable :: ghostEdges(:), gatherElem(:), ghostElems(:), scatterElem(:)
       integer, allocatable :: innerEdges(:), innerElems(:)
       integer :: numIntEdgeSend, numElemSend
 C--
@@ -261,30 +261,39 @@ C
 
       allocate(gather(mne*dofh, neighproc_s), pgather(mne*dofh, neighproc_s))
       allocate(gatherElem(mne))
+      allocate(scatter(mne*dofh, neighproc_r))
+      allocate( scatterElem(mne) )
+
+! gatherElem is the mask for elements to SEND
+! ghostElems is the list of elements to SEND
+! recvElems is the list of elements to RECEIVE
+
+      scatterElem = 0
+      do j=1,neighproc_R
+         do i=1,nelemrecv(j)
+            scatterElem(IRECVLOC(i,j)) = 1
+            do k = 1,dofh
+               scatter(DOFH*(i-1)+k, j) = DOFH*(irecvloc(i,j) - 1) + k
+            enddo
+         enddo
+      enddo
 
       gather = 0
       gatherElem = 0
       do j=1,neighproc_s
          do i=1,nelemsend(j)
            gatherElem(isendloc(i,j)) = 1
-            gather(DOFH*(isendloc(i,j)-1)+1:DOFH*(isendloc(i,j)-1)+DOFH, j) = 1
+           gather(DOFH*(isendloc(i,j)-1)+1:DOFH*(isendloc(i,j)-1)+DOFH, j) = 1
          enddo
       enddo
 
        numElemSend = sum(gatherElem)
        allocate(ghostElems(numElemSend))
-       allocate(innerElems(MNE - numElemSend))
+       allocate(innerElems(MNE - numElemSend - sum(scatterElem)))
 
        ghostElems = pack([(j,j=1,MNE)], gatherElem == 1)
-       innerElems = pack([(j,j=1,MNE)], gatherElem == 0)
+       innerElems = pack([(j,j=1,MNE)], (gatherElem == 0) .and. (scatterElem == 0))
 
-c$$$       ncount = 0
-c$$$       do j = 1,MNE
-c$$$         if (gatherElem(j) == 1) then
-c$$$           ncount = ncount + 1
-c$$$           ghostElems(ncount) = j
-c$$$         endif
-c$$$       enddo
 
        ! ghost
        ! internal
@@ -329,14 +338,6 @@ c$$$      enddo
       enddo
 
 
-      allocate(scatter(mne*dofh, neighproc_r))
-      do j=1,neighproc_R
-         do i=1,nelemrecv(j)
-            do k = 1,dofh
-               scatter(DOFH*(i-1)+k, j) = DOFH*(irecvloc(i,j) - 1) + k
-            enddo
-         enddo
-      enddo
 
 
       RETURN
@@ -624,7 +625,7 @@ C
 
       integer :: j, istat
 
-!$acc parallel loop default(present) async(1)
+!$acc parallel loop default(present) async(2)
       do j = 1,nrecv*dof
          vec1(scatter(j)) = packed(j)
       enddo
@@ -960,7 +961,6 @@ C
       REAL(SZ), managed, INTENT(INOUT) ::  VEC1(:,:,:),VEC2(:,:,:),VEC3(:,:,:)
       INTEGER :: N,I,J,JJ,K,NCOUNT,NFINI,TOT, istat
 
-!$acc wait(1)
       IF (NMSG.EQ.1) THEN
         CALL MPI_STARTALL ( RDIM, REQ_R1, IERR )
       ELSEIF (NMSG.EQ.2) THEN

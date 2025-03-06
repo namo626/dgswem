@@ -328,7 +328,10 @@ C...drying is being used
 
 #ifdef CMPI
          if (SLOPEFLAG.NE.0.OR.NOLIFA.GE.2) THEN
+            CALL pack3(ZE,QX,QY,IRK+1,3)
+!$acc wait
             CALL UPDATER_ELEM_MOD(ZE,QX,QY,IRK+1,3)
+!$acc wait
          endif
 #endif
 
