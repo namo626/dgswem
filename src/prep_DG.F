@@ -148,6 +148,17 @@ C.....Compute the number of gauss points needed for the edge integrals
 !     iwrite=0
       
 C.....Initilization for parallel DG run
+C.....Create the edge based data
+
+      IF(MYPROC.EQ.0) THEN
+         PRINT*, 'CREATING EDGE DATA...'
+         PRINT*, ''
+      ENDIF
+      CALL CREATE_EDGE_DATA()
+      IF(MYPROC.EQ.0) THEN
+         print *, 'CREATING EDGE DATA DONE'
+         print *, ''
+      ENDIF
 
 #ifdef CMPI
 
@@ -161,17 +172,6 @@ C.....Initilization for parallel DG run
 
 #endif
 
-C.....Create the edge based data
-
-      IF(MYPROC.EQ.0) THEN
-         PRINT*, 'CREATING EDGE DATA...'
-         PRINT*, ''
-      ENDIF
-      CALL CREATE_EDGE_DATA()
-      IF(MYPROC.EQ.0) THEN
-         print *, 'CREATING EDGE DATA DONE'
-         print *, ''
-      ENDIF
 
 #ifdef CMPI
       CALL MESSAGE_START_ELEM() ! Startup persistent message passing

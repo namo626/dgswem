@@ -47,7 +47,7 @@ C.....Declare local variables
       real(sz) avg_rain
 
       INTEGER IT,L,GED,NBOREL,NNBORS,NDRYNBORS,NQEDS,Istop,k,j,kk,i,mm
-      INTEGER Detected,flagger,store, istat
+      INTEGER Detected,flagger,store, istat, jj
       REAL(SZ) QBCT1,QBCT2,QBC1,QBC2,ZP(3),QXP(3),QXP_OLD(3),
      $     QYP(3),QYP_OLD(3),ZP_OLD(3),ell_1,ell_2,ell_3
       REAL(SZ) DPAVG, ITDT, ARK, BRK, CRK, DRK, ERK,s,alph,eta,seta
