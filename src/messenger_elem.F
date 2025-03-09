@@ -596,22 +596,22 @@ C
       RETURN
       END SUBROUTINE
 
-      subroutine packElems(dof, ne, gather, pgather, vec1, packed)
+      subroutine packElems(dof, nsend, sendloc, vec1, packed)
       implicit none
 
-      integer, value :: ne, dof
-      real(sz),  intent(in) :: vec1(ne*dof)
-      integer,   intent(in) :: gather(:), pgather(:)
+      integer, value :: nsend, dof
+      real(sz),  intent(in) :: vec1(:,:)
+      integer,   intent(in) :: sendloc(:)
       real(sz),  intent(out) :: packed(:)
 
-      integer :: j, istat
+      integer :: j, istat, i
 
 !$acc parallel loop default(present) async(1)
-      do j = 1,ne*dof
-         if (gather(j) == 1) then
-            packed(pgather(j)) = vec1(j)
-         endif
+      do i = 1,nsend
+         j = sendloc(i)
+         packed((i-1)*dof+1:i*dof) = vec1(:,j)
       enddo
+
 
       end subroutine
 
@@ -928,15 +928,14 @@ C
       INTEGER :: N,I,J,JJ,K,NCOUNT,NFINI,TOT, istat
 
       DO J=1,NEIGHPROC_S
-         NCOUNT = 0
-         call packElems(DOFH, MNE, gather(:,j), pgather(:,j), vec1(:,:,irk), sendbuf(:,j) )
+         call packElems(DOFH, nelemsend(j), ISENDLOC(:,j), vec1(:,:,irk), sendbuf(:,j) )
          NCOUNT = nelemsend(J)*DOFH + 1
          IF (NMSG.GT.1) THEN
-            call packElems(DOFH, MNE, gather(:,j), pgather(:,j), vec2(:,:,irk), sendbuf(ncount:,j) )
+            call packElems(DOFH, nelemsend(j), ISENDLOC(:,j), vec2(:,:,irk), sendbuf(ncount:,j) )
             NCOUNT = 2*nelemsend(J)*DOFH + 1
          ENDIF
          IF (NMSG.GT.2) THEN
-            call packElems(DOFH, MNE, gather(:,j), pgather(:,j), vec3(:,:,irk), sendbuf(ncount:,j) )
+            call packElems(DOFH, nelemsend(j), ISENDLOC(:,j), vec3(:,:,irk), sendbuf(ncount:,j) )
          ENDIF
       ENDDO
       end subroutine
