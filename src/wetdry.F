@@ -14,7 +14,7 @@ C
 C     
 C***********************************************************************
 
-      SUBROUTINE WETDRY()
+      SUBROUTINE WETDRY(cnt, indices)
       
 C.....Use appropriate modules
       
@@ -24,12 +24,14 @@ C.....Use appropriate modules
       
       IMPLICIT NONE
 
+      integer, intent(in) :: cnt, indices(cnt)
+
 C.....Declare local variables
 
       REAL(SZ), PARAMETER :: ZERO = 1.D-6
       REAL(SZ), PARAMETER :: HUGE = 1.D+6
 
-      INTEGER I, J, K1, K2, K, No1, No2, No3, ISTOP,DOFD,l
+      INTEGER I, J, K1, K2, K, No1, No2, No3, ISTOP,DOFD,l, Jc
       INTEGER EL1, EL2, EL3, DRYALL, PWD, DOFWD
       INTEGER ELEMENT_CHECK, HT_MAX_I, HT_MIN_I, NDRYNODE, TMP
       INTEGER L2H(3)
@@ -51,16 +53,13 @@ C.....Declare local variables
       REAL(SZ):: HS0, U_HAT(3), V_HAT(3)
 C.....Initialize node codes to dry
 
-!$acc parallel loop async(1) default(present)
-      DO I = 1,NP
-         NODECODE(I) = 0
-      ENDDO
       
 C.....Loop over the elements
 
 !$acc parallel loop gang vector async(1) num_gangs(1024) default(present)
 !$acc+private(L2H,dh_hat,ht_hat,ht_mode,ht_node,qx_hat,qx_node,qy_hat,qy_node,ze_hat,ze_node,u_hat,v_hat)
-      DO 100 J = 1,NE
+      DO 100 Jc = 1,cnt
+        J = indices(Jc)
 
          pa = pdg_el(j)
          

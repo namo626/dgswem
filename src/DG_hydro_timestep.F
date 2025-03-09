@@ -308,130 +308,31 @@ C.......Apply the slopelimiter if appropriate
 C.......Apply the wet-dry algorithm if appropriate
 
       IF (NOLIFA .GE. 2) THEN
-         CALL WETDRY()
+!$acc parallel loop async(1) default(present)
+        DO I = 1,NP
+          NODECODE(I) = 0
+        ENDDO
+#ifdef CMPI
+        call wetdry(size(ghostElems), ghostElems)
+        CALL pack3(ZE,QX,QY,IRK+1,3)
+!$acc wait
+#endif
+         CALL WETDRY(size(innerElems), innerElems)
       ENDIF
-
-c$$$C...Apply the slopelimiter again if auxiliary variable is being used
-c$$$
-c$$$         if (EVMSUM.NE.0.0.or.artdif.eq.1) then
-c$$$#ifdef SLOPEALL
-c$$$            CALL SLOPELIMITER()
-c$$$#endif
-c$$$            
-c$$$#ifdef SLOPE5
-c$$$            CALL SLOPELIMITER() 
-c$$$#endif
-c$$$         endif
 
 C...For parallel run update for dofs if slope limiter and/or wetting and
 C...drying is being used
 
 #ifdef CMPI
          if (SLOPEFLAG.NE.0.OR.NOLIFA.GE.2) THEN
-            CALL pack3(ZE,QX,QY,IRK+1,3)
-!$acc wait
             CALL UPDATER_ELEM_MOD(ZE,QX,QY,IRK+1,3)
 !$acc wait
          endif
 #endif
 
-C.......p_enrich soln and update
-
-#ifdef P_AD
-         if (irk+1.eq.2) then
-            CALL p_enrichment(it,0)
-         endif
-#ifdef CMPI
-
-         CALL UPDATER_ELEM_MOD(ZE,QX,QY,IRK+1,3)
-
-#ifdef TRACE
-         CALL UPDATER_ELEM_MOD(iota,iota2,QY,IRK+1,2 )
-#endif
-
-#ifdef CHEM
-         CALL UPDATER_ELEM_MOD(iota,iota2,QY,IRK+1,2 )
-#endif
-
-#ifdef DYNP
-         CALL UPDATER_ELEM_MOD(dynP,iota2,QY,IRK+1,2 )
-#endif
-
-#ifdef SED_LAY
-         do l = 1,layers
-            arrayfix => bed(:,:,:,l)
-            CALL UPDATER_ELEM_MOD(arrayfix,QX,QY,IRK+1,1 )
-         enddo
-#endif
-
-#endif 
-
-#endif
 
  100  CONTINUE
 
-C.....Update variables for next time step
-
-#ifdef FILTER 
-      !Stabilization filtering 
-      DO J = 1,NE
-         DO K = 2,DOFS(J)
-
-            alph = 10.0
-            s = RK_stage
-
-            if (k.le.3) then
-               eta = 1.0 / ( pdg_el(j)+1.0 )
-            elseif (k.gt.3.and.k.le.6) then
-               eta = 2.0 / ( pdg_el(j)+1.0 )
-            elseif (k.gt.6.and.k.le.10) then
-               eta = 3.0 / ( pdg_el(j)+1.0 )
-            elseif (k.gt.11.and.k.le.15) then
-               eta = 4.0 / ( pdg_el(j)+1.0 )
-            elseif (k.gt.16.and.k.le.21) then
-               eta = 5.0 / ( pdg_el(j)+1.0 )       
-            elseif (k.gt.22.and.k.le.28) then
-               eta = 6.0 / ( pdg_el(j)+1.0 )   
-            elseif (k.gt.29.and.k.le.36) then
-               eta = 7.0 / ( pdg_el(j)+1.0 )               
-            endif
-
-            seta = eta**s
-            sigma = exp(-alph*seta)
-
-C.......Filter the layers if flagged
-
-#ifdef SED_LAY
-            do l = 1,layers
-               
-               bed(K,J,NRK+1,l) = sigma * bed(K,J,nrk+1,l) 
-               
-            enddo
-#endif
-
-            ZE(K,J,NRK+1) = sigma*ZE(K,J,nrk+1) 
-            QX(K,J,NRK+1) = sigma*QX(K,J,nrk+1)
-            QY(K,J,NRK+1) = sigma*QY(K,J,nrk+1)
-
-
-C.......Filter the transported tracer term if flagged
-
-#ifdef TRACE
-            iota(K,J,NRK+1) = sigma*iota(K,J,nrk+1)
-
-#endif
-
-C......Filter chemistry transported terms if flagged
-
-#ifdef CHEM
-            iota(K,J,NRK+1) =  sigma*iota(K,J,nrk+1) 
-            iota2(K,J,NRK+1) = sigma*iota2(K,J,nrk+1) 
-
-#endif
-
-         ENDDO
-      ENDDO
-#endif
       
 !$acc parallel loop gang vector async(1) default(present)
       DO J = 1,MNE
@@ -439,23 +340,6 @@ C......Filter chemistry transported terms if flagged
             ZE(K,J,1) = ZE(K,J,NRK+1)
             QX(K,J,1) = QX(K,J,NRK+1)
             QY(K,J,1) = QY(K,J,NRK+1)
-
-#ifdef TRACE
-            iota(K,J,1) = iota(K,J,NRK+1)
-#endif
-
-#ifdef CHEM
-            iota(K,J,1) = iota(K,J,NRK+1)
-            iota2(K,J,1) = iota2(K,J,NRK+1)
-#endif
-
-#ifdef DYNP
-            dynP(K,J,1) = dynP(K,J,NRK+1)
-#endif
-
-#ifdef SED_LAY
-            bed(K,J,1,:) = bed(K,J,NRK+1,:)
-#endif
          ENDDO
       ENDDO
 
@@ -469,30 +353,6 @@ C......Filter chemistry transported terms if flagged
                RHS_ZE(K,J,KK-1) = 0.0
                RHS_QX(K,J,KK-1) = 0.0
                RHS_QY(K,J,KK-1) = 0.0
-#ifdef TRACE
-               iota(K,J,KK) = 0.0
-               RHS_iota(K,J,KK-1) = 0.0
-#endif
-
-#ifdef CHEM
-               iota(K,J,KK) = 0.0
-               iota2(K,J,KK) = 0.0
-               RHS_iota(K,J,KK-1) = 0.0
-               RHS_iota2(K,J,KK-1) = 0.0
-#endif
-
-#ifdef DYNP
-               dynP(K,J,KK) = 0.0
-               RHS_dynP(K,J,KK-1) = 0.0
-#endif
-
-#ifdef SED_LAY
-               bed(K,J,KK,:) = 0.0
-               hb(K,J,KK) = 0.0
-               RHS_bed(K,J,KK-1,:) = 0.0
-#endif
-
-
             ENDDO
          ENDDO
       ENDDO
