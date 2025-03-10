@@ -1535,8 +1535,10 @@ C.....Close files
 !      CLOSE(115)
 !      CLOSE(25)
       
-      allocate(niedss(nieds))
-      niedss = (/(i, i = 1,nieds)/)
+      allocate(nieds_inds(nieds), ne_inds(mne))
+      nieds_inds = (/(i, i = 1,nieds)/)
+      ne_inds = (/(i, i = 1,mne)/)
+
       RETURN
       END SUBROUTINE PREP_DG
 

@@ -71,12 +71,10 @@ c$$$      ENDDO
 
 C.....Begin Runge-Kutta time stepper
 
-      DO 100 IRK = 1,NRK
+      irk_loop: DO IRK = 1,NRK
          
 C.......Compute the DG time and DG ramp
 
-#ifdef RKSSP
- 
          TIMEDG = TIME_A - DTDP + DTVD(IRK)*DTDP
          RAMPDG = 1.0
          RAMPExtFlux = 1.0
@@ -233,56 +231,24 @@ C.......Compute elements to finish building the rhs
          CALL RHS_DG_HYDRO(IT)
 
 C.......Compute internal edges
-#ifdef CMPI
 
-         !istat = cudaMemPrefetchAsync(ghostEdges, numIntEdgesend, 0,1)
+#ifndef CMPI
+
+         CALL INTERNAL_EDGE_HYDRO(IT, NIEDS, nieds_inds)
+         call add_internal_flux(MNE, ne_inds)
+         call rk_step(irk, mne, ne_inds)
+
+#else
+
          CALL INTERNAL_EDGE_HYDRO(IT, size(ghostEdges), ghostEdges)
          call add_internal_flux(size(ghostElems), ghostElems)
-
-!$acc parallel loop gang vector async(1)  default(present)
-         DO JJ = 1,size(ghostElems)
-            J = ghostElems(JJ)
-            DO I = 1,IRK
-               ARK = ATVD(IRK,I)
-               BRK = BTVD(IRK,I)*DT
-               DO K = 1,DOFS(J)
-                  ZE(K,J,IRK+1) = ZE(K,J,irk+1) + ARK*ZE(K,J,I)
-     &                 + BRK*RHS_ZE(K,J,I)
-                  QX(K,J,IRK+1) = QX(K,J,irk+1) + ARK*QX(K,J,I)
-     &                 + BRK*RHS_QX(K,J,I)
-                  QY(K,J,IRK+1) = QY(K,J,irk+1) + ATVD(IRK,I)*QY(K,J,I)
-     &                 + BRK*RHS_QY(K,J,I)
-               ENDDO
-            ENDDO
-         ENDDO
+         call rk_step(irk, size(ghostElems), ghostElems)
          call pack3(ze, qx, qy, irk+1, 3)
 !$acc wait
-#endif
          CALL INTERNAL_EDGE_HYDRO(IT, size(innerEdges), innerEdges)
          call add_internal_flux(size(innerElems), innerElems)
+         call rk_step(irk, size(innerElems), innerElems)
 
-C.......SSP Runge-Kutta Time Scheme
-!$acc parallel loop gang vector async(1) default(present)
-         DO JJ = 1,size(innerElems)
-            J = innerElems(JJ)
-            DO I = 1,IRK
-               ARK = ATVD(IRK,I)
-               BRK = BTVD(IRK,I)*DT
-               DO K = 1,DOFS(J)
-                  ZE(K,J,IRK+1) = ZE(K,J,irk+1) + ARK*ZE(K,J,I)
-     &                 + BRK*RHS_ZE(K,J,I) 
-                  QX(K,J,IRK+1) = QX(K,J,irk+1) + ARK*QX(K,J,I)
-     &                 + BRK*RHS_QX(K,J,I)
-                  QY(K,J,IRK+1) = QY(K,J,irk+1) + ATVD(IRK,I)*QY(K,J,I)
-     &                 + BRK*RHS_QY(K,J,I)
-               ENDDO
-            ENDDO
-         ENDDO
-
-#endif
-
-
-#ifdef CMPI
          CALL UPDATER_ELEM_MOD(ZE,QX,QY,IRK+1,3)
 !$acc wait
 #endif
@@ -312,12 +278,14 @@ C.......Apply the wet-dry algorithm if appropriate
         DO I = 1,NP
           NODECODE(I) = 0
         ENDDO
-#ifdef CMPI
+#ifndef CMPI
+        call wetdry(MNE, ne_inds)
+#else
         call wetdry(size(ghostElems), ghostElems)
         CALL pack3(ZE,QX,QY,IRK+1,3)
 !$acc wait
-#endif
          CALL WETDRY(size(innerElems), innerElems)
+#endif
       ENDIF
 
 C...For parallel run update for dofs if slope limiter and/or wetting and
@@ -331,7 +299,7 @@ C...drying is being used
 #endif
 
 
- 100  CONTINUE
+      enddo irk_loop
 
       
 !$acc parallel loop gang vector async(1) default(present)
@@ -359,3 +327,34 @@ C...drying is being used
 
       RETURN
       END SUBROUTINE
+
+      subroutine rk_step(irk,cnt, indices)
+      !! Update ze,qx,qy to the next RK stage (irk+1)
+      use DG, only : DOFS, atvd, btvd, ze, qx, qy, rhs_ze,rhs_qx,rhs_qy
+      use sizes, only : sz
+      use global, only : dt
+
+      implicit none
+      integer, intent(in) :: irk, cnt, indices(cnt)
+
+      integer :: JJ, J, I, K
+      real(sz) :: ark, brk
+
+!$acc parallel loop gang vector async(1)  default(present)
+         DO JJ = 1,cnt
+            J = indices(JJ)
+            DO I = 1,IRK
+               ARK = ATVD(IRK,I)
+               BRK = BTVD(IRK,I)*DT
+               DO K = 1,DOFS(J)
+                  ZE(K,J,IRK+1) = ZE(K,J,irk+1) + ARK*ZE(K,J,I)
+     &                 + BRK*RHS_ZE(K,J,I)
+                  QX(K,J,IRK+1) = QX(K,J,irk+1) + ARK*QX(K,J,I)
+     &                 + BRK*RHS_QX(K,J,I)
+                  QY(K,J,IRK+1) = QY(K,J,irk+1) + ATVD(IRK,I)*QY(K,J,I)
+     &                 + BRK*RHS_QY(K,J,I)
+               ENDDO
+            ENDDO
+         ENDDO
+
+      end subroutine
