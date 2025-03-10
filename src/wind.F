@@ -3599,7 +3599,7 @@ c      endif
       cLon  =  lon(icyc-1)  +
      &                         wtratio * (lon(icyc)-lon(icyc-1))
       ! locate each node based on the latest hurricane center location
-!$acc parallel loop default(present)
+!$acc parallel loop default(present) async(1)
       do i=1,np
          dx = deg2rad * Rearth * (xcoor(i) - cLon)*COS(deg2rad*cLat)
          dy = deg2rad * Rearth * (ycoor(i) - cLat)
@@ -3607,6 +3607,7 @@ c      endif
          aziangle(i) = 360.0 + rad2deg * ATAN2(dx,dy)
          IF (aziangle(i) > 360.0) aziangle(i) = aziangle(i) - 360.0
       enddo
+!$acc wait
  ! set parameters at icyc-1
  !        call setQuadFlag4(reshape(quadflag(icyc-1,:,:),(/4,4/)))
  !        call setQuadIr4(reshape(ir(icyc-1,:,:),(/4,4/)))
@@ -3625,7 +3626,7 @@ c      endif
  !        WRITE(16,*) 'Previous: Spatially-interpolated storm parameters',
  !    &                   ' at icyc-1= ', icyc-1,
  !    &                   ' CycleTime=', CycleTime(icyc-1)
-!$acc parallel loop default(present)
+!$acc parallel loop default(present) async(1)
       do i=1,np
          crmaxw1(i) = spInterp(aziangle(i),dist(i),1)
          crmaxwTrue1(i) = spInterp(aziangle(i),1.0,1)
@@ -3637,6 +3638,7 @@ c      endif
  !            WRITE(16,699) crmaxw1(i),  crmaxwTrue1(i),
  !    &                   cHollBs1(i) ,cVmwBL1(i)
       end do
+!$acc wait
          ! set parameters at icyc
 !         call setVortex(ipn(icyc),icpress(icyc),cLat,cLon
 !     $                  ,isotachs_per_cycle(icyc))
@@ -3655,7 +3657,7 @@ c      endif
  !        WRITE(16,*) 'After: Spatially-interpolated storm parameters',
  !    &                   ' at icyc= ', icyc,
  !    &                   ' CycleTime=', CycleTime(icyc)
-!$acc parallel loop default(present)
+!$acc parallel loop default(present) async(1)
       do i=1,np
          crmaxw2(i) = spInterp(aziangle(i),dist(i),1)
          crmaxwTrue2(i) = spInterp(aziangle(i),1.0,1)
@@ -3667,13 +3669,14 @@ c      endif
   !           WRITE(16,699) crmaxw2(i),  crmaxwTrue2(i),
   !   &                   cHollBs2(i) ,cVmwBL2(i)
       end do
+!$acc wait
       ! Perform time interpolation, transform variables from integers
       ! to real numbers for hurricane vortex calcualtions.
       Pn    =  1.0*(ipn(icyc-1)  +
      &                         wtratio*(ipn(icyc)-ipn(icyc-1)))
       Pc    =  1.0*(icpress(icyc-1) +
      &                         wtratio*(icpress(icyc)-icpress(icyc-1)))
-!$acc parallel loop default(present)
+!$acc parallel loop default(present) async(1)
       do i=1,np
          crmaxw(i)   =  crmaxw1(i) +
      &        wtratio*(crmaxw2(i)-crmaxw1(i))
@@ -3684,6 +3687,7 @@ c      endif
          cVmwBL(i)   =  cVmwBL1(i) +
      &        wtratio*(cVmwBL2(i)-cVmwBL1(i))
       enddo
+!$acc wait
       corio = 2.0 * omega * SIN(deg2rad*cLat)
      &
       Rmax  = 1.0*(atcfRMW(icyc-1) + wtratio * (atcfRMW(icyc)-atcfRMW(icyc-1)))
@@ -3692,7 +3696,7 @@ c      endif
 !Jie debug GAHM
 !         WRITE(16,700) 'Temporal interpolation:',
 !     &           CycleTime(icyc-1), TIMELOC, CycleTime(icyc)
-!$acc parallel loop default(present)
+!$acc parallel loop default(present) async(1)
       do i=1,np
          cPhiFactor(i) =  1 +
      &                       cVmwBL(i)*kt2ms*crmaxw(i)*nm2m*corio/
@@ -3702,6 +3706,7 @@ c      endif
 !             WRITE(16,699) crmaxw(i),  crmaxwTrue(i),
 !     &                   cHollBs(i) ,cVmwBL(i), cPhiFactor(i)
       enddo
+!$acc wait
       uTransNow = uTrans(icyc-1) + wtratio
      &                  * (uTrans(icyc)-utrans(icyc-1))
       vTransNow = vTrans(icyc-1) + wtratio
@@ -3789,6 +3794,7 @@ c      endif
          end if
          press(i) = press(i) / RhoWatG
       END DO
+!$acc wait
       !-----------------------------------
       ! NHC advisory best-track i/o format
       !-----------------------------------

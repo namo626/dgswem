@@ -30,6 +30,7 @@ C.....Hydrodynamics
 
       call nvtxStartRange("Timestep")
       CALL DG_HYDRO_TIMESTEP(IT)
+!$acc wait
       call nvtxEndRange
       call modal2nodal()
 !$acc wait
