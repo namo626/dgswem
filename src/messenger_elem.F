@@ -924,7 +924,7 @@ C
 #endif
 C
       INTEGER,  INTENT(IN) ::  IRK, nmsg
-      REAL(SZ), managed, INTENT(INOUT) ::  VEC1(:,:,:),VEC2(:,:,:),VEC3(:,:,:)
+      REAL(SZ), INTENT(INOUT) ::  VEC1(:,:,:),VEC2(:,:,:),VEC3(:,:,:)
       INTEGER :: N,I,J,JJ,K,NCOUNT,NFINI,TOT, istat
 
       DO J=1,NEIGHPROC_S
@@ -957,7 +957,7 @@ C
 #endif
 C
       INTEGER,  INTENT(IN) ::  IRK, NMSG
-      REAL(SZ), managed, INTENT(INOUT) ::  VEC1(:,:,:),VEC2(:,:,:),VEC3(:,:,:)
+      REAL(SZ), INTENT(INOUT) ::  VEC1(:,:,:),VEC2(:,:,:),VEC3(:,:,:)
       INTEGER :: N,I,J,JJ,K,NCOUNT,NFINI,TOT, istat
 
       IF (NMSG.EQ.1) THEN
