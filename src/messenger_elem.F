@@ -9,7 +9,7 @@ C
 C
       USE SIZES
       USE GLOBAL!, ONLY: C3D
-      USE DG, ONLY: DOFH
+      USE DG, ONLY: DOFH, nrk
       USE DIFF45_41,ONLY : MNODES
 
 
@@ -600,13 +600,13 @@ C
       implicit none
 
       integer, value :: nsend, dof
-      real(sz),  intent(in) :: vec1(:,:)
+      real(sz),  intent(in) :: vec1(dof, mne)
       integer,   intent(in) :: sendloc(:)
       real(sz),  intent(out) :: packed(:)
 
       integer :: j, istat, i
 
-!$acc parallel loop default(present) async(1)
+!$acc parallel loop  async(1)
       do i = 1,nsend
          j = sendloc(i)
          packed((i-1)*dof+1:i*dof) = vec1(:,j)
@@ -625,7 +625,7 @@ C
 
       integer :: j, istat
 
-!$acc parallel loop default(present) async(2)
+!$acc parallel loop async(2)
       do j = 1,nrecv*dof
          vec1(scatter(j)) = packed(j)
       enddo
@@ -924,7 +924,7 @@ C
 #endif
 C
       INTEGER,  INTENT(IN) ::  IRK, nmsg
-      REAL(SZ), INTENT(INOUT) ::  VEC1(:,:,:),VEC2(:,:,:),VEC3(:,:,:)
+      REAL(SZ), INTENT(INOUT), dimension(dofh,mne,nrk+2) ::  VEC1,VEC2,VEC3
       INTEGER :: N,I,J,JJ,K,NCOUNT,NFINI,TOT, istat
 
       DO J=1,NEIGHPROC_S
@@ -957,7 +957,7 @@ C
 #endif
 C
       INTEGER,  INTENT(IN) ::  IRK, NMSG
-      REAL(SZ), INTENT(INOUT) ::  VEC1(:,:,:),VEC2(:,:,:),VEC3(:,:,:)
+      REAL(SZ), INTENT(INOUT), dimension(dofh,mne,nrk+2) ::  VEC1,VEC2,VEC3
       INTEGER :: N,I,J,JJ,K,NCOUNT,NFINI,TOT, istat
 
       IF (NMSG.EQ.1) THEN

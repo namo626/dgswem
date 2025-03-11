@@ -116,6 +116,7 @@ C-----------------------------------------------------------------------
 C.......Check to make sure point PT is contained within the reference
 C.......element.  Issue warning if not but continue execution.
 
+#if 0
         IF ((ABS(X).LE.1.0).AND.(ABS(Y).LE.1.0).AND.
      &                    ((X+Y).LE.0.0).AND.(ABS(Z).LE.1.0)) THEN
           CONTINUE
@@ -124,6 +125,7 @@ C.......element.  Issue warning if not but continue execution.
          PRINT*,'       Point is outside of reference element!!        '
          PRINT*,'               Execution will continue                '
         ENDIF
+#endif
       
 C.......First basis function and derivatives
 

@@ -229,6 +229,7 @@ C.......Compute external barrier edges
 C.......Compute elements to finish building the rhs
          
          CALL RHS_DG_HYDRO(IT)
+         !print *, 'rhs elems'
 
 C.......Compute internal edges
 
@@ -244,12 +245,14 @@ C.......Compute internal edges
          call add_internal_flux(size(ghostElems), ghostElems)
          call rk_step(irk, size(ghostElems), ghostElems)
          call pack3(ze, qx, qy, irk+1, 3)
+         !print *, 'ghost elems'
 !$acc wait
          CALL INTERNAL_EDGE_HYDRO(IT, size(innerEdges), innerEdges)
          call add_internal_flux(size(innerElems), innerElems)
          call rk_step(irk, size(innerElems), innerElems)
 
          CALL UPDATER_ELEM_MOD(ZE,QX,QY,IRK+1,3)
+         !print *, 'inner elems'
 !$acc wait
 #endif
 

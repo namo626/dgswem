@@ -51,7 +51,7 @@ ifeq ($(compiler),nvhpc)   # NVIDIA
   FC	        :=  nvfortran
   PFC	        :=  mpif90
 ifeq ($(gpu), 1)
-  FFLAGS1	:=  -r$(sz) -Mextend -Mlarge_arrays -cuda -traceback -g -O3 -acc -gpu=unified,lineinfo -Minfo=accel -lnvhpcwrapnvtx
+  FFLAGS1	:=  -r$(sz) -Mextend -Mlarge_arrays -cuda -traceback -g -O0 -acc -gpu=unified,lineinfo -Minfo=accel -lnvhpcwrapnvtx
 else
   FFLAGS1	:=  -r$(sz) -Mextend -traceback -g -O3 -tp=native
 endif
