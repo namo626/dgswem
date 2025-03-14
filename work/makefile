@@ -326,8 +326,8 @@ $(O_DIR)dgswem.o      			:  dgswem.F $(ADC_MOBJ)  $(HARM_MOBJ) $(WIND_MOBJ) $(OW
 $(O_DIR)calc_normal.o         	:  calc_normal.F $(ADC_MOBJ)
 $(O_DIR)create_edge_data.o    	:  create_edge_data.F $(ADC_MOBJ) $(C_MOBJ) $(O_DIR)count_edges.o $(MSG_MOBJ)
 $(O_DIR)detector.o	      	:  detector.F $(ADC_MOBJ) $(FLUX_MOBJ)
-$(O_DIR)DG_timestep.o         	:  DG_timestep.F $(ADC_MOBJ)
-$(O_DIR)DG_hydro_timestep.o   	:  DG_hydro_timestep.F $(ADC_MOBJ) $(O_DIR)internal_edge_hydro.o
+$(O_DIR)DG_timestep.o         	:  DG_timestep.F $(ADC_MOBJ) $(MSG_MOBJ)
+$(O_DIR)DG_hydro_timestep.o   	:  DG_hydro_timestep.F $(ADC_MOBJ) $(MSG_MOBJ) $(O_DIR)internal_edge_hydro.o
 $(O_DIR)edge_int_hydro.o      	:  edge_int_hydro.F $(ADC_MOBJ)
 $(O_DIR)flow_edge_hydro.o     	:  flow_edge_hydro.F $(ADC_MOBJ) $(FLUX_MOBJ)
 $(O_DIR)internal_edge_hydro.o 	:  internal_edge_hydro.F $(ADC_MOBJ) $(FLUX_MOBJ)
