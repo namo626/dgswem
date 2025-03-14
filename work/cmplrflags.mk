@@ -1,5 +1,5 @@
-#compiler=intel
-compiler=nvhpc
+compiler=intel
+#compiler=nvhpc
 #compiler=cray_xt3
 #
 #
@@ -50,8 +50,36 @@ ifeq ($(compiler),nvhpc)   # NVIDIA
   PPFC	        :=  nvfortran
   FC	        :=  nvfortran
   PFC	        :=  mpif90
+ifeq ($(gpu),1)
   FFLAGS1	:=  -r$(sz) -Mextend -Mlarge_arrays -cuda -traceback -g -O3 -acc -gpu=unified,lineinfo -Minfo=accel
-  #FFLAGS1	:=  -r$(sz) -Mextend -traceback -g -O3 -Minfo=accel
+else
+  FFLAGS1	:=  -r$(sz) -Mextend -traceback -g -O3 -tp=native
+endif
+  FFLAGS2	:=  $(FFLAGS1)
+  FFLAGS3	:=  $(FFLAGS1)
+  FFLAGS4	:=  $(FFLAGS1)
+  DA  	        :=  -DREAL$(sz) -DLINUX -DCSCA -DRKSSP -DSLOPE5
+  DP  	        :=  -DREAL$(sz) -DLINUX -DCSCA -DCMPI -DRKSSP -DSLOPE5
+  DPRE	        :=  -DREAL$(sz) -DLINUX -DRKSSP -DSLOPE5
+  DPRE2         :=  -DREAL$(sz) -DLINUX -DCMPI
+  IMODS 	:=  -module
+  CC            :=  nvc
+  CXX    := nvc++
+  CXXFLAGS := -O3 -g
+  CFLAGS        :=  -O3 -I. -fastsse -DLINUX
+  LIBS  	:=  -L ../metis  -lmetis
+  MSGLIBS	:=
+endif
+
+ifeq ($(compiler),aocc)   # AMD
+  sz            := 8
+  ifeq ($(sz),8)
+    RFLAG = -fdefault-real-8
+  endif
+  PPFC	        :=  flang
+  FC	        :=  flang
+  PFC	        :=  mpif90
+  FFLAGS1	:=  $(RFLAG) -g -O3 -march=native -ffixed-line-length-132
   FFLAGS2	:=  $(FFLAGS1)
   FFLAGS3	:=  $(FFLAGS1)
   FFLAGS4	:=  $(FFLAGS1)
