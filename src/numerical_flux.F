@@ -64,7 +64,7 @@ C***********************************************************************
       SUBROUTINE ROE_FLUX(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
      &  hb_in,hb_ex,sfac_in,sfac_ex, nx, ny, f_hat, g_hat, h_hat)
 !$acc routine
-      
+
 C.....Use appropriate modules
 
       use fparser

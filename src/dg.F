@@ -87,10 +87,10 @@ C     sb...Wetting and drying
 
 !Declare some stuff for function parsing for bed load
 
-      CHARACTER (LEN=*), DIMENSION(4),  PARAMETER :: varx = (/ 'ZE_ROE',
-     & 'QX_ROE','QY_ROE','bed_ROE' /)
-      CHARACTER (LEN=*), DIMENSION(4),  PARAMETER :: vary = (/ 'ZE_ROE',
-     & 'QX_ROE','QY_ROE','bed_ROE' /)
+      CHARACTER (LEN=7), DIMENSION(4),  PARAMETER :: varx = [character(len=7) ::  'ZE_ROE',
+     & 'QX_ROE','QY_ROE','bed_ROE' ]
+      CHARACTER (LEN=7), DIMENSION(4),  PARAMETER :: vary = [character(len=7) ::  'ZE_ROE',
+     & 'QX_ROE','QY_ROE','bed_ROE' ]
       CHARACTER (LEN=200) funcx(4), funcy(4)
       Real(sz)  valx(4), valy(4)
 

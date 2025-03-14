@@ -38,7 +38,7 @@ C--
       
       INTEGER TESTFLAG,OUTITER,istop,i
 C     sb-PDG1
-      REAL(4) CPU_TIME,CPU_SEC(2)
+      REAL(4) CPU_TIME,CPU_SEC(2), ttime
       REAL(4) TARRAY(2)
 c     nd
       character*80 tecfile,tecfile_max
@@ -56,7 +56,7 @@ c     nd
       real(4) crain_time1, crain_time2, crain_timinc
       
       REAL(4) CPU_TIME,CPU_SEC(2)
-      REAL(4) TARRAY(2)
+      REAL(4) TARRAY(2), ttime
       INTEGER TESTFLAG,OUTITER,i
       character*80 tecfile, tecfile_max
 
@@ -437,7 +437,7 @@ C     CPU_TIME = TARRAY(1) + TARRAY(2)
 C     PRINT*,'CPU_TIME = ',CPU_TIME
 #endif
 
-      CALL ETIME(TARRAY)
+      CALL ETIME(TARRAY, ttime)
       CPU_TIME = TARRAY(1) + TARRAY(2)
       PRINT*,'CPU_TIME = ',CPU_TIME
       STOP
