@@ -56,7 +56,7 @@ C.....Initialize node codes to dry
       
 C.....Loop over the elements
 
-!$acc parallel loop gang vector async(1) num_gangs(1024) default(present)
+!$acc parallel loop gang vector async(1) num_gangs(256) default(present)
 !$acc+private(L2H,dh_hat,ht_hat,ht_mode,ht_node,qx_hat,qx_node,qy_hat,qy_node,ze_hat,ze_node,u_hat,v_hat)
       DO 100 Jc = 1,cnt
         J = indices(Jc)
