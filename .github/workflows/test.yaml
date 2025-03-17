@@ -60,6 +60,28 @@ jobs:
           name: compat-${{ matrix.os }}-${{ matrix.toolchain.compiler }}-${{ matrix.toolchain.version }}
           path: compat/*.csv
 
+
+  compat:
+    name: Report compatibility
+    needs:
+      - test
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.12
+
+      - name: Install packages
+        run: pip install -r requirements.txt
+
       - name: Download reports
         uses: actions/download-artifact@v4
         with:
