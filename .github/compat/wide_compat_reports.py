@@ -31,7 +31,7 @@ df = pd.pivot_table(
 grouped_versions = {}
 for compiler in df.columns.get_level_values("compiler").unique():
     versions = df.loc[:, (compiler,)].columns.get_level_values("version").unique()
-    versions = sorted(versions, key=lambda version: tuple(map(int, version.split("."))))
+    versions = sorted(versions, key=lambda version: tuple(map(int, str(version).split("."))))
     grouped_versions[compiler] = versions
 
 sorted_columns = []
