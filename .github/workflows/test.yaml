@@ -1,0 +1,25 @@
+on: [pull_request]
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        toolchain:
+          - {compiler: gcc, version: 12}
+          - {compiler: intel, version: '2025.0'}
+          - {compiler: nvidia-hpc, version: '25.1'}
+
+    steps:
+      - uses: fortran-lang/setup-fortran@v1
+        id: setup-fortran
+        with:
+          compiler: ${{ matrix.toolchain.compiler }}
+          version: ${{ matrix.toolchain.version }}
+
+      - name: Compile
+      - run: make
+
+      # - name: Test
+      # - run: make test
