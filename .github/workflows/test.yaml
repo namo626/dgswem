@@ -19,7 +19,8 @@ jobs:
           version: ${{ matrix.toolchain.version }}
 
       - name: Compile
-      - run: make
+        uses: actions/checkout@v4
+        run: make
 
       # - name: Test
       # - run: make test
