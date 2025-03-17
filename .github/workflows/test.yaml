@@ -27,5 +27,5 @@ jobs:
         working-directory: work
 
       - name: Testcases
-      - run: make test
+        run: make test
         working-directory: work
