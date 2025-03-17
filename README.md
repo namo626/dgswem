@@ -5,6 +5,9 @@ Discontinuous Galerkin Shallow Water Equation Model
 Compiler compatibility 
 ======================
 <!-- compat starts -->
+| runner        | gcc 12.0   | gcc 13.0   | nvidia-hpc 24.5   | nvidia-hpc 25.1   |
+|:--------------|:----------------|:----------------|:-----------------------|:-----------------------|
+| ubuntu-latest | &check;         | &check;         | &check;                | &check;                |
 <!-- compat ends -->
 
 dgswem Software License
