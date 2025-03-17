@@ -23,6 +23,7 @@ jobs:
 
       - name: Compile
         run: make
+        working-directory: work
 
       # - name: Test
       # - run: make test
