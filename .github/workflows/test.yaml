@@ -23,6 +23,10 @@ jobs:
           compiler: ${{ matrix.toolchain.compiler }}
           version: ${{ matrix.toolchain.version }}
 
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
@@ -30,9 +34,6 @@ jobs:
 
       - name: Install Python packages
         run: pip install -r requirements.txt
-
-      - name: Checkout
-        uses: actions/checkout@v4
 
       - name: Compile
         run: make
