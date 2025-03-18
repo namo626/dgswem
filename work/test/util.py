@@ -64,18 +64,3 @@ def run_parallel(path, rtol=0.05, atol=0.01):
     d2, _ = last_snapshot(os.path.join(path , "fort.63"))
     np.testing.assert_allclose(d2, d1, rtol=rtol, atol=atol)
 
-def test_quarter_annular():
-    run_serial(os.path.join(TEST, "quarter_annular"))
-
-def test_quarter_annular_parallel():
-    run_parallel(os.path.join(TEST, "quarter_annular"))
-
-def test_wetdry():
-    run_serial(os.path.join(TEST, "wetdry"), atol=0.01, rtol=1e-3)
-
-def test_wetdry_parallel():
-    run_parallel(os.path.join(TEST, "wetdry"), atol=0.01, rtol=1e-3)
-
-
-if __name__ == "__main__":
-    pytest.main(["-vv"])

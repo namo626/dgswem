@@ -235,7 +235,7 @@ endif
 
 ########################## Misc Commands ####################################
 test:
-	cd test && python3 test_all.py
+	cd test && python3 test_run.py
 clean:
 	 rm -f *.mod odir*/*.o  odir*/*.mod
 clobber:
