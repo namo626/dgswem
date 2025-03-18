@@ -36,7 +36,7 @@ else ifneq (,$(findstring nvfortran,$(FC)))   # NVIDIA
   LIBS  	:=  -L ../metis  -lmetis
   MSGLIBS	:=
 
-else ifneq (,$(findstring gfortran,$(FC)))
+else
   sz            := 8
   ifeq ($(sz),8)
     RFLAG = -fdefault-real-8 -fdefault-double-8
