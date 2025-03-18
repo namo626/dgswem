@@ -173,7 +173,7 @@ $(O_DIR)%.o  : %.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 ########################## Executable Targets ##################################
 
-.PHONY: all install metis adcprep adcpost dgswem_serial dgswem #winds
+.PHONY: test all install metis adcprep adcpost dgswem_serial dgswem #winds
 
 all :  adcprep adcpost dgswem_serial dgswem #winds
 
@@ -234,9 +234,10 @@ else
 endif
 
 ########################## Misc Commands ####################################
-
+test:
+	cd test && python3 test_run.py
 clean:
-	 rm -f *.mod odir*/*.o  odir*/*.mod adcprep adcpost dgswem_serial dgswem
+	 rm -f *.mod odir*/*.o  odir*/*.mod
 clobber:
 	rm -r -f odir*
 	rm -f  graphchk adcprep adcprep2 adcpost dgswem_serial dgswem swemswan dgswemswan \
@@ -244,6 +245,7 @@ clobber:
 help:
 	@echo "This makefile supports the following:"
 	@echo "make all      - makes all six targets"
+	@echo "make test      - test dgswem and dgswem_serial against several testcases"
 	@echo "make adcprep  - makes the adcprep  executable"
 	@echo "make adcprep2 - makes the adcprep2  executable"
 	@echo "make adcpost  - makes the adcpost  executable"
