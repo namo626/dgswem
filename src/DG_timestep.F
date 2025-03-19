@@ -28,7 +28,8 @@ C.....Declare local variables
 C.....Hydrodynamics
 
       CALL DG_HYDRO_TIMESTEP(IT)
-
+      call modal2nodal()
+!$acc wait
 C.....Write out results
 
 #ifdef CMPI
@@ -43,7 +44,7 @@ C.....Write out results
 #endif
 #endif
 
-      CALL SCRUTINIZE_SOLUTION(IT)
+      !CALL SCRUTINIZE_SOLUTION()
 
       RETURN
       END SUBROUTINE

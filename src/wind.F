@@ -37,6 +37,8 @@ Casey 110518: Added for Mark Powell's sectorial wind drag.
       
       REAL(SZ) :: WindDragLimit          ! maximum wind drag value
       CHARACTER(len=10) :: DragLawString ! controls wind drag formulation
+      integer, parameter :: dragDefault = 1, dragPowell = 2
+      integer :: dragLawInt
 
       ! jgf52.30.04: Allow the inverted barometer condition to be 
       ! activated on elevation-specified boundaries so that low pressure
@@ -88,10 +90,12 @@ C     ----------------------------------------------------------------
       ! FUNCTION WindIceDrag.
       
       DragLawString = 'default'
+      dragLawInt = dragDefault
 #ifdef POWELL
       ! jgf50.32 Provide backward compatibility with hardcoded POWELL
       ! support.
       DragLawString = 'Powell'
+      dragLawInt = dragPowell
 #endif
       invertedBarometerOnElevationBoundary = .false.
 
@@ -109,12 +113,13 @@ C     jgf46.00 Function to calculate wind drag coefficient from the
 C     windspeed.
 C
 C     ----------------------------------------------------------------
-      REAL(SZ) FUNCTION WindDrag(WindSpeed, NodeNumber)
+      pure REAL(SZ) FUNCTION WindDrag(WindSpeed, NodeNumber)
+!$acc routine
       !Casey 110518: Added variables for Mark Powell's sector-based wind drag.
       USE GLOBAL, ONLY: DEG2RAD, SFEA, SLAM
-      REAL(SZ) WindSpeed
+      REAL(SZ), value :: WindSpeed
       ! jgf50.32: Even if present, NodeNumber is ignored by Garratt formulation
-      INTEGER,OPTIONAL :: NodeNumber
+      INTEGER,value, OPTIONAL :: NodeNumber
 C
       INTRINSIC :: ATAN2
       INTRINSIC :: MOD
@@ -129,14 +134,14 @@ C
       REAL(SZ)  :: StormDirection
       REAL(SZ)  :: Weight(3)
 C
-      SELECT CASE(TRIM(DragLawString))
+      SELECT CASE(dragLawInt)
 C
-      CASE("Garratt","GARRATT","garratt","default")
+      CASE(dragDefault)
          WindDrag = 0.001d0*(0.75d0+0.067d0*WindSpeed)
          IF(WindDrag.gt.WindDragLimit) WindDrag=WindDragLimit
 C
 Casey 110518: Added Mark Powell's sector-based wind drag.
-      CASE("Powell","POWELL","powell")
+      CASE(dragPowell)
 C.. Check whether we have previously found the eye.
          IF((EyeLatR(1).EQ.0.0).OR.(EyeLonR(1).EQ.0.0).OR.
      &      (EyeLatR(2).EQ.0.0).OR.(EyeLonR(2).EQ.0.0).OR.
@@ -283,14 +288,14 @@ C.. Apply a weighted average.
             ENDIF
          ENDIF
 
-      CASE DEFAULT
-         WRITE(16,*) 'ERROR: Wind drag law not recognized:'
-         WRITE(16,'(A10)') DragLawString
-         WRITE(16,*) 'Execution will now be terminated.'
-#ifdef CMPI
-C         call msg_fini()
-#endif
-         STOP
+c$$$      CASE DEFAULT
+c$$$         WRITE(16,*) 'ERROR: Wind drag law not recognized:'
+c$$$         WRITE(16,'(A10)') DragLawString
+c$$$         WRITE(16,*) 'Execution will now be terminated.'
+c$$$#ifdef CMPI
+c$$$C         call msg_fini()
+c$$$#endif
+c$$$         STOP
 C
       END SELECT
 C
@@ -3594,6 +3599,7 @@ c      endif
       cLon  =  lon(icyc-1)  +
      &                         wtratio * (lon(icyc)-lon(icyc-1))
       ! locate each node based on the latest hurricane center location
+!$acc parallel loop default(present)
       do i=1,np
          dx = deg2rad * Rearth * (xcoor(i) - cLon)*COS(deg2rad*cLat)
          dy = deg2rad * Rearth * (ycoor(i) - cLat)
@@ -3619,6 +3625,7 @@ c      endif
  !        WRITE(16,*) 'Previous: Spatially-interpolated storm parameters',
  !    &                   ' at icyc-1= ', icyc-1,
  !    &                   ' CycleTime=', CycleTime(icyc-1)
+!$acc parallel loop default(present)
       do i=1,np
          crmaxw1(i) = spInterp(aziangle(i),dist(i),1)
          crmaxwTrue1(i) = spInterp(aziangle(i),1.0,1)
@@ -3648,6 +3655,7 @@ c      endif
  !        WRITE(16,*) 'After: Spatially-interpolated storm parameters',
  !    &                   ' at icyc= ', icyc,
  !    &                   ' CycleTime=', CycleTime(icyc)
+!$acc parallel loop default(present)
       do i=1,np
          crmaxw2(i) = spInterp(aziangle(i),dist(i),1)
          crmaxwTrue2(i) = spInterp(aziangle(i),1.0,1)
@@ -3665,22 +3673,26 @@ c      endif
      &                         wtratio*(ipn(icyc)-ipn(icyc-1)))
       Pc    =  1.0*(icpress(icyc-1) +
      &                         wtratio*(icpress(icyc)-icpress(icyc-1)))
-      crmaxw   =  crmaxw1(:) +
-     &                         wtratio*(crmaxw2(:)-crmaxw1(:))
-      crmaxwTrue   =  crmaxwTrue1(:) +
-     &                         wtratio*(crmaxwTrue2(:)-crmaxwTrue1(:))
-      cHollBs  =  cHollBs1(:) +
-     &                         wtratio*(cHollBs2(:)-cHollBs1(:))
-      cVmwBL   =  cVmwBL1(:) +
-     &                         wtratio*(cVmwBL2(:)-cVmwBL1(:))
+!$acc parallel loop default(present)
+      do i=1,np
+         crmaxw(i)   =  crmaxw1(i) +
+     &        wtratio*(crmaxw2(i)-crmaxw1(i))
+         crmaxwTrue(i)   =  crmaxwTrue1(i) +
+     &        wtratio*(crmaxwTrue2(i)-crmaxwTrue1(i))
+         cHollBs(i)  =  cHollBs1(i) +
+     &        wtratio*(cHollBs2(i)-cHollBs1(i))
+         cVmwBL(i)   =  cVmwBL1(i) +
+     &        wtratio*(cVmwBL2(i)-cVmwBL1(i))
+      enddo
       corio = 2.0 * omega * SIN(deg2rad*cLat)
      &
       Rmax  = 1.0*(atcfRMW(icyc-1) + wtratio * (atcfRMW(icyc)-atcfRMW(icyc-1)))
      &
-      Vmax = 1.0*(ispd(icyc-1) + wtratio * (ispd(icyc)-ispd(icyc-1))) 
+      Vmax = 1.0*(ispd(icyc-1) + wtratio * (ispd(icyc)-ispd(icyc-1)))
 !Jie debug GAHM
 !         WRITE(16,700) 'Temporal interpolation:',
 !     &           CycleTime(icyc-1), TIMELOC, CycleTime(icyc)
+!$acc parallel loop default(present)
       do i=1,np
          cPhiFactor(i) =  1 +
      &                       cVmwBL(i)*kt2ms*crmaxw(i)*nm2m*corio/
@@ -3760,7 +3772,8 @@ c      endif
       stormMotionV = cos(dirNow/rad2deg)*stormMotion
       call setVortex(Pn,Pc,cLat,cLon)
       Write (16,*) Pn
-  
+
+!$acc parallel loop default(present)
       DO i=1,np
          CALL uvpr(dist(i),aziangle(i),crmaxw(i),crmaxwTrue(i),
      &        cHollBs(i),cVmwBL(i),cPhiFactor(i),stormMotionU,
