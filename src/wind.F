@@ -124,7 +124,7 @@ C
       INTRINSIC :: ATAN2
       INTRINSIC :: MOD
       INTEGER   :: IS
-      LOGICAL   :: FoundSector
+      LOGICAL   :: FoundSector, FoundEye_local
       REAL(SZ)  :: Dir1
       REAL(SZ)  :: Dir2
       REAL(SZ)  :: Drag(3)
@@ -146,11 +146,11 @@ C.. Check whether we have previously found the eye.
          IF((EyeLatR(1).EQ.0.0).OR.(EyeLonR(1).EQ.0.0).OR.
      &      (EyeLatR(2).EQ.0.0).OR.(EyeLonR(2).EQ.0.0).OR.
      &      (EyeLatR(3).EQ.0.0).OR.(EyeLonR(3).EQ.0.0))THEN
-            FoundEye = .FALSE.
+            FoundEye_local = .FALSE.
          ENDIF
 C.. If the eye has not been found then apply Garratt.
          WindDrag = 0.001D0*(0.75D0+0.067D0*WindSpeed)
-         IF(.NOT.FoundEye)THEN
+         IF(.NOT.FoundEye_local)THEN
             FoundSector = .FALSE.
             Weight = 0.0
             IF(WindDrag.GT.WindDragLimit) WindDrag = WindDragLimit
