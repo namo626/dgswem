@@ -903,7 +903,7 @@ c$$$      v = vf
       ! case(3): 4 situations
       ! case(4): 5 situations                    
       !=================================================================
-      pure REAL(sz) FUNCTION spInterp(angle,dist,opt)
+      REAL(sz) FUNCTION spInterp(angle,dist,opt)
 !$acc routine
       REAL(sz), INTENT(IN) :: angle,dist  
       INTEGER, INTENT(IN)  :: opt
