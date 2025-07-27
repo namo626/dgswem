@@ -76,7 +76,7 @@ C.......Compute rain source term if rain is enabled
          ! for now, stop rain after 1 day (86400 s)
 
          IF (rainfall > 0) THEN
-            IF (rainfall > 1) SOURCE_R = computeElemTRR(L)
+            !IF (rainfall > 1) SOURCE_R = computeElemTRR(L)
             IF (rainfall == 1) SOURCE_R =  7.0556e-6 ! 1 inch/hour
 
             IF (SOURCE_R .GT. 0.0) THEN
@@ -280,7 +280,7 @@ C.........Compute momentum flux terms
             HUU = FU_NL*U_IN
             HVV = FV_NL*V_IN
             HUV = FU_NL*V_IN
-            GH2 = FG_NL*(0.5D0*ZE_IN + HB_IN) + FG_L*ZE_IN
+            GH2 = FG_NL*(0.5*ZE_IN + HB_IN) + FG_L*ZE_IN
 
 C.........Compute x momentum fluxes
 
@@ -321,7 +321,7 @@ C     height even though it does not happen in reality. To avoid this, the MIN
 C     function bellow is added. It is expected that this MIN function upper-limits
 C     TAU so the bottom friction force does not reverse the currents within
 C     half a time step.  S.B. 9-Feb-2008
-               TAU = MIN(TAU, .9D0*DTDPH)
+               TAU = MIN(TAU, .9*DTDPH)
             ENDIF
 
 C.........Compute the x momentum source/sink terms
