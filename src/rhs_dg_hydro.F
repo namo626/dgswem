@@ -196,7 +196,7 @@ C.......Compute ZE, QX, QY, and HB at each area Gauss quadrature point
 
             SFACQUAD = SFAC_ELEM(I,L,pa)
 
-            DO K = 2,DOFS(L)
+            DO K = 2,3
 
                ZE_IN = ZE_IN + ze(L,K,IRK)*PHI_AREA(K,I,pa)
                QX_IN = QX_IN + qx(L,K,IRK)*PHI_AREA(K,I,pa)
@@ -416,7 +416,7 @@ C.........Build the rhs
             RHS_qy(L,1,IRK) = RHS_qy(L,1,IRK) + SRFAC(1,I,L,pa)*SOURCE_Y
 
 !$acc loop seq
-            DO K = 2,DOFS(L)
+            DO K = 2,3
 
                RHS_ze(L,K,IRK) = RHS_ze(L,K,IRK) + XFAC(K,I,L,pa)*FX_IN
      &                + YFAC(K,I,L,pa)*FY_IN
