@@ -107,8 +107,8 @@ C.......These will be used later when bottom friction is computed
 
          DEPTH_C = HB(1,L,1) + ze(L,1,IRK)
          FH_NL_C = 1.0/(NLEQ*DEPTH_C + LEQ)
-         UX_C = QX(1,L,IRK)*FH_NL_C
-         UY_C = QY(1,L,IRK)*FH_NL_C
+         UX_C = qx(L,1,IRK)*FH_NL_C
+         UY_C = qy(L,1,IRK)*FH_NL_C
          UMAG_C = SQRT(UX_C*UX_C + UY_C*UY_C)
 
 C.......Compute derivatives of Lagrange basis functions at nodes
@@ -128,8 +128,8 @@ C.......Compute ZE, QX, QY, and HB at each area Gauss quadrature point
          DO I = 1,NAGP(pa)
 
             ZE_IN = ze(L,1,IRK)
-            QX_IN = QX(1,L,IRK)
-            QY_IN = QY(1,L,IRK)
+            QX_IN = qx(L,1,IRK)
+            QY_IN = qy(L,1,IRK)
 
 #ifdef TRACE
             iota_IN = iota(1,L,IRK)
@@ -199,8 +199,8 @@ C.......Compute ZE, QX, QY, and HB at each area Gauss quadrature point
             DO K = 2,DOFS(L)
 
                ZE_IN = ZE_IN + ze(L,K,IRK)*PHI_AREA(K,I,pa)
-               QX_IN = QX_IN + QX(K,L,IRK)*PHI_AREA(K,I,pa)
-               QY_IN = QY_IN + QY(K,L,IRK)*PHI_AREA(K,I,pa)
+               QX_IN = QX_IN + qx(L,K,IRK)*PHI_AREA(K,I,pa)
+               QY_IN = QY_IN + qy(L,K,IRK)*PHI_AREA(K,I,pa)
 
 #ifdef WAVE_DIF
                HZ_X = HZ_X + HZ(K,1,1,L)*PHI_AREA(K,I,pa)
@@ -412,17 +412,17 @@ C.........Build the rhs
 #endif
 
 
-            RHS_QX(1,L,IRK) = RHS_QX(1,L,IRK) + SRFAC(1,I,L,pa)*SOURCE_X
-            RHS_QY(1,L,IRK) = RHS_QY(1,L,IRK) + SRFAC(1,I,L,pa)*SOURCE_Y
+            RHS_qx(L,1,IRK) = RHS_qx(L,1,IRK) + SRFAC(1,I,L,pa)*SOURCE_X
+            RHS_qy(L,1,IRK) = RHS_qy(L,1,IRK) + SRFAC(1,I,L,pa)*SOURCE_Y
 
 !$acc loop seq
             DO K = 2,DOFS(L)
 
                RHS_ze(L,K,IRK) = RHS_ze(L,K,IRK) + XFAC(K,I,L,pa)*FX_IN
      &                + YFAC(K,I,L,pa)*FY_IN
-               RHS_QX(K,L,IRK) = RHS_QX(K,L,IRK) + XFAC(K,I,L,pa)*GX_IN
+               RHS_qx(L,K,IRK) = RHS_qx(L,K,IRK) + XFAC(K,I,L,pa)*GX_IN
      &              + YFAC(K,I,L,pa)*GY_IN + SRFAC(K,I,L,pa)*SOURCE_X
-               RHS_QY(K,L,IRK) = RHS_QY(K,L,IRK) + XFAC(K,I,L,pa)*HX_IN
+               RHS_qy(L,K,IRK) = RHS_qy(L,K,IRK) + XFAC(K,I,L,pa)*HX_IN
      &              + YFAC(K,I,L,pa)*HY_IN + SRFAC(K,I,L,pa)*SOURCE_Y
 
 #ifdef SED_LAY

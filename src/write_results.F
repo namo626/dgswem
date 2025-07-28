@@ -80,8 +80,8 @@ C.....to single nodal values
             end do
 
             ZE_DG = ze(NBOR_EL,1,1)
-            QX_DG = QX(1,NBOR_EL,1)
-            QY_DG = QY(1,NBOR_EL,1)
+            QX_DG = qx(NBOR_EL,1,1)
+            QY_DG = qy(NBOR_EL,1,1)
             HB_DG = HB(1,NBOR_EL,1)
 #ifdef TRACE
             iota_DG(J) = iota(1,NBOR_EL,1)
@@ -106,8 +106,8 @@ C.....to single nodal values
 
             DO KK = 2,DOFH
                ZE_DG = ZE_DG+PHI_CORNER(KK,K,ph)*ze(NBOR_EL,KK,1)
-               QX_DG = QX_DG+PHI_CORNER(KK,K,ph)*QX(KK,NBOR_EL,1)
-               QY_DG = QY_DG+PHI_CORNER(KK,K,ph)*QY(KK,NBOR_EL,1)
+               QX_DG = QX_DG+PHI_CORNER(KK,K,ph)*qx(NBOR_EL,KK,1)
+               QY_DG = QY_DG+PHI_CORNER(KK,K,ph)*qy(NBOR_EL,KK,1)
 
 #ifdef TRACE
                iota_DG(J) = iota_DG(J)
@@ -290,12 +290,12 @@ C...
                   DP3 = DP(NM(NNV(I),3))
                   DP00    = DP1*STAIV1(I) + DP2*STAIV2(I)+DP3*STAIV3(I)
                   ZE00    = ze(NNV(I),1,1)
-                  UU00(I) = QX(1,NNV(I),1)
-                  VV00(I) = QY(1,NNV(I),1)
+                  UU00(I) = qx(NNV(I),1,1)
+                  VV00(I) = qy(NNV(I),1,1)
                   DO K = 2,DOF
                      ZE00    = ZE00    + ze(NNV(I),K,1)*PHI_STAV(K,I)
-                     UU00(I) = UU00(I) + QX(K,NNV(I),1)*PHI_STAV(K,I)
-                     VV00(I) = VV00(I) + QY(K,NNV(I),1)*PHI_STAV(K,I)
+                     UU00(I) = UU00(I) + qx(NNV(I),K,1)*PHI_STAV(K,I)
+                     VV00(I) = VV00(I) + qy(NNV(I),K,1)*PHI_STAV(K,I)
                   ENDDO
                   DEPTH   = ZE00 + DP00
                   FH_NL   = 1.0/(NLEQ*DEPTH + LEQ)
@@ -681,7 +681,7 @@ C.....Write DG.64 results
 #ifdef DGOUT
               DO J = 1,NE
                 DO K = 1,DOFS(J)
-                  WRITE(641,*) J, QX(K,J,1), QY(K,J,1)
+                  WRITE(641,*) J, qx(J,K,1), qy(J,K,1)
                 ENDDO
               ENDDO
 #endif
@@ -863,8 +863,8 @@ C...
               IF(NHASV.EQ.1) THEN
                 DO I=1,NSTAV
                   ZE00    = ze(NNV(I),1,1)
-                  UU00(I) = QX(1,NNV(I),1)
-                  VV00(I) = QY(1,NNV(I),1)
+                  UU00(I) = qx(NNV(I),1,1)
+                  VV00(I) = qy(NNV(I),1,1)
                   if (ModetoNode.eq.1) then
                     DP1     = DP(NM(NNV(I),1))
                     DP2     = DP(NM(NNV(I),2))
@@ -878,8 +878,8 @@ C...
 
                   DO K = 2,DOFH
                     ZE00    = ZE00    + ze(NNV(I),K,1)*PHI_STAV(K,I)
-                    UU00(I) = UU00(I) + QX(K,NNV(I),1)*PHI_STAV(K,I)
-                    VV00(I) = VV00(I) + QY(K,NNV(I),1)*PHI_STAV(K,I)
+                    UU00(I) = UU00(I) + qx(NNV(I),K,1)*PHI_STAV(K,I)
+                    VV00(I) = VV00(I) + qy(NNV(I),K,1)*PHI_STAV(K,I)
                   ENDDO
                   FH_NL   = 1.0/(NLEQ*DEPTH + LEQ)
                   UU00(I) = UU00(I)*FH_NL
@@ -1223,7 +1223,7 @@ C.....If applicable write out a DG hot start
             DO J = 1,MNE
                DO K = 1,DOF
                   WRITE(263,*) ze(J,K,1)
-                  WRITE(264,*) QX(K,J,1), QY(K,J,1)
+                  WRITE(264,*) qx(J,K,1), qy(J,K,1)
                   WRITE(214,*) HB(K,J,1), WDFLG(J)
 #ifdef TRACE
                WRITE(288,*) iota(K,J,1)
@@ -1279,10 +1279,10 @@ C          QY_DG(1) = 0.0
 C
 C          DO K=1,DOF
 C            ZE_DG(1) = ZE_DG(1) + PHI_CENTER(K)*ze(J,K,1)
-C            QX_DG(1) = QX_DG(1) + PHI_CENTER(K)*QX(K,J,1)
-C            QY_DG(1) = QY_DG(1) + PHI_CENTER(K)*QY(K,J,1)
+C            QX_DG(1) = QX_DG(1) + PHI_CENTER(K)*qx(J,K,1)
+C            QY_DG(1) = QY_DG(1) + PHI_CENTER(K)*qy(J,K,1)
 C
-C            WRITE(88,*) ze(J,K,1),QX(K,J,1),QY(K,J,1)
+C            WRITE(88,*) ze(J,K,1),qx(J,K,1),qy(J,K,1)
 C
 C          ENDDO
 C
@@ -1333,7 +1333,7 @@ C
 C      WRITE(642,2120) 0.0, 1
 C      DO J = 1,NE
 C        DO K = 1,DOF
-C          WRITE(642,2454) J, QX(K,J,1), QY(K,J,1)
+C          WRITE(642,2454) J, qx(J,K,1), qy(J,K,1)
 C        ENDDO
 C      ENDDO
 C

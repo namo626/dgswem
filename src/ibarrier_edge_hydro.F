@@ -116,13 +116,13 @@ C.......Compute the variables at the quadrature points
 C.........Obtain the height of the barrier at the quadrature point
 
             ZEB = ze(ELB,1,IRK)
-            QXB = QX(1,ELB,IRK)
-            QYB = QY(1,ELB,IRK)
+            QXB = qx(ELB,1,IRK)
+            QYB = qy(ELB,1,IRK)
             HBB = BATHED(GPB,LEDB,ELB,pa)
             
             ZEF = ze(ELF,1,IRK)
-            QXF = QX(1,ELF,IRK)
-            QYF = QY(1,ELF,IRK)
+            QXF = qx(ELF,1,IRK)
+            QYF = qy(ELF,1,IRK)
             HBF = BATHED(GPF,LEDF,ELF,pa)
 
 #ifdef TRACE
@@ -160,13 +160,13 @@ C.........Obtain the height of the barrier at the quadrature point
 !$acc loop seq
             DO K = 2,dofs(EL)
                ZEB = ZEB + ze(ELB,K,IRK)*PHI_EDGE(K,GPB,LEDB,pa)
-               QXB = QXB + QX(K,ELB,IRK)*PHI_EDGE(K,GPB,LEDB,pa)
-               QYB = QYB + QY(K,ELB,IRK)*PHI_EDGE(K,GPB,LEDB,pa)
+               QXB = QXB + qx(ELB,K,IRK)*PHI_EDGE(K,GPB,LEDB,pa)
+               QYB = QYB + qy(ELB,K,IRK)*PHI_EDGE(K,GPB,LEDB,pa)
                                 !HBB = HBB + HB(K,ELB,1  )*PHI_EDGE(K,GPB,LEDB,pa)
 
                ZEF = ZEF + ze(ELF,K,IRK)*PHI_EDGE(K,GPF,LEDF,pa)
-               QXF = QXF + QX(K,ELF,IRK)*PHI_EDGE(K,GPF,LEDF,pa)
-               QYF = QYF + QY(K,ELF,IRK)*PHI_EDGE(K,GPF,LEDF,pa)
+               QXF = QXF + qx(ELF,K,IRK)*PHI_EDGE(K,GPF,LEDF,pa)
+               QYF = QYF + qy(ELF,K,IRK)*PHI_EDGE(K,GPF,LEDF,pa)
                                 !HBF = HBF + HB(K,ELF,1  )*PHI_EDGE(K,GPF,LEDF,pa)
 #ifdef TRACE
                iotaB = iotaB + iota(K,ELB,IRK)*PHI_EDGE(K,GPB,LEDB,pa)
@@ -558,16 +558,16 @@ c
 !$acc atomic
                RHS_ze(ELB,K,IRK) = RHS_ze(ELB,K,IRK) - WEGPB*FB_HAT
 !$acc atomic
-               RHS_QX(K,ELB,IRK) = RHS_QX(K,ELB,IRK) - WEGPB*GB_HAT
+               RHS_qx(ELB,K,IRK) = RHS_qx(ELB,K,IRK) - WEGPB*GB_HAT
 !$acc atomic
-               RHS_QY(K,ELB,IRK) = RHS_QY(K,ELB,IRK) - WEGPB*HB_HAT
+               RHS_qy(ELB,K,IRK) = RHS_qy(ELB,K,IRK) - WEGPB*HB_HAT
 
 !$acc atomic
                RHS_ze(ELF,K,IRK) = RHS_ze(ELF,K,IRK) - WEGPF*FF_HAT
 !$acc atomic
-               RHS_QX(K,ELF,IRK) = RHS_QX(K,ELF,IRK) - WEGPF*GF_HAT
+               RHS_qx(ELF,K,IRK) = RHS_qx(ELF,K,IRK) - WEGPF*GF_HAT
 !$acc atomic
-               RHS_QY(K,ELF,IRK) = RHS_QY(K,ELF,IRK) - WEGPF*HF_HAT
+               RHS_qy(ELF,K,IRK) = RHS_qy(ELF,K,IRK) - WEGPF*HF_HAT
 
 #ifdef TRACE
                RHS_iota(K,ELB,IRK) = RHS_iota(K,ELB,IRK) - WEGPB*IB_HAT

@@ -84,8 +84,8 @@ C.....Compute the solution at the midpoint of the edge
       
         DO K = 1,DOFS(L)
 
-          QX_IN = QX_IN + QX(K,L,IRK+1)*PHI_MID(K,LED_IN,pa)
-          QY_IN = QY_IN + QY(K,L,IRK+1)*PHI_MID(K,LED_IN,pa)
+          QX_IN = QX_IN + qx(L,K,IRK+1)*PHI_MID(K,LED_IN,pa)
+          QY_IN = QY_IN + qy(L,K,IRK+1)*PHI_MID(K,LED_IN,pa)
           
         ENDDO
          
@@ -195,8 +195,8 @@ C.....Compute the discontinuity detector
         !WRITE(89,*) L,ZE_DECT,TIME,IT
         DO K=2,DOFS(L)
           ze(L,K,IRK+1) = 0
-          QX(K,L,IRK+1) = 0
-          QY(K,L,IRK+1) = 0
+          qx(L,K,IRK+1) = 0
+          qy(L,K,IRK+1) = 0
         ENDDO
       ENDIF
       

@@ -197,8 +197,8 @@ C.........water depth at all points = average water depth
             ze(J,3,IRK+1) = -HB(3,J,1)
 
 C.........Zero out the fluxes
-            QX(:,J,IRK+1) = 0.0
-            QY(:,J,IRK+1) = 0.0
+            qx(J,:,IRK+1) = 0.0
+            qy(J,:,IRK+1) = 0.0
             
 C.........Set flags to dry and skip element check
             WDFLG(J) = 0
@@ -209,8 +209,8 @@ C.........Set flags to dry and skip element check
 !            do i = 4,dofh
 !               
 !               ze(J,i,IRK+1) = 0.0
-!               QX(i,J,IRK+1) = 0.0
-!               QY(i,J,IRK+1) = 0.0
+!               qx(J,i,IRK+1) = 0.0
+!               qy(J,i,IRK+1) = 0.0
 !
 c$$$#ifdef SED_LAY !is this more stable?
 c$$$               do l=1,layers 
@@ -278,8 +278,8 @@ C...........water depth at all points = average water depth
                ZE_HAT(:,pa) = ze(J,1,IRK+1)
 
 C...........Zero out the fluxes
-               QX(:,J,IRK+1) = 0.0
-               QY(:,J,IRK+1) = 0.0
+               qx(J,:,IRK+1) = 0.0
+               qy(J,:,IRK+1) = 0.0
 
 C     --------------------------------------------------------------
 C.........Case 3B: Aaverage water depth > H0
@@ -339,17 +339,17 @@ C...........fluxes on dry nodes, and count new # of dry nodes/vertices
                HT_MAX = 0
                DO I = 1,3
                   HT_HAT(I)  = HT_NODE(I) + DH_HAT(I)
-                  QX_NODE(I) = QX(1,J,IRK+1)
-                  QY_NODE(I) = QY(1,J,IRK+1)
+                  QX_NODE(I) = qx(J,1,IRK+1)
+                  QY_NODE(I) = qy(J,1,IRK+1)
                   IF (HT_HAT(I).GT.HT_MAX) THEN
                      HT_MAX_I = I
                      HT_MAX = HT_HAT(I)
                   ENDIF
                   DO K = 2,DOFS(J) !NOTE: We look at integrated value AT the vertex!
                      QX_NODE(I) = QX_NODE(I) +
-     & PHI_CORNER(K,I,pa)*QX(K,J,IRK+1)
+     & PHI_CORNER(K,I,pa)*qx(J,K,IRK+1)
                      QY_NODE(I) = QY_NODE(I) +
-     & PHI_CORNER(K,I,pa)*QY(K,J,IRK+1)
+     & PHI_CORNER(K,I,pa)*qy(J,K,IRK+1)
                   ENDDO
                   IF (HT_HAT(I).LE.(H0+1.D-10)) THEN
                      NDRYNODE = NDRYNODE + 1
@@ -362,8 +362,8 @@ C...........If all adjusted nodes/vertices are dry then zero out fluxes
 
                IF (NDRYNODE.EQ.3) THEN
                   
-                  QX(:,J,IRK+1) = 0.0
-                  QY(:,J,IRK+1) = 0.0
+                  qx(J,:,IRK+1) = 0.0
+                  qy(J,:,IRK+1) = 0.0
 
 c$$$  if (tracer_flag.eq.1) then
 c$$$  
@@ -434,15 +434,15 @@ C...........Else re-distribute nodal/vertex fluxes
 
 C.............Compute new linear modal dofs for x-direction flux
 
-              QX(1,J,IRK+1) =  C13*(QX_HAT(1) + QX_HAT(2) + QX_HAT(3))
-              QX(2,J,IRK+1) = -C16*(QX_HAT(1) + QX_HAT(2))+C13*QX_HAT(3)
-              QX(3,J,IRK+1) = -0.5D0*QX_HAT(1) + 0.5D0*QX_HAT(2)
+              qx(J,1,IRK+1) =  C13*(QX_HAT(1) + QX_HAT(2) + QX_HAT(3))
+              qx(J,2,IRK+1) = -C16*(QX_HAT(1) + QX_HAT(2))+C13*QX_HAT(3)
+              qx(J,3,IRK+1) = -0.5D0*QX_HAT(1) + 0.5D0*QX_HAT(2)
 
 C.............Compute new linear modal dofs for y-direction flux
 
-              QY(1,J,IRK+1) =  C13*(QY_HAT(1) + QY_HAT(2) + QY_HAT(3))
-              QY(2,J,IRK+1) = -C16*(QY_HAT(1) + QY_HAT(2))+C13*QY_HAT(3)
-              QY(3,J,IRK+1) = -0.5D0*QY_HAT(1) + 0.5D0*QY_HAT(2)
+              qy(J,1,IRK+1) =  C13*(QY_HAT(1) + QY_HAT(2) + QY_HAT(3))
+              qy(J,2,IRK+1) = -C16*(QY_HAT(1) + QY_HAT(2))+C13*QY_HAT(3)
+              qy(J,3,IRK+1) = -0.5D0*QY_HAT(1) + 0.5D0*QY_HAT(2)
                ENDIF
 
 C...........Compute new nodal surface elevations
@@ -463,8 +463,8 @@ C.........If applicable zero out higher dofs
             do i = 4,dofh
                
                ze(J,i,IRK+1) = 0.0
-               QX(i,J,IRK+1) = 0.0
-               QY(i,J,IRK+1) = 0.0
+               qx(J,i,IRK+1) = 0.0
+               qy(J,i,IRK+1) = 0.0
 
 #ifdef SED_LAY
                do l=1,layers
@@ -535,8 +535,8 @@ C.........Make no adjustments and set element and node flags to wet
 
 C...........Make adjustments and set element node codes to dry
 
-               QX(:,J,IRK+1) = 0.0
-               QY(:,J,IRK+1) = 0.0
+               qx(J,:,IRK+1) = 0.0
+               qy(J,:,IRK+1) = 0.0
 
                WDFLG(J) = 0
 

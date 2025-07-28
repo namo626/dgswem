@@ -43,8 +43,8 @@ C.....Comput the edge integral
      &     *WEGP(GP,pah)
 
       RHS_ze(EL_I,K,IRK) = RHS_ze(EL_I,K,IRK) - W*FLUX1
-      RHS_QX(K,EL_I,IRK) = RHS_QX(K,EL_I,IRK) - W*FLUX2
-      RHS_QY(K,EL_I,IRK) = RHS_QY(K,EL_I,IRK) - W*FLUX3
+      RHS_qx(EL_I,K,IRK) = RHS_qx(EL_I,K,IRK) - W*FLUX2
+      RHS_qy(EL_I,K,IRK) = RHS_qy(EL_I,K,IRK) - W*FLUX3
 
 #ifdef TRACE
       RHS_iota(k,EL_I,IRK) = RHS_iota(k,EL_I,IRK) - W*FLUX4
@@ -96,9 +96,9 @@ C.....Comput the edge integral
 
       RHS_ze(EL_I,K,IRK) = RHS_ze(EL_I,K,IRK)
      &  - IMASS*XLEN(GED)/2.0*FLUX1*PHI_EDGE(K,GP,LED,pah)*WEGP(GP,pah)
-      RHS_QX(K,EL_I,IRK) = RHS_QX(K,EL_I,IRK)
+      RHS_qx(EL_I,K,IRK) = RHS_qx(EL_I,K,IRK)
      &  - IMASS*XLEN(GED)/2.0*FLUX2*PHI_EDGE(K,GP,LED,pah)*WEGP(GP,pah)
-      RHS_QY(K,EL_I,IRK) = RHS_QY(K,EL_I,IRK)
+      RHS_qy(EL_I,K,IRK) = RHS_qy(EL_I,K,IRK)
      &  - IMASS*XLEN(GED)/2.0*FLUX3*PHI_EDGE(K,GP,LED,pah)*WEGP(GP,pah)
 
 #ifdef TRACE

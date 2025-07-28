@@ -163,23 +163,23 @@ C.....Detect NaN
                Detected = .TRUE.
                ErrorElevExceeded = 1
             ENDIF
-            IF(QX(K,J,1).NE.QX(K,J,1)) THEN
+            IF(qx(J,K,1).NE.qx(J,K,1)) THEN
 #ifdef CMPI
                PRINT *, 'IN SUBDOMAIN ',MYPROC
 #endif
                PRINT *, ''
-               PRINT *, '  QX(',K,',',J,',1) IS ',QX(K,J,1)
+               PRINT *, '  qx(K,',',',J,',1) IS ',qx(J,K,1)
                PRINT *, ' x,  y ',SLAM(NM(J,1))/DEG2RAD,
      $              SFEA(NM(J,1))/DEG2RAD
                Detected = .TRUE.
                ErrorElevExceeded = 1
             ENDIF
-            IF(QY(K,J,1).NE.QY(K,J,1)) THEN
+            IF(qy(J,K,1).NE.qy(J,K,1)) THEN
 #ifdef CMPI
                PRINT *, 'IN SUBDOMAIN ',MYPROC
 #endif
                PRINT *, ''
-               PRINT *, '  QY(',K,',',J,',1) IS ',QY(K,J,1)
+               PRINT *, '  qy(K,',',',J,',1) IS ',qy(J,K,1)
                PRINT *, ' x,  y ',SLAM(NM(J,1))/DEG2RAD,
      $              SFEA(NM(J,1))/DEG2RAD
                Detected = .TRUE.

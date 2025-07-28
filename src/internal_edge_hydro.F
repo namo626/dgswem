@@ -136,11 +136,11 @@ C.......If both elements on either side of edge are dry then skip
          IF((WDFLG(EL_IN).EQ.0).AND.(WDFLG(EL_EX).EQ.0)) goto 100
 
          ze_ins = ze(el_in,:,irk)
-         qx_ins = qx(:,el_in,irk)
-         qy_ins = qy(:,el_in,irk)
+         qx_ins = qx(el_in,:,irk)
+         qy_ins = qy(el_in,:,irk)
          ze_exs = ze(el_ex,:,irk)
-         qx_exs = qx(:,el_ex,irk)
-         qy_exs = qy(:,el_ex,irk)
+         qx_exs = qx(el_ex,:,irk)
+         qy_exs = qy(el_ex,:,irk)
 
          !test_el = test_el+1
 
@@ -149,12 +149,12 @@ C.....Save the current RHS
          DO K = 1,3
 
 c$$$            RHS_ZE_IN(K) = RHS_ze(EL_IN,K,IRK)
-c$$$            RHS_QX_IN(K) = RHS_QX(K,EL_IN,IRK)
-c$$$            RHS_QY_IN(K) = RHS_QY(K,EL_IN,IRK)
+c$$$            RHS_QX_IN(K) = RHS_qx(EL_IN,K,IRK)
+c$$$            RHS_QY_IN(K) = RHS_qy(EL_IN,K,IRK)
 c$$$
 c$$$            RHS_ZE_EX(K) = RHS_ze(EL_EX,K,IRK)
-c$$$            RHS_QX_EX(K) = RHS_QX(K,EL_EX,IRK)
-c$$$            RHS_QY_EX(K) = RHS_QY(K,EL_EX,IRK)
+c$$$            RHS_QX_EX(K) = RHS_qx(EL_EX,K,IRK)
+c$$$            RHS_QY_EX(K) = RHS_qy(EL_EX,K,IRK)
 
             rhs_ze_in = 0.
             rhs_qx_in = 0.
@@ -453,12 +453,12 @@ C...........Put back the saved RHS
                   rhs_qx_ex = 0.
                   rhs_qy_ex = 0.
 c$$$                  RHS_ze(EL_IN,K,IRK) = RHS_ZE_IN(K)
-c$$$                  RHS_QX(K,EL_IN,IRK) = RHS_QX_IN(K)
-c$$$                  RHS_QY(K,EL_IN,IRK) = RHS_QY_IN(K)
+c$$$                  RHS_qx(EL_IN,K,IRK) = RHS_QX_IN(K)
+c$$$                  RHS_qy(EL_IN,K,IRK) = RHS_QY_IN(K)
 c$$$
 c$$$                  RHS_ze(EL_EX,K,IRK) = RHS_ZE_EX(K)
-c$$$                  RHS_QX(K,EL_EX,IRK) = RHS_QX_EX(K)
-c$$$                  RHS_QY(K,EL_EX,IRK) = RHS_QY_EX(K)
+c$$$                  RHS_qx(EL_EX,K,IRK) = RHS_QX_EX(K)
+c$$$                  RHS_qy(EL_EX,K,IRK) = RHS_QY_EX(K)
 
 #ifdef TRACE
                   RHS_iota(K,EL_IN,IRK) = RHS_iota_IN(K)
@@ -712,12 +712,12 @@ C.....Compute the edge integral
                W_EX = EDFAC_EX*EDGEQ(K,GP_EX,LED_EX,pa)
 
 c$$$               tmp = atomicAdd(RHS_ze(EL_IN,K,IRK), -W_IN*F_HAT_O  )
-c$$$               tmp = atomicAdd(RHS_QX(K,EL_IN,IRK), -W_IN*G_HAT_IN)
-c$$$               tmp = atomicAdd(RHS_QY(K,EL_IN,IRK), -W_IN*H_HAT_IN)
+c$$$               tmp = atomicAdd(RHS_qx(EL_IN,K,IRK), -W_IN*G_HAT_IN)
+c$$$               tmp = atomicAdd(RHS_qy(EL_IN,K,IRK), -W_IN*H_HAT_IN)
 c$$$
 c$$$               tmp = atomicAdd(RHS_ze(EL_EX,K,IRK), W_EX*F_HAT_O)
-c$$$               tmp = atomicAdd(RHS_QX(K,EL_EX,IRK), W_EX*G_HAT_EX)
-c$$$               tmp = atomicAdd(RHS_QY(K,EL_EX,IRK), W_EX*H_HAT_EX)
+c$$$               tmp = atomicAdd(RHS_qx(EL_EX,K,IRK), W_EX*G_HAT_EX)
+c$$$               tmp = atomicAdd(RHS_qy(EL_EX,K,IRK), W_EX*H_HAT_EX)
 
                rhs_ze_in(k) = rhs_ze_in(k) - w_in * f_hat_o
                rhs_qx_in(k) = rhs_qx_in(k) - w_in * g_hat_in
@@ -969,8 +969,8 @@ C.....Compute the edge integral
                W_IN = EDFAC_IN*EDGEQ(K,GP_IN,LED_IN,pa)
 
 c$$$               tmp = atomicAdd(RHS_ze(EL_IN,K,IRK) , -W_IN*F_HAT)
-c$$$               tmp = atomicAdd(RHS_QX(K,EL_IN,IRK) , -W_IN*G_HAT)
-c$$$               tmp = atomicAdd(RHS_QY(K,EL_IN,IRK) , -W_IN*H_HAT)
+c$$$               tmp = atomicAdd(RHS_qx(EL_IN,K,IRK) , -W_IN*G_HAT)
+c$$$               tmp = atomicAdd(RHS_qy(EL_IN,K,IRK) , -W_IN*H_HAT)
                rhs_ze_in(k) = rhs_ze_in(k) - w_in * f_hat
                rhs_qx_in(k) = rhs_qx_in(k) - w_in * g_hat
                rhs_qy_in(k) = rhs_qy_in(k) - w_in * h_hat
@@ -1189,8 +1189,8 @@ C.....Compute the edge integral
                W_EX = EDFAC_EX*EDGEQ(K,GP_EX,LED_EX,pa)
 
 c$$$               tmp = atomicAdd(RHS_ze(EL_EX,K,IRK), W_EX*F_HAT)
-c$$$               tmp = atomicAdd(RHS_QX(K,EL_EX,IRK), W_EX*G_HAT)
-c$$$               tmp = atomicAdd(RHS_QY(K,EL_EX,IRK), W_EX*H_HAT)
+c$$$               tmp = atomicAdd(RHS_qx(EL_EX,K,IRK), W_EX*G_HAT)
+c$$$               tmp = atomicAdd(RHS_qy(EL_EX,K,IRK), W_EX*H_HAT)
                rhs_ze_ex(k) = rhs_ze_ex(k) + w_ex * f_hat
                rhs_qx_ex(k) = rhs_qx_ex(k) + w_ex * g_hat
                rhs_qy_ex(k) = rhs_qy_ex(k) + w_ex * h_hat
@@ -1250,12 +1250,12 @@ c$$$               tmp = atomicAdd(RHS_QY(K,EL_EX,IRK), W_EX*H_HAT)
 
 c$$$      do k = 1,DOFS(EL)
 c$$$         tmp = atomicAdd(RHS_ze(EL_EX,K,IRK), rhs_ze_ex(k))
-c$$$         tmp = atomicAdd(RHS_QX(K,EL_EX,IRK), rhs_qx_ex(k))
-c$$$         tmp = atomicAdd(RHS_QY(K,EL_EX,IRK), rhs_qy_ex(k))
+c$$$         tmp = atomicAdd(RHS_qx(EL_EX,K,IRK), rhs_qx_ex(k))
+c$$$         tmp = atomicAdd(RHS_qy(EL_EX,K,IRK), rhs_qy_ex(k))
 c$$$
 c$$$         tmp = atomicAdd(RHS_ze(EL_in,K,IRK), rhs_ze_in(k))
-c$$$         tmp = atomicAdd(RHS_QX(K,EL_in,IRK), rhs_qx_in(k))
-c$$$         tmp = atomicAdd(RHS_QY(K,EL_in,IRK), rhs_qy_in(k))
+c$$$         tmp = atomicAdd(RHS_qx(EL_in,K,IRK), rhs_qx_in(k))
+c$$$         tmp = atomicAdd(RHS_qy(EL_in,K,IRK), rhs_qy_in(k))
 c$$$      enddo
 
  100   continue
@@ -1282,8 +1282,8 @@ c$$$      enddo
             enddo
 
             rhs_ze(L,k, IRK) = rhs_ze(L,k, IRK) + ze_sum
-            rhs_qx(k,L, IRK) = rhs_qx(k,L, IRK) + qx_sum
-            rhs_qy(k,L, IRK) = rhs_qy(k,L, IRK) + qy_sum
+            rhs_qx(L,k, IRK) = rhs_qx(L,k, IRK) + qx_sum
+            rhs_qy(L,k, IRK) = rhs_qy(L,k, IRK) + qy_sum
          enddo
 
          ze_edge(L,:,:) = 0.

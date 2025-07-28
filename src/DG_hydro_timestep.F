@@ -257,10 +257,10 @@ C.......SSP Runge-Kutta Time Scheme
 
                   ze(J,K,IRK+1) = ze(J,K,irk+1) + ARK*ze(J,K,I)
      &                 + BRK*RHS_ze(J,K,I) 
-                  QX(K,J,IRK+1) = QX(K,J,irk+1) + ARK*QX(K,J,I)
-     &                 + BRK*RHS_QX(K,J,I)
-                  QY(K,J,IRK+1) = QY(K,J,irk+1) + ATVD(IRK,I)*QY(K,J,I)
-     &                 + BRK*RHS_QY(K,J,I)
+                  qx(J,K,IRK+1) = qx(J,K,irk+1) + ARK*qx(J,K,I)
+     &                 + BRK*RHS_qx(J,K,I)
+                  qy(J,K,IRK+1) = qy(J,K,irk+1) + ATVD(IRK,I)*qy(J,K,I)
+     &                 + BRK*RHS_qy(J,K,I)
 C.......Compute the transported tracer term if flagged
 
 #ifdef TRACE
@@ -385,10 +385,10 @@ C.......RKC Time Scheme
                   
                   ze(J,K,IRK+1) = ze(J,K,irk+1) + ze(J,K,1)
      &                 + BRK*RHS_ze(J,K,1)
-                  QX(K,J,IRK+1) = QX(K,J,irk+1) + QX(K,J,1)
-     &                 + BRK*RHS_QX(K,J,1)
-                  QY(K,J,IRK+1) = QY(K,J,irk+1)  + QY(K,J,1)
-     &                 + BRK*RHS_QY(K,J,1)
+                  qx(J,K,IRK+1) = qx(J,K,irk+1) + qx(J,K,1)
+     &                 + BRK*RHS_qx(J,K,1)
+                  qy(J,K,IRK+1) = qy(J,K,irk+1)  + qy(J,K,1)
+     &                 + BRK*RHS_qy(J,K,1)
                   
 C.......Compute the transported tracer term if flagged
                   
@@ -445,12 +445,12 @@ C.......Compute the dynamic pressure if flagged
                   ze(J,K,IRK+1) = ze(J,K,irk+1) + ARK*ze(J,K,1) 
      &                + CRK*ze(J,K,irk) + DRK*ze(J,K,irk-1) 
      &                + BRK*RHS_ze(J,K,irk) + ERK*RHS_ze(J,K,1)
-                  QX(K,J,IRK+1) = QX(K,J,irk+1) + ARK*QX(K,J,1)
-     &                + CRK*QX(K,J,irk) + DRK*QX(K,J,irk-1) 
-     &                + BRK*RHS_QX(K,J,irk) + ERK*RHS_QX(K,J,1)
-                  QY(K,J,IRK+1) = QY(K,J,irk+1) + ARK*QY(K,J,1) 
-     &                + CRK*QY(K,J,irk) + DRK*QY(K,J,irk-1)
-     &                + BRK*RHS_QY(K,J,irk) + ERK*RHS_QY(K,J,1)
+                  qx(J,K,IRK+1) = qx(J,K,irk+1) + ARK*qx(J,K,1)
+     &                + CRK*qx(J,K,irk) + DRK*qx(J,K,irk-1) 
+     &                + BRK*RHS_qx(J,K,irk) + ERK*RHS_qx(J,K,1)
+                  qy(J,K,IRK+1) = qy(J,K,irk+1) + ARK*qy(J,K,1) 
+     &                + CRK*qy(J,K,irk) + DRK*qy(J,K,irk-1)
+     &                + BRK*RHS_qy(J,K,irk) + ERK*RHS_qy(J,K,1)
 
 
 C.......Compute the transported tracer term if flagged
@@ -653,8 +653,8 @@ C.......Filter the layers if flagged
 #endif
 
             ze(J,K,NRK+1) = sigma*ze(J,K,nrk+1) 
-            QX(K,J,NRK+1) = sigma*QX(K,J,nrk+1)
-            QY(K,J,NRK+1) = sigma*QY(K,J,nrk+1)
+            qx(J,K,NRK+1) = sigma*qx(J,K,nrk+1)
+            qy(J,K,NRK+1) = sigma*qy(J,K,nrk+1)
 
 
 C.......Filter the transported tracer term if flagged
@@ -680,8 +680,8 @@ C......Filter chemistry transported terms if flagged
       DO J = 1,MNE
          DO K = 1,DOFS(J)
             ze(J,K,1) = ze(J,K,NRK+1)
-            QX(K,J,1) = QX(K,J,NRK+1)
-            QY(K,J,1) = QY(K,J,NRK+1)
+            qx(J,K,1) = qx(J,K,NRK+1)
+            qy(J,K,1) = qy(J,K,NRK+1)
 
 #ifdef TRACE
             iota(K,J,1) = iota(K,J,NRK+1)
@@ -707,11 +707,11 @@ C......Filter chemistry transported terms if flagged
          DO KK = 2,NRK+1
             DO K = 1,DOFH
                ze(J,K,KK) = 0.0
-               QX(K,J,KK) = 0.0
-               QY(K,J,KK) = 0.0
+               qx(J,K,KK) = 0.0
+               qy(J,K,KK) = 0.0
                RHS_ze(J,K,KK-1) = 0.0
-               RHS_QX(K,J,KK-1) = 0.0
-               RHS_QY(K,J,KK-1) = 0.0
+               RHS_qx(J,K,KK-1) = 0.0
+               RHS_qy(J,K,KK-1) = 0.0
 #ifdef TRACE
                iota(K,J,KK) = 0.0
                RHS_iota(K,J,KK-1) = 0.0
