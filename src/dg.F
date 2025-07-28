@@ -168,8 +168,8 @@ C.....Declare allocatable real arrays
       REAL(SZ), ALLOCATABLE :: LZ(:,:,:,:),MZ(:,:,:,:)
       Real(SZ), Allocatable :: HZ(:,:,:,:),TZ(:,:,:,:)
       REAL(SZ), ALLOCATABLE :: QNAM_DG(:,:,:), QNPH_DG(:,:,:)
-      REAL(SZ), ALLOCATABLE :: RHS_ZE(:,:,:), RHS_bed(:,:,:,:)
-      REAL(SZ), ALLOCATABLE :: RHS_QX(:,:,:),RHS_QY(:,:,:)
+      REAL(SZ), ALLOCATABLE :: rhs_ze(:,:,:), RHS_bed(:,:,:,:)
+      REAL(SZ), ALLOCATABLE :: rhs_qx(:,:,:),rhs_qy(:,:,:)
       Real(SZ), Allocatable :: RHS_iota(:,:,:),RHS_iota2(:,:,:),
      & RHS_dynP(:,:,:)
       Real(SZ), Allocatable :: RHS_bed_IN(:,:),RHS_bed_EX(:,:),
@@ -308,8 +308,8 @@ Csb-20070101
       ALLOCATE ( LZ(DOFH,2,2,MNE),MZ(DOFH,2,layers,MNE) )
       Allocate ( HZ(DOFH,2,2,MNE),TZ(DOFH,2,2,MNE) )
 C--
-      ALLOCATE ( RHS_QX(DOFH,MNE,NRK), RHS_QY(DOFH,MNE,NRK) )
-      ALLOCATE ( RHS_ZE(DOFH,MNE,NRK), RHS_bed(DOFH,MNE,NRK,layers) )
+      ALLOCATE ( rhs_qx(MNE,DOFH,NRK), rhs_qy(MNE,DOFH,NRK) )
+      ALLOCATE ( rhs_ze(MNE,DOFH,NRK), RHS_bed(DOFH,MNE,NRK,layers) )
       Allocate ( RHS_iota(DOFH,MNE,NRK),RHS_iota2(DOFH,MNE,NRK) )
       Allocate ( RHS_dynP(DOFH,MNE,NRK) )
       Allocate ( RHS_bed_IN(dofh,layers), RHS_bed_EX(dofh,layers) )

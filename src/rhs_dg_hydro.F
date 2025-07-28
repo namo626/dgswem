@@ -246,13 +246,13 @@ C.........5) Tidal potential forcing (in x and y)
         DO l = 1,MNE
           DO k = 1,3
             DO i = 1,3
-            RHS_ZE(K,L,IRK) = RHS_ZE(K,L,IRK) +
+            rhs_ze(L,K,IRK) = rhs_ze(L,K,IRK) +
      &       (XFAC(K,I,L,pa)*FXs(i,l)  + YFAC(K,I,L,pa)*FYs(i,l))
-            RHS_QX(K,L,IRK) = RHS_QX(K,L,IRK) +
+            rhs_qx(L,K,IRK) = rhs_qx(L,K,IRK) +
      &       (XFAC(K,I,L,pa)*GXs(i,l)
      &              + YFAC(K,I,L,pa)*GYs(i,l) +
      &         SRFAC(K,I,L,pa)*SOURCE_Xs(i,l))
-            RHS_QY(K,L,IRK) = RHS_QY(K,L,IRK) +
+            rhs_qy(L,K,IRK) = rhs_qy(L,K,IRK) +
      &       (XFAC(K,I,L,pa)*HXs(i,l)
      &              + YFAC(K,I,L,pa)*HYs(i,l) +
      &           SRFAC(K,I,L,pa)*SOURCE_Ys(i,l))

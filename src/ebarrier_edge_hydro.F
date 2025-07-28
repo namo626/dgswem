@@ -179,11 +179,11 @@ C.........Compute numerical flux
      &              *PHI_EDGE(K,I,LED,pa)*WEGP(I,pa)
 
 !$acc atomic
-               RHS_ZE(K,EL,IRK) = RHS_ZE(K,EL,IRK) - W_IN*F_HAT
+               rhs_ze(EL,K,IRK) = rhs_ze(EL,K,IRK) - W_IN*F_HAT
 !$acc atomic
-               RHS_QX(K,EL,IRK) = RHS_QX(K,EL,IRK) - W_IN*G_HAT
+               rhs_qx(EL,K,IRK) = rhs_qx(EL,K,IRK) - W_IN*G_HAT
 !$acc atomic
-               RHS_QY(K,EL,IRK) = RHS_QY(K,EL,IRK) - W_IN*H_HAT
+               rhs_qy(EL,K,IRK) = rhs_qy(EL,K,IRK) - W_IN*H_HAT
 
 #ifdef TRACE
                RHS_iota(K,EL,IRK) = RHS_iota(K,EL,IRK) - W_IN*I_HAT

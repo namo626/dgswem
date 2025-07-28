@@ -556,18 +556,18 @@ c
      &              *PHI_EDGE(K,GPF,LEDF,pa)*WEGP(GPF,pa)
 
 !$acc atomic
-               RHS_ZE(K,ELB,IRK) = RHS_ZE(K,ELB,IRK) - WEGPB*FB_HAT
+               rhs_ze(ELB,K,IRK) = rhs_ze(ELB,K,IRK) - WEGPB*FB_HAT
 !$acc atomic
-               RHS_QX(K,ELB,IRK) = RHS_QX(K,ELB,IRK) - WEGPB*GB_HAT
+               rhs_qx(ELB,K,IRK) = rhs_qx(ELB,K,IRK) - WEGPB*GB_HAT
 !$acc atomic
-               RHS_QY(K,ELB,IRK) = RHS_QY(K,ELB,IRK) - WEGPB*HB_HAT
+               rhs_qy(ELB,K,IRK) = rhs_qy(ELB,K,IRK) - WEGPB*HB_HAT
 
 !$acc atomic
-               RHS_ZE(K,ELF,IRK) = RHS_ZE(K,ELF,IRK) - WEGPF*FF_HAT
+               rhs_ze(ELF,K,IRK) = rhs_ze(ELF,K,IRK) - WEGPF*FF_HAT
 !$acc atomic
-               RHS_QX(K,ELF,IRK) = RHS_QX(K,ELF,IRK) - WEGPF*GF_HAT
+               rhs_qx(ELF,K,IRK) = rhs_qx(ELF,K,IRK) - WEGPF*GF_HAT
 !$acc atomic
-               RHS_QY(K,ELF,IRK) = RHS_QY(K,ELF,IRK) - WEGPF*HF_HAT
+               rhs_qy(ELF,K,IRK) = rhs_qy(ELF,K,IRK) - WEGPF*HF_HAT
 
 #ifdef TRACE
                RHS_iota(K,ELB,IRK) = RHS_iota(K,ELB,IRK) - WEGPB*IB_HAT

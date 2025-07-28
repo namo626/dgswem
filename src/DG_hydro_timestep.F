@@ -256,11 +256,11 @@ C.......SSP Runge-Kutta Time Scheme
 #endif
 
                   ZE(K,J,IRK+1) = ZE(K,J,irk+1) + ARK*ZE(K,J,I)
-     &                 + BRK*RHS_ZE(K,J,I) 
+     &                 + BRK*rhs_ze(J,K,I) 
                   QX(K,J,IRK+1) = QX(K,J,irk+1) + ARK*QX(K,J,I)
-     &                 + BRK*RHS_QX(K,J,I)
+     &                 + BRK*rhs_qx(J,K,I)
                   QY(K,J,IRK+1) = QY(K,J,irk+1) + ATVD(IRK,I)*QY(K,J,I)
-     &                 + BRK*RHS_QY(K,J,I)
+     &                 + BRK*rhs_qy(J,K,I)
 C.......Compute the transported tracer term if flagged
 
 #ifdef TRACE
@@ -384,11 +384,11 @@ C.......RKC Time Scheme
 #endif
                   
                   ZE(K,J,IRK+1) = ZE(K,J,irk+1) + ZE(K,J,1)
-     &                 + BRK*RHS_ZE(K,J,1)
+     &                 + BRK*rhs_ze(J,K,1)
                   QX(K,J,IRK+1) = QX(K,J,irk+1) + QX(K,J,1)
-     &                 + BRK*RHS_QX(K,J,1)
+     &                 + BRK*rhs_qx(J,K,1)
                   QY(K,J,IRK+1) = QY(K,J,irk+1)  + QY(K,J,1)
-     &                 + BRK*RHS_QY(K,J,1)
+     &                 + BRK*rhs_qy(J,K,1)
                   
 C.......Compute the transported tracer term if flagged
                   
@@ -444,13 +444,13 @@ C.......Compute the dynamic pressure if flagged
 #endif
                   ZE(K,J,IRK+1) = ZE(K,J,irk+1) + ARK*ZE(K,J,1) 
      &                + CRK*ZE(K,J,irk) + DRK*ZE(K,J,irk-1) 
-     &                + BRK*RHS_ZE(K,J,irk) + ERK*RHS_ZE(K,J,1)
+     &                + BRK*rhs_ze(J,K,irk) + ERK*rhs_ze(J,K,1)
                   QX(K,J,IRK+1) = QX(K,J,irk+1) + ARK*QX(K,J,1)
      &                + CRK*QX(K,J,irk) + DRK*QX(K,J,irk-1) 
-     &                + BRK*RHS_QX(K,J,irk) + ERK*RHS_QX(K,J,1)
+     &                + BRK*rhs_qx(J,K,irk) + ERK*rhs_qx(J,K,1)
                   QY(K,J,IRK+1) = QY(K,J,irk+1) + ARK*QY(K,J,1) 
      &                + CRK*QY(K,J,irk) + DRK*QY(K,J,irk-1)
-     &                + BRK*RHS_QY(K,J,irk) + ERK*RHS_QY(K,J,1)
+     &                + BRK*rhs_qy(J,K,irk) + ERK*rhs_qy(J,K,1)
 
 
 C.......Compute the transported tracer term if flagged
@@ -709,9 +709,9 @@ C......Filter chemistry transported terms if flagged
                ZE(K,J,KK) = 0.0
                QX(K,J,KK) = 0.0
                QY(K,J,KK) = 0.0
-               RHS_ZE(K,J,KK-1) = 0.0
-               RHS_QX(K,J,KK-1) = 0.0
-               RHS_QY(K,J,KK-1) = 0.0
+               rhs_ze(J,K,KK-1) = 0.0
+               rhs_qx(J,K,KK-1) = 0.0
+               rhs_qy(J,K,KK-1) = 0.0
 #ifdef TRACE
                iota(K,J,KK) = 0.0
                RHS_iota(K,J,KK-1) = 0.0
