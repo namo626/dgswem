@@ -179,7 +179,7 @@ C.....Declare allocatable real arrays
       REAL(SZ), ALLOCATABLE :: SL3(:,:)
       REAL(SZ), ALLOCATABLE :: XBC(:), YBC(:)
       REAL(SZ), ALLOCATABLE :: XFAC(:,:,:,:), YFAC(:,:,:,:),
-     & SRFAC(:,:,:,:)
+     & srfac(:,:,:,:)
       REAL(SZ), ALLOCATABLE :: EDGEQ(:,:,:,:)
       REAL(SZ), ALLOCATABLE :: PHI(:), DPHIDZ1(:), DPHIDZ2(:)
       REAL(SZ), ALLOCATABLE :: PHI_STAE(:,:), PHI_STAV(:,:)
@@ -365,7 +365,7 @@ C.....Set sizes for arrays for area integrals
       Allocate ( DBATHDY(NAGP(ph),MNE,ph) )
       ALLOCATE ( SFAC_ELEM(NAGP(ph),MNE,ph) )
       ALLOCATE ( XFAC(DOFH,NAGP(ph),MNE,ph), YFAC(DOFH,NAGP(ph),MNE,ph))
-      ALLOCATE ( SRFAC(DOFH,NAGP(ph),MNE,ph) )
+      ALLOCATE ( srfac(MNE,NAGP(ph),DOFH,ph) )
       RETURN
       END SUBROUTINE
       

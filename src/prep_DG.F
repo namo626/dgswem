@@ -1008,7 +1008,7 @@ C.......the quadrature points and compute volume of water
                     DPHIDY=DRPHI(K,I,chi)*DRDY(J)+DSPHI(K,I,chi)*DSDY(J)
                      XFAC(K,I,J,chi)  = M_INV(K,chi)*WAGP(I,chi)*DPHIDX
                      YFAC(K,I,J,chi)  = M_INV(K,chi)*WAGP(I,chi)*DPHIDY
-                     SRFAC(K,I,J,chi) = M_INV(K,chi)*WAGP(I,chi)*
+                     srfac(J,I,K,chi) = M_INV(K,chi)*WAGP(I,chi)*
      &                  PHI_AREA(K,I,chi)
                      BATH(I,J,chi) = BATH(I,J,chi) + HB(K,J,1)*
      &                  PHI_AREA(K,I,chi)
@@ -1045,7 +1045,7 @@ C.......the quadrature points and compute volume of water
                     DPHIDY=DRPHI(K,I,chi)*DRDY(J)+DSPHI(K,I,chi)*DSDY(J)
                      XFAC(K,I,J,chi)  = M_INV(K,chi)*WAGP(I,chi)*DPHIDX
                      YFAC(K,I,J,chi)  = M_INV(K,chi)*WAGP(I,chi)*DPHIDY
-                     SRFAC(K,I,J,chi) = M_INV(K,chi)*WAGP(I,chi)*
+                     srfac(J,I,K,chi) = M_INV(K,chi)*WAGP(I,chi)*
      &                  PHI_AREA(K,I,chi)
                      BATH(I,J,chi) = BATH(I,J,chi) + HB(K,J,1)*
      &                  PHI_AREA(K,I,chi)
