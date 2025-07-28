@@ -135,10 +135,10 @@ C.......If both elements on either side of edge are dry then skip
 
          IF((WDFLG(EL_IN).EQ.0).AND.(WDFLG(EL_EX).EQ.0)) goto 100
 
-         ze_ins = ze(:,el_in,irk)
+         ze_ins = ze(el_in,:,irk)
          qx_ins = qx(:,el_in,irk)
          qy_ins = qy(:,el_in,irk)
-         ze_exs = ze(:,el_ex,irk)
+         ze_exs = ze(el_ex,:,irk)
          qx_exs = qx(:,el_ex,irk)
          qy_exs = qy(:,el_ex,irk)
 
@@ -148,11 +148,11 @@ C.....Save the current RHS
 
          DO K = 1,3
 
-c$$$            RHS_ZE_IN(K) = RHS_ZE(K,EL_IN,IRK)
+c$$$            RHS_ZE_IN(K) = RHS_ze(EL_IN,K,IRK)
 c$$$            RHS_QX_IN(K) = RHS_QX(K,EL_IN,IRK)
 c$$$            RHS_QY_IN(K) = RHS_QY(K,EL_IN,IRK)
 c$$$
-c$$$            RHS_ZE_EX(K) = RHS_ZE(K,EL_EX,IRK)
+c$$$            RHS_ZE_EX(K) = RHS_ze(EL_EX,K,IRK)
 c$$$            RHS_QX_EX(K) = RHS_QX(K,EL_EX,IRK)
 c$$$            RHS_QY_EX(K) = RHS_QY(K,EL_EX,IRK)
 
@@ -200,8 +200,8 @@ C.....Compute the sum of the lengths of three edges
 
 C.....Compute the total mass in the elements
 
-         MASS_EL_IN = (ZE(1,EL_IN,IRK)+HB(1,EL_IN,1))*AREAS(EL_IN)*0.50
-         MASS_EL_EX = (ZE(1,EL_EX,IRK)+HB(1,EL_EX,1))*AREAS(EL_EX)*0.50
+         MASS_EL_IN = (ze(EL_IN,1,IRK)+HB(1,EL_IN,1))*AREAS(EL_IN)*0.50
+         MASS_EL_EX = (ze(EL_EX,1,IRK)+HB(1,EL_EX,1))*AREAS(EL_EX)*0.50
 
 
 #ifdef SED_LAY                  !Must add up the layers as they shift
@@ -211,8 +211,8 @@ C.....Compute the total mass in the elements
             HB(1,EL_IN,irk) = HB(1,EL_IN,irk) + bed(1,EL_IN,irk,ll)
             HB(1,EL_EX,irk) = HB(1,EL_EX,irk) + bed(1,EL_EX,irk,ll)
          enddo
-         MASS_EL_IN = (ZE(1,EL_IN,IRK)+HB(1,EL_IN,1))*AREAS(EL_IN)*0.50
-         MASS_EL_EX = (ZE(1,EL_EX,IRK)+HB(1,EL_EX,1))*AREAS(EL_EX)*0.50
+         MASS_EL_IN = (ze(EL_IN,1,IRK)+HB(1,EL_IN,1))*AREAS(EL_IN)*0.50
+         MASS_EL_EX = (ze(EL_EX,1,IRK)+HB(1,EL_EX,1))*AREAS(EL_EX)*0.50
 #endif
 
 C.....Retrieve the components of the normal vector to the edge
@@ -452,11 +452,11 @@ C...........Put back the saved RHS
                   rhs_ze_ex = 0.
                   rhs_qx_ex = 0.
                   rhs_qy_ex = 0.
-c$$$                  RHS_ZE(K,EL_IN,IRK) = RHS_ZE_IN(K)
+c$$$                  RHS_ze(EL_IN,K,IRK) = RHS_ZE_IN(K)
 c$$$                  RHS_QX(K,EL_IN,IRK) = RHS_QX_IN(K)
 c$$$                  RHS_QY(K,EL_IN,IRK) = RHS_QY_IN(K)
 c$$$
-c$$$                  RHS_ZE(K,EL_EX,IRK) = RHS_ZE_EX(K)
+c$$$                  RHS_ze(EL_EX,K,IRK) = RHS_ZE_EX(K)
 c$$$                  RHS_QX(K,EL_EX,IRK) = RHS_QX_EX(K)
 c$$$                  RHS_QY(K,EL_EX,IRK) = RHS_QY_EX(K)
 
@@ -711,11 +711,11 @@ C.....Compute the edge integral
                W_IN = EDFAC_IN*EDGEQ(K,GP_IN,LED_IN,pa)
                W_EX = EDFAC_EX*EDGEQ(K,GP_EX,LED_EX,pa)
 
-c$$$               tmp = atomicAdd(RHS_ZE(K,EL_IN,IRK), -W_IN*F_HAT_O  )
+c$$$               tmp = atomicAdd(RHS_ze(EL_IN,K,IRK), -W_IN*F_HAT_O  )
 c$$$               tmp = atomicAdd(RHS_QX(K,EL_IN,IRK), -W_IN*G_HAT_IN)
 c$$$               tmp = atomicAdd(RHS_QY(K,EL_IN,IRK), -W_IN*H_HAT_IN)
 c$$$
-c$$$               tmp = atomicAdd(RHS_ZE(K,EL_EX,IRK), W_EX*F_HAT_O)
+c$$$               tmp = atomicAdd(RHS_ze(EL_EX,K,IRK), W_EX*F_HAT_O)
 c$$$               tmp = atomicAdd(RHS_QX(K,EL_EX,IRK), W_EX*G_HAT_EX)
 c$$$               tmp = atomicAdd(RHS_QY(K,EL_EX,IRK), W_EX*H_HAT_EX)
 
@@ -968,7 +968,7 @@ C.....Compute the edge integral
 
                W_IN = EDFAC_IN*EDGEQ(K,GP_IN,LED_IN,pa)
 
-c$$$               tmp = atomicAdd(RHS_ZE(K,EL_IN,IRK) , -W_IN*F_HAT)
+c$$$               tmp = atomicAdd(RHS_ze(EL_IN,K,IRK) , -W_IN*F_HAT)
 c$$$               tmp = atomicAdd(RHS_QX(K,EL_IN,IRK) , -W_IN*G_HAT)
 c$$$               tmp = atomicAdd(RHS_QY(K,EL_IN,IRK) , -W_IN*H_HAT)
                rhs_ze_in(k) = rhs_ze_in(k) - w_in * f_hat
@@ -1188,7 +1188,7 @@ C.....Compute the edge integral
 
                W_EX = EDFAC_EX*EDGEQ(K,GP_EX,LED_EX,pa)
 
-c$$$               tmp = atomicAdd(RHS_ZE(K,EL_EX,IRK), W_EX*F_HAT)
+c$$$               tmp = atomicAdd(RHS_ze(EL_EX,K,IRK), W_EX*F_HAT)
 c$$$               tmp = atomicAdd(RHS_QX(K,EL_EX,IRK), W_EX*G_HAT)
 c$$$               tmp = atomicAdd(RHS_QY(K,EL_EX,IRK), W_EX*H_HAT)
                rhs_ze_ex(k) = rhs_ze_ex(k) + w_ex * f_hat
@@ -1249,11 +1249,11 @@ c$$$               tmp = atomicAdd(RHS_QY(K,EL_EX,IRK), W_EX*H_HAT)
 
 
 c$$$      do k = 1,DOFS(EL)
-c$$$         tmp = atomicAdd(RHS_ZE(K,EL_EX,IRK), rhs_ze_ex(k))
+c$$$         tmp = atomicAdd(RHS_ze(EL_EX,K,IRK), rhs_ze_ex(k))
 c$$$         tmp = atomicAdd(RHS_QX(K,EL_EX,IRK), rhs_qx_ex(k))
 c$$$         tmp = atomicAdd(RHS_QY(K,EL_EX,IRK), rhs_qy_ex(k))
 c$$$
-c$$$         tmp = atomicAdd(RHS_ZE(K,EL_in,IRK), rhs_ze_in(k))
+c$$$         tmp = atomicAdd(RHS_ze(EL_in,K,IRK), rhs_ze_in(k))
 c$$$         tmp = atomicAdd(RHS_QX(K,EL_in,IRK), rhs_qx_in(k))
 c$$$         tmp = atomicAdd(RHS_QY(K,EL_in,IRK), rhs_qy_in(k))
 c$$$      enddo
@@ -1281,7 +1281,7 @@ c$$$      enddo
                qy_sum = qy_sum + qy_edge(L,i,k)
             enddo
 
-            rhs_ze(k,L, IRK) = rhs_ze(k,L, IRK) + ze_sum
+            rhs_ze(L,k, IRK) = rhs_ze(L,k, IRK) + ze_sum
             rhs_qx(k,L, IRK) = rhs_qx(k,L, IRK) + qx_sum
             rhs_qy(k,L, IRK) = rhs_qy(k,L, IRK) + qy_sum
          enddo

@@ -56,7 +56,7 @@ C.......Compute the variables at the quadrature points
             
 C.........Obtain the height of the barrier at the quadrature point
 
-            ZE_IN = ZE(1,EL,IRK)
+            ZE_IN = ze(EL,1,IRK)
             QX_IN = QX(1,EL,IRK)
             QY_IN = QY(1,EL,IRK)
             HB_IN = BATHED(I,LED,EL,pa)
@@ -86,7 +86,7 @@ C.........Obtain the height of the barrier at the quadrature point
 
 !$acc loop seq
             DO K = 2,DOFS(EL)
-               ZE_IN = ZE_IN + ZE(K,EL,IRK)*PHI_EDGE(K,I,LED,pa)
+               ZE_IN = ZE_IN + ze(EL,K,IRK)*PHI_EDGE(K,I,LED,pa)
                QX_IN = QX_IN + QX(K,EL,IRK)*PHI_EDGE(K,I,LED,pa)
                QY_IN = QY_IN + QY(K,EL,IRK)*PHI_EDGE(K,I,LED,pa)
                !HB_IN = HB_IN + HB(K,EL,IRK)*PHI_EDGE(K,I,LED,pa)
@@ -179,7 +179,7 @@ C.........Compute numerical flux
      &              *PHI_EDGE(K,I,LED,pa)*WEGP(I,pa)
 
 !$acc atomic
-               RHS_ZE(K,EL,IRK) = RHS_ZE(K,EL,IRK) - W_IN*F_HAT
+               RHS_ze(EL,K,IRK) = RHS_ze(EL,K,IRK) - W_IN*F_HAT
 !$acc atomic
                RHS_QX(K,EL,IRK) = RHS_QX(K,EL,IRK) - W_IN*G_HAT
 !$acc atomic

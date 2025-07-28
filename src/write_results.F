@@ -79,7 +79,7 @@ C.....to single nodal values
                if (NM(NBOR_EL,K) .eq. I) exit
             end do
 
-            ZE_DG = ZE(1,NBOR_EL,1)
+            ZE_DG = ze(NBOR_EL,1,1)
             QX_DG = QX(1,NBOR_EL,1)
             QY_DG = QY(1,NBOR_EL,1)
             HB_DG = HB(1,NBOR_EL,1)
@@ -105,7 +105,7 @@ C.....to single nodal values
 
 
             DO KK = 2,DOFH
-               ZE_DG = ZE_DG+PHI_CORNER(KK,K,ph)*ZE(KK,NBOR_EL,1)
+               ZE_DG = ZE_DG+PHI_CORNER(KK,K,ph)*ze(NBOR_EL,KK,1)
                QX_DG = QX_DG+PHI_CORNER(KK,K,ph)*QX(KK,NBOR_EL,1)
                QY_DG = QY_DG+PHI_CORNER(KK,K,ph)*QY(KK,NBOR_EL,1)
 
@@ -222,9 +222,9 @@ C...
                 NCELE=NC1*NC2*NC3                                           
                 if (ncele.eq.1) then
                   if (ModetoNode.eq.1) then
-                    ET00(I)=ze(1,nne(i),1)
+                    ET00(I)=ze(nne(i),1,1)
                     DO K = 2,DOF
-                       ET00(I) = ET00(I) + ZE(K,NNE(I),1)*PHI_STAE(K,I)
+                       ET00(I) = ET00(I) + ze(NNE(I),K,1)*PHI_STAE(K,I)
                     ENDDO
                   else
                     ET00(I)=EE1
@@ -289,11 +289,11 @@ C...
                   DP2 = DP(NM(NNV(I),2))
                   DP3 = DP(NM(NNV(I),3))
                   DP00    = DP1*STAIV1(I) + DP2*STAIV2(I)+DP3*STAIV3(I)
-                  ZE00    = ZE(1,NNV(I),1)
+                  ZE00    = ze(NNV(I),1,1)
                   UU00(I) = QX(1,NNV(I),1)
                   VV00(I) = QY(1,NNV(I),1)
                   DO K = 2,DOF
-                     ZE00    = ZE00    + ZE(K,NNV(I),1)*PHI_STAV(K,I)
+                     ZE00    = ZE00    + ze(NNV(I),K,1)*PHI_STAV(K,I)
                      UU00(I) = UU00(I) + QX(K,NNV(I),1)*PHI_STAV(K,I)
                      VV00(I) = VV00(I) + QY(K,NNV(I),1)*PHI_STAV(K,I)
                   ENDDO
@@ -595,7 +595,7 @@ C.....Write DG.63 results
               
                DO J = 1,NE
                  DO K = 1,DOF
-                   WRITE(631,*) J, ZE(K,J,1)
+                   WRITE(631,*) J, ze(J,K,1)
                  ENDDO
                ENDDO
 
@@ -850,9 +850,9 @@ C                  EE1=ETA2(NM(NNE(I),1))
 C                  EE2=ETA2(NM(NNE(I),2))
 C                  EE3=ETA2(NM(NNE(I),3))
 C                  ET00(I)=EE1*STAIE1(I)+EE2*STAIE2(I)+EE3*STAIE3(I)
-                  ET00(I) = ZE(1,NNE(I),1)
+                  ET00(I) = ze(NNE(I),1,1)
                   DO K = 2,DOFH
-                    ET00(I) = ET00(I) + ZE(K,NNE(I),1)*PHI_STAE(K,I)
+                    ET00(I) = ET00(I) + ze(NNE(I),K,1)*PHI_STAE(K,I)
                   ENDDO
                 ENDDO
                 CALL LSQUPDES(ET00,NSTAE)
@@ -862,7 +862,7 @@ C.....IF DESIRED COMPUTE VELOCITY STATION INFORMATION AND UPDATE LOAD VECTOR
 C...
               IF(NHASV.EQ.1) THEN
                 DO I=1,NSTAV
-                  ZE00    = ZE(1,NNV(I),1)
+                  ZE00    = ze(NNV(I),1,1)
                   UU00(I) = QX(1,NNV(I),1)
                   VV00(I) = QY(1,NNV(I),1)
                   if (ModetoNode.eq.1) then
@@ -877,7 +877,7 @@ C...
                   endif
 
                   DO K = 2,DOFH
-                    ZE00    = ZE00    + ZE(K,NNV(I),1)*PHI_STAV(K,I)
+                    ZE00    = ZE00    + ze(NNV(I),K,1)*PHI_STAV(K,I)
                     UU00(I) = UU00(I) + QX(K,NNV(I),1)*PHI_STAV(K,I)
                     VV00(I) = VV00(I) + QY(K,NNV(I),1)*PHI_STAV(K,I)
                   ENDDO
@@ -1222,7 +1222,7 @@ C.....If applicable write out a DG hot start
 
             DO J = 1,MNE
                DO K = 1,DOF
-                  WRITE(263,*) ZE(K,J,1)
+                  WRITE(263,*) ze(J,K,1)
                   WRITE(264,*) QX(K,J,1), QY(K,J,1)
                   WRITE(214,*) HB(K,J,1), WDFLG(J)
 #ifdef TRACE
@@ -1278,11 +1278,11 @@ C          QX_DG(1) = 0.0
 C          QY_DG(1) = 0.0
 C
 C          DO K=1,DOF
-C            ZE_DG(1) = ZE_DG(1) + PHI_CENTER(K)*ZE(K,J,1)
+C            ZE_DG(1) = ZE_DG(1) + PHI_CENTER(K)*ze(J,K,1)
 C            QX_DG(1) = QX_DG(1) + PHI_CENTER(K)*QX(K,J,1)
 C            QY_DG(1) = QY_DG(1) + PHI_CENTER(K)*QY(K,J,1)
 C
-C            WRITE(88,*) ZE(K,J,1),QX(K,J,1),QY(K,J,1)
+C            WRITE(88,*) ze(J,K,1),QX(K,J,1),QY(K,J,1)
 C
 C          ENDDO
 C
@@ -1319,7 +1319,7 @@ C      WRITE(632,3645) 1, DOF, DTDP*NSPOOLGE, NSPOOLGE, 1
 C      WRITE(632,2120) 0.0, 1
 C      DO J = 1,NE
 C        DO K = 1,DOF
-C          WRITE(632,2453) J, ZE(K,J,1)
+C          WRITE(632,2453) J, ze(J,K,1)
 C        ENDDO
 C      ENDDO
       

@@ -143,7 +143,7 @@ c..........................
                
                do k = 1,dofs(l)
                   
-                  ze_center = ze_center + ze(k,l,irk+1)*phi_center(k,pa)
+                  ze_center = ze_center + ze(l,k,irk+1)*phi_center(k,pa)
                   qx_center = qx_center + qx(k,l,irk+1)*phi_center(k,pa)
                   qy_center = qy_center + qy(k,l,irk+1)*phi_center(k,pa)
                   
@@ -196,7 +196,7 @@ c......Compute the sensor using edges in each variable
                   
                   do k = 1,dofs(l)
                      
-                     ze_mid = ze_mid + ze(k,l,irk+1)*phi_mid(k,i,pa)
+                     ze_mid = ze_mid + ze(l,k,irk+1)*phi_mid(k,i,pa)
                      qx_mid = qx_mid + qx(k,l,irk+1)*phi_mid(k,i,pa)
                      qy_mid = qy_mid + qy(k,l,irk+1)*phi_mid(k,i,pa)
                      
@@ -279,7 +279,7 @@ c.....the order of p
                   pdg_el(l) = pdg_el(l) - 1
                   dofs(l) = (pdg_el(l) + 1 )*(pdg_el(l) + 2 ) / 2
                   
-                  ze(dofs(l)+1:dofh,l,irk+1) = 0.0
+                  ze(l,dofs(l)+1:dofh,irk+1) = 0.0
                   qx(dofs(l)+1:dofh,l,irk+1) = 0.0
                   qy(dofs(l)+1:dofh,l,irk+1) = 0.0
                   
@@ -329,7 +329,7 @@ c.....the order of p
                   pdg_el(l) = pdg_el(l) - 1
                   dofs(l) = (pdg_el(l) + 1 )*(pdg_el(l) + 2 ) / 2
                   
-                  ze(dofs(l)+1:dofh,l,irk+1) = 0.0
+                  ze(l,dofs(l)+1:dofh,irk+1) = 0.0
                   iota(dofs(l)+1:dofh,l,irk+1) = 0.0
                   qx(dofs(l)+1:dofh,l,irk+1) = 0.0
                   qy(dofs(l)+1:dofh,l,irk+1) = 0.0
@@ -380,7 +380,7 @@ c.....the order of p
                   pdg_el(l) = pdg_el(l) - 1
                   dofs(l) = (pdg_el(l) + 1 )*(pdg_el(l) + 2 ) / 2
                   
-                  ze(dofs(l)+1:dofh,l,irk+1) = 0.0
+                  ze(l,dofs(l)+1:dofh,irk+1) = 0.0
                   iota(dofs(l)+1:dofh,l,irk+1) = 0.0
                   iota2(dofs(l)+1:dofh,l,irk+1) = 0.0
                   qx(dofs(l)+1:dofh,l,irk+1) = 0.0
@@ -431,7 +431,7 @@ c.....the order of p
                   pdg_el(l) = pdg_el(l) - 1
                   dofs(l) = (pdg_el(l) + 1 )*(pdg_el(l) + 2 ) / 2
                   
-                  ze(dofs(l)+1:dofh,l,irk+1) = 0.0
+                  ze(l,dofs(l)+1:dofh,irk+1) = 0.0
                   iota(dofs(l)+1:dofh,l,irk+1) = 0.0
                   qx(dofs(l)+1:dofh,l,irk+1) = 0.0
                   qy(dofs(l)+1:dofh,l,irk+1) = 0.0
@@ -707,7 +707,7 @@ c.....the order of p
                   pdg_el(l) = pdg_el(l) - 1
                   dofs(l) = (pdg_el(l) + 1 )*(pdg_el(l) + 2 ) / 2
                   
-                  ze(dofs(l)+1:dofh,l,irk+1) = 0.0
+                  ze(l,dofs(l)+1:dofh,irk+1) = 0.0
                   qx(dofs(l)+1:dofh,l,irk+1) = 0.0
                   qy(dofs(l)+1:dofh,l,irk+1) = 0.0
                   
@@ -755,7 +755,7 @@ c.....the order of p
                   pdg_el(l) = pdg_el(l) - 1
                   dofs(l) = (pdg_el(l) + 1 )*(pdg_el(l) + 2 ) / 2
                   
-                  ze(dofs(l)+1:dofh,l,irk+1) = 0.0
+                  ze(l,dofs(l)+1:dofh,irk+1) = 0.0
                   qx(dofs(l)+1:dofh,l,irk+1) = 0.0
                   qy(dofs(l)+1:dofh,l,irk+1) = 0.0
                   iota(dofs(l)+1:dofh,l,irk+1) = 0.0
@@ -804,7 +804,7 @@ c.....the order of p
                   pdg_el(l) = pdg_el(l) - 1
                   dofs(l) = (pdg_el(l) + 1 )*(pdg_el(l) + 2 ) / 2
                   
-                  ze(dofs(l)+1:dofh,l,irk+1) = 0.0
+                  ze(l,dofs(l)+1:dofh,irk+1) = 0.0
                   qx(dofs(l)+1:dofh,l,irk+1) = 0.0
                   qy(dofs(l)+1:dofh,l,irk+1) = 0.0
                   iota(dofs(l)+1:dofh,l,irk+1) = 0.0
@@ -855,7 +855,7 @@ c.....the order of p
                   pdg_el(l) = pdg_el(l) - 1
                   dofs(l) = (pdg_el(l) + 1 )*(pdg_el(l) + 2 ) / 2
                   
-                  ze(dofs(l)+1:dofh,l,irk+1) = 0.0
+                  ze(l,dofs(l)+1:dofh,irk+1) = 0.0
                   qx(dofs(l)+1:dofh,l,irk+1) = 0.0
                   qy(dofs(l)+1:dofh,l,irk+1) = 0.0
                   iota(dofs(l)+1:dofh,l,irk+1) = 0.0
@@ -991,7 +991,7 @@ c$$$            enddo
                do k = (pa*(pa+1))/2 + 1 ,dofs(l)
                   do mm = 1,nagp(pa)
                      
-                     ze_sensor1 = ze_sensor1 + abs(ze(k,l,irkp+1)* 
+                     ze_sensor1 = ze_sensor1 + abs(ze(l,k,irkp+1)* 
      &                    phi_area(k,mm,pa))**lebesgue * wagp(mm,pa)
                      qx_sensor1 = qx_sensor1 + abs(qx(k,l,irkp+1)* 
      &                    phi_area(k,mm,pa))**lebesgue * wagp(mm,pa)
@@ -1035,7 +1035,7 @@ c$$$            enddo
 
                   do mm=1,nagp(pa)
                      
-                     ze_sensor2 = ze_sensor2 + abs(ze(k,l,irkp+1)* 
+                     ze_sensor2 = ze_sensor2 + abs(ze(l,k,irkp+1)* 
      &                    phi_area(k,mm,pa))**lebesgue * wagp(mm,pa)
                      qx_sensor2 = qx_sensor2 + abs(qx(k,l,irkp+1)* 
      &                    phi_area(k,mm,pa))**lebesgue * wagp(mm,pa)
@@ -1236,7 +1236,7 @@ c.....the order of p
                   pdg_el(l) = pdg_el(l) - 1
                   dofs(l) = (pdg_el(l) + 1 )*(pdg_el(l) + 2 ) / 2
                   
-                  ze(dofs(l)+1:dofh,l,irkp+1) = 0.0
+                  ze(l,dofs(l)+1:dofh,irkp+1) = 0.0
                   qx(dofs(l)+1:dofh,l,irkp+1) = 0.0
                   qy(dofs(l)+1:dofh,l,irkp+1) = 0.0  
 
@@ -1275,7 +1275,7 @@ c.....the order of p
                   pdg_el(l) = pdg_el(l) - 1
                   dofs(l) = (pdg_el(l) + 1 )*(pdg_el(l) + 2 ) / 2
                   
-                  ze(dofs(l)+1:dofh,l,irkp+1) = 0.0
+                  ze(l,dofs(l)+1:dofh,irkp+1) = 0.0
                   iota(dofs(l)+1:dofh,l,irkp+1) = 0.0
                   qx(dofs(l)+1:dofh,l,irkp+1) = 0.0
                   qy(dofs(l)+1:dofh,l,irkp+1) = 0.0
@@ -1318,7 +1318,7 @@ c.....the order of p
                   pdg_el(l) = pdg_el(l) - 1
                   dofs(l) = (pdg_el(l) + 1 )*(pdg_el(l) + 2 ) / 2
                   
-                  ze(dofs(l)+1:dofh,l,irkp+1) = 0.0
+                  ze(l,dofs(l)+1:dofh,irkp+1) = 0.0
                   iota(dofs(l)+1:dofh,l,irkp+1) = 0.0
                   iota2(dofs(l)+1:dofh,l,irkp+1) = 0.0
                   qx(dofs(l)+1:dofh,l,irkp+1) = 0.0
@@ -1359,7 +1359,7 @@ c.....the order of p
                   pdg_el(l) = pdg_el(l) - 1
                   dofs(l) = (pdg_el(l) + 1 )*(pdg_el(l) + 2 ) / 2
                   
-                  ze(dofs(l)+1:dofh,l,irkp+1) = 0.0
+                  ze(l,dofs(l)+1:dofh,irkp+1) = 0.0
                   bed(dofs(l)+1:dofh,l,irkp+1,:) = 0.0
                   qx(dofs(l)+1:dofh,l,irkp+1) = 0.0
                   qy(dofs(l)+1:dofh,l,irkp+1) = 0.0
@@ -1714,7 +1714,7 @@ c.....the order of p
                   pdg_el(l) = pdg_el(l) - 1
                   dofs(l) = (pdg_el(l) + 1 )*(pdg_el(l) + 2 ) / 2
                   
-                  ze(dofs(l)+1:dofh,l,irkp+1) = 0.0
+                  ze(l,dofs(l)+1:dofh,irkp+1) = 0.0
                   qx(dofs(l)+1:dofh,l,irkp+1) = 0.0
                   qy(dofs(l)+1:dofh,l,irkp+1) = 0.0
 
@@ -1753,7 +1753,7 @@ c.....the order of p
                   pdg_el(l) = pdg_el(l) - 1
                   dofs(l) = (pdg_el(l) + 1 )*(pdg_el(l) + 2 ) / 2
                   
-                  ze(dofs(l)+1:dofh,l,irkp+1) = 0.0
+                  ze(l,dofs(l)+1:dofh,irkp+1) = 0.0
                   qx(dofs(l)+1:dofh,l,irkp+1) = 0.0
                   qy(dofs(l)+1:dofh,l,irkp+1) = 0.0
                   iota(dofs(l)+1:dofh,l,irkp+1) = 0.0
@@ -1795,7 +1795,7 @@ c.....the order of p
                   pdg_el(l) = pdg_el(l) - 1
                   dofs(l) = (pdg_el(l) + 1 )*(pdg_el(l) + 2 ) / 2
                   
-                  ze(dofs(l)+1:dofh,l,irkp+1) = 0.0
+                  ze(l,dofs(l)+1:dofh,irkp+1) = 0.0
                   qx(dofs(l)+1:dofh,l,irkp+1) = 0.0
                   qy(dofs(l)+1:dofh,l,irkp+1) = 0.0
                   iota(dofs(l)+1:dofh,l,irkp+1) = 0.0
@@ -1836,7 +1836,7 @@ c.....the order of p
                   pdg_el(l) = pdg_el(l) - 1
                   dofs(l) = (pdg_el(l) + 1 )*(pdg_el(l) + 2 ) / 2
                   
-                  ze(dofs(l)+1:dofh,l,irkp+1) = 0.0
+                  ze(l,dofs(l)+1:dofh,irkp+1) = 0.0
                   qx(dofs(l)+1:dofh,l,irkp+1) = 0.0
                   qy(dofs(l)+1:dofh,l,irkp+1) = 0.0
                   bed(dofs(l)+1:dofh,l,irkp+1,:) = 0.0

@@ -91,13 +91,13 @@ C.....Detect negative mass
          DPAVG =  1.0/ncheck(pdg_el(j)) * (sum(DP_NODE(:,J,pdg_el(j))))
          !(DP(NM(J,1))+DP(NM(J,2))+DP(NM(J,3)))/3.0
          Detected = .FALSE.
-         IF((ZE(1,J,1)+DPAVG).LE.0.0) THEN
+         IF((ze(J,1,1)+DPAVG).LE.0.0) THEN
             PRINT *, ''
 #ifdef CMPI
             PRINT *, 'IN SUBDOMAIN ',MYPROC
 #endif
-            PRINT *, '  ZE(',1,',',J,',1) = ',ZE(1,J,1)
-            PRINT *, '  HE(',1,',',J,',1) = ',ZE(1,J,1)+DPAVG
+            PRINT *, '  ze(1,',',',J,',1) = ',ze(J,1,1)
+            PRINT *, '  HE(',1,',',J,',1) = ',ze(J,1,1)+DPAVG
             PRINT *, '  DP = ',DP(NM(J,1)),DP(NM(J,2)),DP(NM(J,3))
             PRINT *, '  DPAVG = ',DPAVG
             PRINT *, ' x,  y ',SLAM(NM(J,1))/DEG2RAD,
@@ -152,12 +152,12 @@ C.....Detect NaN
          DO K = 1,DOF
 
             Detected = .FALSE.
-            IF(ZE(K,J,1).NE.ZE(K,J,1)) THEN
+            IF(ze(J,K,1).NE.ze(J,K,1)) THEN
                PRINT *, ''
 #ifdef CMPI
                PRINT *, 'IN SUBDOMAIN ',MYPROC
 #endif
-               PRINT *, '  ZE(',K,',',J,',1) IS ',ZE(K,J,1)
+               PRINT *, '  ze(K,',',',J,',1) IS ',ze(J,K,1)
                PRINT *, ' x,  y ',SLAM(NM(J,1))/DEG2RAD,
      $              SFEA(NM(J,1))/DEG2RAD
                Detected = .TRUE.

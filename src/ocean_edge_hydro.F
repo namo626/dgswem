@@ -86,7 +86,7 @@ C.....Compute ZE, QX, QY, and HB at each edge Gauss quadrature point
 !$acc loop seq
          DO I = 1,NEGP(pa)
 
-            ZE_IN = ZE(1,EL_IN,IRK)
+            ZE_IN = ze(EL_IN,1,IRK)
             QX_IN = QX(1,EL_IN,IRK)
             QY_IN = QY(1,EL_IN,IRK)
 
@@ -190,7 +190,7 @@ C.....Compute the solution at the interior state
 !$acc loop seq
             DO K = 2,DOFS(EL_IN)
 
-               ZE_IN = ZE_IN + ZE(K,EL_IN,IRK)*PHI_EDGE(K,I,LED,pa)
+               ZE_IN = ZE_IN + ze(EL_IN,K,IRK)*PHI_EDGE(K,I,LED,pa)
                QX_IN = QX_IN + QX(K,EL_IN,IRK)*PHI_EDGE(K,I,LED,pa)
                QY_IN = QY_IN + QY(K,EL_IN,IRK)*PHI_EDGE(K,I,LED,pa)
 
@@ -316,7 +316,7 @@ C.....Compute the edge integral
      &              PHI_EDGE(K,I,LED,pa)*WEGP(I,pa)
 
 !$acc atomic
-               RHS_ZE(K,EL_IN,IRK) = RHS_ZE(K,EL_IN,IRK) - W_IN*F_HAT
+               RHS_ze(EL_IN,K,IRK) = RHS_ze(EL_IN,K,IRK) - W_IN*F_HAT
 !$acc atomic
                RHS_QX(K,EL_IN,IRK) = RHS_QX(K,EL_IN,IRK) - W_IN*G_HAT
 !$acc atomic
