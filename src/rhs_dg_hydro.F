@@ -48,6 +48,7 @@ C.....Declare local variables
       Real(SZ) DH_X,DH_Y,phi_tot,C_0,HZ_X,HZ_Y,TZ_X,TZ_Y
 
       real(sz), dimension(3,NE) :: ze_area, qx_area, qy_area
+      real(sz), dimension(3,NE) :: fxs,fys,gxs,gys,hxs,hys,source_xs,source_ys
 
       real(sz) source_max, source_r
 
@@ -55,15 +56,15 @@ C.....Declare local variables
 
       pa = 1
       DTDPH = 1.0/DTDP
-      ze_area = 0.
-      qx_area = 0.
-      qy_area = 0.
 C.......Compute ZE, QX, QY, and HB at each area Gauss quadrature point
 
 !$acc parallel loop gang vector collapse(2) async(1) default(present)
       DO L = 1, NE
         DO I = 1,NAGP(pa)
-          DO K = 1,DOFS(L)
+          ze_area(i,l) = ze(1,L,irk)
+          qx_area(i,l) = qx(1,L,irk)
+          qy_area(i,l) = qy(1,L,irk)
+          DO K = 2,DOFS(L)
             ZE_area(I,L) = ZE_area(I,L) + ZE(K,L,IRK)*PHI_AREA(K,I,pa)
             QX_area(I,L) = QX_area(I,L) + QX(K,L,IRK)*PHI_AREA(K,I,pa)
             QY_area(I,L) = QY_area(I,L) + QY(K,L,IRK)*PHI_AREA(K,I,pa)
@@ -72,12 +73,10 @@ C.......Compute ZE, QX, QY, and HB at each area Gauss quadrature point
         ENDDO
       ENDDO
 
-!$acc parallel loop gang vector collapse(3)  async(1) default(present)
+!$acc parallel loop gang vector collapse(2)  async(1) default(present)
       DO L = 1,MNE
-        DO K = 1,3
-          DO I = 1,3
+        DO I = 1,3
 
-        wetdry: if (WDFLG(L) .ne. 0) then
 
 C.......Retrieve the global node numbers for the element
 
@@ -232,17 +231,32 @@ C.........5) Tidal potential forcing (in x and y)
      &              + DPSIDY2*TIP2(N2) + DPSIDY3*TIP2(N3) )
             ENDIF
 
+            fxs(i,l) = fx_in*wdflg(l)
+            fys(i,l) = fy_in*wdflg(l)
+            gxs(i,l) = gx_in*wdflg(l)
+            gys(i,l) = gy_in*wdflg(l)
+            hxs(i,l) = hx_in*wdflg(l)
+            hys(i,l) = hy_in*wdflg(l)
+            source_xs(i,l) = source_x*wdflg(l)
+            source_ys(i,l) = source_y*wdflg(l)
+          ENDDO
+        ENDDO
 
-!$acc atomic
-            RHS_ZE(K,L,IRK) = RHS_ZE(K,L,IRK) + (XFAC(K,I,L,pa)*FX_IN  + YFAC(K,I,L,pa)*FY_IN)
-!$acc atomic
-            RHS_QX(K,L,IRK) = RHS_QX(K,L,IRK) + (XFAC(K,I,L,pa)*GX_IN
-     &              + YFAC(K,I,L,pa)*GY_IN + SRFAC(K,I,L,pa)*SOURCE_X)
-!$acc atomic
-            RHS_QY(K,L,IRK) = RHS_QY(K,L,IRK) + (XFAC(K,I,L,pa)*HX_IN
-     &              + YFAC(K,I,L,pa)*HY_IN + SRFAC(K,I,L,pa)*SOURCE_Y)
+!$acc parallel loop gang vector  async(1) default(present)
+        DO l = 1,MNE
+          DO k = 1,3
+            DO i = 1,3
+            RHS_ZE(K,L,IRK) = RHS_ZE(K,L,IRK) +
+     &       (XFAC(K,I,L,pa)*FXs(i,l)  + YFAC(K,I,L,pa)*FYs(i,l))
+            RHS_QX(K,L,IRK) = RHS_QX(K,L,IRK) +
+     &       (XFAC(K,I,L,pa)*GXs(i,l)
+     &              + YFAC(K,I,L,pa)*GYs(i,l) +
+     &         SRFAC(K,I,L,pa)*SOURCE_Xs(i,l))
+            RHS_QY(K,L,IRK) = RHS_QY(K,L,IRK) +
+     &       (XFAC(K,I,L,pa)*HXs(i,l)
+     &              + YFAC(K,I,L,pa)*HYs(i,l) +
+     &           SRFAC(K,I,L,pa)*SOURCE_Ys(i,l))
 
-          endif wetdry
           ENDDO
         ENDDO
       ENDDO
