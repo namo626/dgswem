@@ -37,7 +37,7 @@ C.....Declare local variables
       real(sz) :: f_hat, g_hat, h_hat
       INTEGER IT
       INTEGER L,k,i,ll
-      REAL(SZ) DPSIDX(3), DPSIDY(3)
+      REAL(SZ) DPSIDX1, dpsidx2, dpsidx3, DPSIDY1, dpsidy2, dpsidy3
       REAL(SZ) AREA, IMASS, TKX, TKY, Xpart, Ypart,H_0,C_1
       REAL(SZ) PHI_AREA_KI,MN_IN, MassAction1st,MassAction2nd,fx,fy
       REAL(SZ) LZ_XX, LZ_XY, LZ_YX, LZ_YY, rate, s_mass, s_sed,b_0
@@ -72,8 +72,10 @@ C.......Compute ZE, QX, QY, and HB at each area Gauss quadrature point
         ENDDO
       ENDDO
 
-!$acc parallel loop gang private(dpsidx,dpsidy) async(1) default(present)
+!$acc parallel loop gang vector collapse(3)  async(1) default(present)
       DO L = 1,MNE
+        DO K = 1,3
+          DO I = 1,3
 
         wetdry: if (WDFLG(L) .ne. 0) then
 
@@ -86,24 +88,17 @@ C.......Retrieve the global node numbers for the element
 C.......Compute avaraged values
 C.......These will be used later when bottom friction is computed
 
-        DEPTH_C = HB(1,L,1) + ZE(1,L,IRK)
-        FH_NL_C = 1.0/(NLEQ*DEPTH_C + LEQ)
-        UX_C = QX(1,L,IRK)*FH_NL_C
-        UY_C = QY(1,L,IRK)*FH_NL_C
-        UMAG_C = SQRT(UX_C*UX_C + UY_C*UY_C)
 
 C.......Compute derivatives of Lagrange basis functions at nodes
 
         IF ((NWS.NE.0).OR.(NTIP.NE.0)) THEN
-          DPSIDX(1) = DRPSI(1)*DRDX(L) + DSPSI(1)*DSDX(L)
-          DPSIDX(2) = DRPSI(2)*DRDX(L) + DSPSI(2)*DSDX(L)
-          DPSIDX(3) = DRPSI(3)*DRDX(L) + DSPSI(3)*DSDX(L)
-          DPSIDY(1) = DRPSI(1)*DRDY(L) + DSPSI(1)*DSDY(L)
-          DPSIDY(2) = DRPSI(2)*DRDY(L) + DSPSI(2)*DSDY(L)
-          DPSIDY(3) = DRPSI(3)*DRDY(L) + DSPSI(3)*DSDY(L)
+          DPSIDX1 = DRPSI(1)*DRDX(L) + DSPSI(1)*DSDX(L)
+          DPSIDX2 = DRPSI(2)*DRDX(L) + DSPSI(2)*DSDX(L)
+          DPSIDX3 = DRPSI(3)*DRDX(L) + DSPSI(3)*DSDX(L)
+          DPSIDY1 = DRPSI(1)*DRDY(L) + DSPSI(1)*DSDY(L)
+          DPSIDY2 = DRPSI(2)*DRDY(L) + DSPSI(2)*DSDY(L)
+          DPSIDY3 = DRPSI(3)*DRDY(L) + DSPSI(3)*DSDY(L)
         ENDIF
-!$acc loop vector
-        DO I = 1,NAGP(pa)
           ze_in = ze_area(I,L)
           qx_in = qx_area(I,L)
           qy_in = qy_area(I,L)
@@ -139,16 +134,14 @@ C.........Compute momentum flux terms
 C.........Compute x momentum fluxes
 
           GX_IN = (HUU + GH2 + LZ_XX)*SFACQUAD
-          GY_IN = HUV + LZ_XY
+          GY_IN = HUV 
 
-          advectqx(l)=advectqx(l)+gx_in+gy_in
 
 C.........Compute y momentum fluxes
 
-          HX_IN = (HUV + LZ_YX)*SFACQUAD
-          HY_IN = HVV + GH2 + LZ_YY
+          HX_IN = (HUV )*SFACQUAD
+          HY_IN = HVV + GH2 
 
-          advectqy(l)=advectqy(l)+hx_in+hy_in
 
 C.........Compute the friction factor
           if (LoadManningsN) then
@@ -218,12 +211,12 @@ C.........4.) Wind and pressure forcing (in x and y)
                SOURCE_X = SOURCE_X + FW_NL*( WSX2(N1)*PSI1(I,pa)
      &              + WSX2(N2)*PSI2(I,pa)  + WSX2(N3)*PSI3(I,pa) )
      &              - G*SFACQUAD*DEPTH
-     $              *( PR2(N1)*DPSIDX(1)
-     &              + PR2(N2)*DPSIDX(2) + PR2(N3)*DPSIDX(3))
+     $              *( PR2(N1)*DPSIDX1
+     &              + PR2(N2)*DPSIDX2 + PR2(N3)*DPSIDX3)
                SOURCE_Y = SOURCE_Y + FW_NL*( WSY2(N1)*PSI1(I,pa)
      &              + WSY2(N2)*PSI2(I,pa)  + WSY2(N3)*PSI3(I,pa) )
-     &              - G*DEPTH*( PR2(N1)*DPSIDY(1)
-     &              + PR2(N2)*DPSIDY(2) + PR2(N3)*DPSIDY(3))
+     &              - G*DEPTH*( PR2(N1)*DPSIDY1
+     &              + PR2(N2)*DPSIDY2 + PR2(N3)*DPSIDY3)
             ENDIF
 
 
@@ -232,33 +225,26 @@ C.........5) Tidal potential forcing (in x and y)
             IF (NTIP.NE.0) THEN
 
                SOURCE_X = SOURCE_X +
-     $              RAMPDG*G*DEPTH*SFACQUAD*( DPSIDX(1)*TIP2(N1)
-     &              + DPSIDX(2)*TIP2(N2) + DPSIDX(3)*TIP2(N3) )
+     $              RAMPDG*G*DEPTH*SFACQUAD*( DPSIDX1*TIP2(N1)
+     &              + DPSIDX2*TIP2(N2) + DPSIDX3*TIP2(N3) )
 
-               SOURCE_Y = SOURCE_Y + RAMPDG*G*DEPTH*( DPSIDY(1)*TIP2(N1)
-     &              + DPSIDY(2)*TIP2(N2) + DPSIDY(3)*TIP2(N3) )
+               SOURCE_Y = SOURCE_Y + RAMPDG*G*DEPTH*( DPSIDY1*TIP2(N1)
+     &              + DPSIDY2*TIP2(N2) + DPSIDY3*TIP2(N3) )
             ENDIF
 
-            sourceqx(l)=sourceqx(l)+source_x
-            sourceqy(l)=sourceqy(l)+source_y
 
-            RHS_QX(1,L,IRK) = RHS_QX(1,L,IRK) + SRFAC(1,I,L,pa)*SOURCE_X
-            RHS_QY(1,L,IRK) = RHS_QY(1,L,IRK) + SRFAC(1,I,L,pa)*SOURCE_Y
+!$acc atomic
+            RHS_ZE(K,L,IRK) = RHS_ZE(K,L,IRK) + (XFAC(K,I,L,pa)*FX_IN  + YFAC(K,I,L,pa)*FY_IN)
+!$acc atomic
+            RHS_QX(K,L,IRK) = RHS_QX(K,L,IRK) + (XFAC(K,I,L,pa)*GX_IN
+     &              + YFAC(K,I,L,pa)*GY_IN + SRFAC(K,I,L,pa)*SOURCE_X)
+!$acc atomic
+            RHS_QY(K,L,IRK) = RHS_QY(K,L,IRK) + (XFAC(K,I,L,pa)*HX_IN
+     &              + YFAC(K,I,L,pa)*HY_IN + SRFAC(K,I,L,pa)*SOURCE_Y)
 
-!!$acc loop seq
-            DO K = 2,DOFS(L)
-
-               RHS_ZE(K,L,IRK) = RHS_ZE(K,L,IRK) + XFAC(K,I,L,pa)*FX_IN
-     &                + YFAC(K,I,L,pa)*FY_IN
-               RHS_QX(K,L,IRK) = RHS_QX(K,L,IRK) + XFAC(K,I,L,pa)*GX_IN
-     &              + YFAC(K,I,L,pa)*GY_IN + SRFAC(K,I,L,pa)*SOURCE_X
-               RHS_QY(K,L,IRK) = RHS_QY(K,L,IRK) + XFAC(K,I,L,pa)*HX_IN
-     &              + YFAC(K,I,L,pa)*HY_IN + SRFAC(K,I,L,pa)*SOURCE_Y
-
-             ENDDO
-           ENDDO
-
-         endif wetdry
-       ENDDO
+          endif wetdry
+          ENDDO
+        ENDDO
+      ENDDO
 
       END SUBROUTINE
