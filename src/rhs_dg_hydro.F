@@ -230,7 +230,7 @@ C.........5) Tidal potential forcing (in x and y)
                SOURCE_Y = SOURCE_Y + RAMPDG*G*DEPTH*( DPSIDY1*TIP2(N1)
      &              + DPSIDY2*TIP2(N2) + DPSIDY3*TIP2(N3) )
             ENDIF
-
+#if 0
             fxs(i,l) = fx_in*wdflg(l)
             fys(i,l) = fy_in*wdflg(l)
             gxs(i,l) = gx_in*wdflg(l)
@@ -239,23 +239,21 @@ C.........5) Tidal potential forcing (in x and y)
             hys(i,l) = hy_in*wdflg(l)
             source_xs(i,l) = source_x*wdflg(l)
             source_ys(i,l) = source_y*wdflg(l)
-          ENDDO
-        ENDDO
-
-!$acc parallel loop gang vector  async(1) default(present)
-        DO l = 1,MNE
+#endif
           DO k = 1,3
-            DO i = 1,3
+!$acc atomic
             rhs_ze(L,K,IRK) = rhs_ze(L,K,IRK) +
-     &       (XFAC(K,I,L,pa)*FXs(i,l)  + YFAC(K,I,L,pa)*FYs(i,l))
+     &       (XFAC(K,I,L,pa)*FX_in  + YFAC(K,I,L,pa)*FY_in)
+!$acc atomic
             rhs_qx(L,K,IRK) = rhs_qx(L,K,IRK) +
-     &       (XFAC(K,I,L,pa)*GXs(i,l)
-     &              + YFAC(K,I,L,pa)*GYs(i,l) +
-     &         SRFAC(K,I,L,pa)*SOURCE_Xs(i,l))
+     &       (XFAC(K,I,L,pa)*GX_in
+     &              + YFAC(K,I,L,pa)*GY_in +
+     &         SRFAC(K,I,L,pa)*SOURCE_X)
+!$acc atomic
             rhs_qy(L,K,IRK) = rhs_qy(L,K,IRK) +
-     &       (XFAC(K,I,L,pa)*HXs(i,l)
-     &              + YFAC(K,I,L,pa)*HYs(i,l) +
-     &           SRFAC(K,I,L,pa)*SOURCE_Ys(i,l))
+     &       (XFAC(K,I,L,pa)*HX_IN
+     &              + YFAC(K,I,L,pa)*HY_IN +
+     &           SRFAC(K,I,L,pa)*SOURCE_Y)
 
           ENDDO
         ENDDO
