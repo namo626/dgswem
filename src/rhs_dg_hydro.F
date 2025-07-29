@@ -141,7 +141,7 @@ C.........Compute y momentum fluxes
           HX_IN = (HUV )*SFACQUAD
           HY_IN = HVV + GH2 
 
-
+#if 0
 C.........Compute the friction factor
           if (LoadManningsN) then
             fric_el(L)=G*
@@ -169,7 +169,7 @@ C     TAU so the bottom friction force does not reverse the currents within
 C     half a time step.  S.B. 9-Feb-2008
                TAU = MIN(TAU, .9D0*DTDPH)
             ENDIF
-
+#endif
 C.........Compute the x momentum source/sink terms
 
             SOURCE_X =
