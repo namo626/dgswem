@@ -48,14 +48,22 @@ C.....Declare local variables
       Real(SZ) DH_X,DH_Y,phi_tot,C_0,HZ_X,HZ_Y,TZ_X,TZ_Y
 
 
+      real(sz), dimension(3,3) :: xfac_local, yfac_local
       real(sz) source_max, source_r
 
       source_max = 0.0
       !print *, "max prec2 = ", maxval(prec2)
 
       DTDPH = 1.0/DTDP
-!$acc parallel loop gang vector private(dpsidx, dpsidy) async(1) default(present)
+!$acc parallel loop gang vector private(dpsidx,dpsidy,xfac_local,yfac_local) async(1) default(present)
       DO 1000 L = 1, NE
+
+        DO i = 1,3
+          do k = 1,3
+            xfac_local(k,i) = xfac(k,i,l,pa)
+            yfac_local(k,i) = yfac(k,i,l,pa)
+          enddo
+       enddo
 c     nd
          advectqx(l)=0.0
          advectqx(l)=0.0
@@ -418,12 +426,12 @@ C.........Build the rhs
 !$acc loop seq
             DO K = 2,DOFS(L)
 
-               RHS_ZE(K,L,IRK) = RHS_ZE(K,L,IRK) + XFAC(K,I,L,pa)*FX_IN
-     &                + YFAC(K,I,L,pa)*FY_IN
-               RHS_QX(K,L,IRK) = RHS_QX(K,L,IRK) + XFAC(K,I,L,pa)*GX_IN
-     &              + YFAC(K,I,L,pa)*GY_IN + SRFAC(K,I,L,pa)*SOURCE_X
-               RHS_QY(K,L,IRK) = RHS_QY(K,L,IRK) + XFAC(K,I,L,pa)*HX_IN
-     &              + YFAC(K,I,L,pa)*HY_IN + SRFAC(K,I,L,pa)*SOURCE_Y
+               RHS_ZE(K,L,IRK) = RHS_ZE(K,L,IRK) + XFAC_local(K,I)*FX_IN
+     &                + YFAC_local(K,I)*FY_IN
+               RHS_QX(K,L,IRK) = RHS_QX(K,L,IRK) + XFAC_local(K,I)*GX_IN
+     &              + YFAC_local(K,I)*GY_IN + SRFAC(K,I,L,pa)*SOURCE_X
+               RHS_QY(K,L,IRK) = RHS_QY(K,L,IRK) + XFAC_local(K,I)*HX_IN
+     &              + YFAC_local(K,I)*HY_IN + SRFAC(K,I,L,pa)*SOURCE_Y
 
 #ifdef SED_LAY
 
