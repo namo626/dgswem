@@ -205,6 +205,7 @@ C.........3.) Coriolis force
 
 C.........4.) Wind and pressure forcing (in x and y)
 
+#if 0
             IF (NWS.NE.0) THEN
                FW_NL = 1.0/F1_NL
                SOURCE_X = SOURCE_X + FW_NL*( WSX2(N1)*PSI1(I,pa)
@@ -220,7 +221,6 @@ C.........4.) Wind and pressure forcing (in x and y)
 
 
 C.........5) Tidal potential forcing (in x and y)
-
             IF (NTIP.NE.0) THEN
 
                SOURCE_X = SOURCE_X +
@@ -230,7 +230,6 @@ C.........5) Tidal potential forcing (in x and y)
                SOURCE_Y = SOURCE_Y + RAMPDG*G*DEPTH*( DPSIDY1*TIP2(N1)
      &              + DPSIDY2*TIP2(N2) + DPSIDY3*TIP2(N3) )
             ENDIF
-#if 0
             fxs(i,l) = fx_in*wdflg(l)
             fys(i,l) = fy_in*wdflg(l)
             gxs(i,l) = gx_in*wdflg(l)
