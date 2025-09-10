@@ -3599,6 +3599,7 @@ c      endif
       cLon  =  lon(icyc-1)  +
      &                         wtratio * (lon(icyc)-lon(icyc-1))
       ! locate each node based on the latest hurricane center location
+!$acc wait
 !$acc parallel loop default(present)
       do i=1,np
          dx = deg2rad * Rearth * (xcoor(i) - cLon)*COS(deg2rad*cLat)
