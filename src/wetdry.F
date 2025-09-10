@@ -58,7 +58,7 @@ C.....Initialize node codes to dry
       
 C.....Loop over the elements
 
-!$acc parallel loop gang vector async(1) num_gangs(1024) default(present)
+!$acc parallel loop gang vector async(1) num_gangs(256) default(present)
 !$acc+private(L2H,dh_hat,ht_hat,ht_mode,ht_node,qx_hat,qx_node,qy_hat,qy_node,ze_hat,ze_node,u_hat,v_hat)
       DO 100 J = 1,NE
 
@@ -83,6 +83,7 @@ C.......and count number of dry nodes
          NDRYNODE = 0
          HT_MIN = HUGE
          HT_MAX = ZERO
+!$acc loop seq
          DO I = 1,NCHECK(pa)
             !
             ZE_NODE(I,pa) = ZE(1,J,IRK+1)

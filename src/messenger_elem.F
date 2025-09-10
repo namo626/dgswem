@@ -790,6 +790,44 @@ C
       RETURN
       END SUBROUTINE
 
+      subroutine packElems(num, dof, nsend, sendloc, vec1, packed)
+      implicit none
+
+      integer, value :: num, nsend, dof
+      real(sz),  intent(in) :: vec1(dof, mne)
+      integer,   intent(in) :: sendloc(:)
+      real(sz),  intent(out) :: packed(dof*nsend)
+
+      integer :: j, i
+
+!$acc parallel loop default(present) async(num) 
+      do i = 1,nsend
+         j = sendloc(i)
+         packed((i-1)*dof+1:i*dof) = vec1(:,j)
+      enddo
+
+
+      end subroutine
+
+      subroutine unpackElems(num,dof, nrecv, recvloc, packed, vec1)
+      implicit none
+
+      integer, value :: nrecv, dof, num
+      real(sz),intent(in) :: packed(:)
+      integer, intent(in) :: recvloc(:)
+      real(sz),intent(inout) :: vec1(dof, mne)
+
+      integer :: i,j
+
+!$acc parallel loop  default(present) async(num)
+      do i = 1,nrecv
+         j = recvloc(i)
+         vec1(:,j) = packed((i-1)*dof+1:i*dof)
+      enddo
+
+
+      end subroutine
+
 
       SUBROUTINE UPDATER_ELEM_MOD( VEC1, VEC2, VEC3, IRK, NMSG )
 C
@@ -808,35 +846,30 @@ C
       INTEGER,  INTENT(IN) ::  IRK, NMSG
       REAL(SZ), INTENT(INOUT) ::  VEC1(:,:,:),VEC2(:,:,:),VEC3(:,:,:)
       INTEGER :: N,I,J,JJ,K,NCOUNT,NFINI,TOT
+      integer num
 C
                              !..Pack 1, 2, or 3 Messages
 C      DO JJ=1,NEIGHPROC_S
 C         J = MOD(JJ-1+MYPROC,NEIGHPROC_S)+1
+!$acc wait
+      num = 1                             
       DO J=1,NEIGHPROC_S
          NCOUNT = 0
-         DO I=1,NELEMSEND(J)
-            DO K=1,DOFH
-              NCOUNT = NCOUNT+1
-              SENDBUF(NCOUNT,J)=VEC1(K,ISENDLOC(I,J),IRK)
-            ENDDO
-         ENDDO
+         call packElems(num,DOFH, nelemsend(j), isendloc(:,j), vec1(:,:,irk), sendbuf(:nelemsend(j)*dofh,j))
+         ncount = nelemsend(j)*dofh + 1
+         num = num+1
          IF (NMSG.GT.1) THEN
-           DO I=1,NELEMSEND(J)
-             DO K=1,DOFH
-               NCOUNT = NCOUNT+1
-               SENDBUF(NCOUNT,J)=VEC2(K,ISENDLOC(I,J),IRK)
-             ENDDO
-           ENDDO
+            call packElems(num,DOFH, nelemsend(j), isendloc(:,j), vec2(:,:,irk), sendbuf(ncount:ncount+dofh*nelemsend(j)-1,j))
+            ncount = 2*nelemsend(j)*dofh + 1
+            num = num+1
          ENDIF
          IF (NMSG.GT.2) THEN
-           DO I=1,NELEMSEND(J)
-             DO K=1,DOFH
-               NCOUNT = NCOUNT+1
-               SENDBUF(NCOUNT,J)=VEC3(K,ISENDLOC(I,J),IRK)
-             ENDDO
-           ENDDO
+            call packElems(num,DOFH, nelemsend(j), isendloc(:,j), vec3(:,:,irk), sendbuf(ncount:ncount+dofh*nelemsend(j)-1,j))
+            num = num+1
          ENDIF
-
+       ENDDO
+!$acc wait
+       DO j=1,neighproc_s
          ! Start sending a message
          IF (NMSG.EQ.1) THEN
             CALL MPI_START ( REQ_R1(J+NEIGHPROC_R), IERR )
@@ -915,6 +948,7 @@ C
         GOTO 999
       ELSE
         TOT = 0
+        num = 1
         DO WHILE (TOT.LT.RDIM)
            DO N=1, RDIM
               INDEX(N) = 0
@@ -926,25 +960,16 @@ cdebug     print *, myproc, tot,nfini,index(1),index(2)
               IF (INDEX(N).GT.0.AND.INDEX(N).LE.RDIM)  THEN
                 IF (INDEX(N).LE.NEIGHPROC_R) THEN
                   J = INDEX(N)
-                  NCOUNT = 0
-                  DO I=1,NELEMRECV(J)
-                    DO K=1,DOFH
-                      NCOUNT = NCOUNT+1
-                      VEC1(K,IRECVLOC(I,J),IRK) = RECVBUF(NCOUNT,J)
-                    ENDDO
-                  ENDDO
-                  DO I=1,NELEMRECV(J)
-                    DO K=1,DOFH
-                      NCOUNT = NCOUNT+1
-                      VEC2(K,IRECVLOC(I,J),IRK) = RECVBUF(NCOUNT,J)
-                    ENDDO
-                  ENDDO
-                  DO I=1,NELEMRECV(J)
-                    DO K=1,DOFH
-                      NCOUNT = NCOUNT+1
-                      VEC3(K,IRECVLOC(I,J),IRK) = RECVBUF(NCOUNT,J)
-                    ENDDO
-                  ENDDO
+                  call unpackElems(num,DOFH, nelemrecv(j), irecvloc(:,j), recvbuf(:,j), vec1(:,:,irk))
+                  ncount = dofh*nelemrecv(j) + 1
+                  num = num+1
+
+                  call unpackElems(num,DOFH, nelemrecv(j), irecvloc(:,j), recvbuf(ncount:,j), vec2(:,:,irk))
+                  ncount = 2*dofh*nelemrecv(j) + 1
+                  num = num+1
+
+                  call unpackElems(num,DOFH, nelemrecv(j), irecvloc(:,j), recvbuf(ncount:,j), vec3(:,:,irk))
+                  num = num+1
                 ENDIF
               ENDIF
            ENDDO
@@ -953,7 +978,7 @@ cdebug     print *, myproc, tot,nfini,index(1),index(2)
       ENDIF
 C 
  999  continue
-      RETURN
+!$acc wait
       END SUBROUTINE
 
       SUBROUTINE UPDATER_ELEM_MOD2( VEC1, VEC2, VEC3, IRK, NMSG )

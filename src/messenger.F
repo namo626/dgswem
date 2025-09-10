@@ -419,6 +419,43 @@ C
       RETURN
       END SUBROUTINE
 
+      subroutine packNodes(nsend, sendloc, vec1, packed)
+      implicit none
+
+      integer, value :: nsend
+      real(sz),  intent(in) :: vec1(mnp)
+      integer,   intent(in) :: sendloc(:)
+      real(sz),  intent(out) :: packed(:)
+
+      integer :: j, i
+
+!$acc parallel loop  default(present) async(1)
+      do i = 1,nsend
+         j = sendloc(i)
+         packed(i) = vec1(j)
+      enddo
+
+
+      end subroutine
+
+      subroutine unpackNodes(nrecv, recvloc, packed, vec1)
+      implicit none
+
+      integer, value :: nrecv
+      real(sz),  intent(inout) :: vec1(mnp)
+      integer,   intent(in) :: recvloc(:)
+      real(sz),  intent(in) :: packed(:)
+
+      integer :: j, i
+
+!$acc parallel loop  default(present) async(1)
+      do i = 1,nrecv
+         j = recvloc(i)
+         vec1(j) = packed(i)
+      enddo
+
+
+      end subroutine
 
       SUBROUTINE UPDATER( VEC1, VEC2, VEC3, NMSG )
 C
@@ -439,25 +476,19 @@ C
       INTEGER :: N,I,J,NCOUNT,NFINI,TOT
 C
                              !..Pack 1, 2, or 3 Messages
+!$acc wait
       DO J=1,NEIGHPROC
-         NCOUNT = 0
-         DO I=1,NNODSEND(J)
-            NCOUNT = NCOUNT+1
-            SENDBUF(NCOUNT,J)=VEC1(ISENDLOC(I,J))
-         ENDDO
+         call packNodes(NNODSEND(j), isendloc(:,j), vec1, sendbuf(:,j))
+         ncount = NNODSEND(j) + 1
          IF (NMSG.GT.1) THEN
-           DO I=1,NNODSEND(J)
-              NCOUNT = NCOUNT+1
-              SENDBUF(NCOUNT,J)=VEC2(ISENDLOC(I,J))
-           ENDDO
+            call packNodes(NNODSEND(j), isendloc(:,j), vec2, sendbuf(ncount:,j))
+            ncount = 2*NNODSEND(j) + 1
          ENDIF
          IF (NMSG.GT.2) THEN
-           DO I=1,NNODSEND(J)
-              NCOUNT = NCOUNT+1
-              SENDBUF(NCOUNT,J)=VEC3(ISENDLOC(I,J))
-           ENDDO
+            call packNodes(NNODSEND(j), isendloc(:,j), vec3, sendbuf(ncount:,j))
          ENDIF
       ENDDO
+!$acc wait
 C                    
               ! Send/receive messages to/from all neighbors
 C
@@ -531,19 +562,12 @@ cdebug     print *, myproc, tot,nfini,index(1),index(2)
               IF (INDEX(N).GT.0.AND.INDEX(N).LE.RDIM)  THEN
                 IF (INDEX(N).LE.NEIGHPROC) THEN
                   J = INDEX(N)
-                  NCOUNT = 0
-                  DO I=1,NNODRECV(J)
-                     NCOUNT = NCOUNT+1
-                     VEC1(IRECVLOC(I,J)) = RECVBUF(NCOUNT,J)
-                  ENDDO
-                  DO I=1,NNODRECV(J)
-                     NCOUNT = NCOUNT+1
-                     VEC2(IRECVLOC(I,J)) = RECVBUF(NCOUNT,J)
-                  ENDDO
-                  DO I=1,NNODRECV(J)
-                     NCOUNT = NCOUNT+1
-                     VEC3(IRECVLOC(I,J)) = RECVBUF(NCOUNT,J)
-                  ENDDO
+                  NCOUNT = 1
+                  call unpackNodes(nnodrecv(j), irecvloc(:,j), recvbuf(ncount:,j), vec1)
+                  NCOUNT = NNODRECV(j)+1
+                  call unpackNodes(nnodrecv(j), irecvloc(:,j), recvbuf(ncount:,j), vec2)
+                  NCOUNT = 2*NNODRECV(j)+1
+                  call unpackNodes(nnodrecv(j), irecvloc(:,j), recvbuf(ncount:,j), vec3)
                 ENDIF
               ENDIF
            ENDDO
@@ -552,7 +576,7 @@ cdebug     print *, myproc, tot,nfini,index(1),index(2)
       ENDIF
 C 
  999  continue
-      RETURN
+!$acc wait
       END SUBROUTINE
 
 

@@ -833,7 +833,7 @@ Casey 121019: Added multiplication factor to be used before sending winds to cou
 
       IF(NWS.EQ.20) THEN
          CALL NWS20GET(SLAM,SFEA,WVNX2,WVNY2,PRN2,NP,AsymmetricTime,ICS)
-!$acc parallel loop default(present)
+!$acc parallel loop default(present) async(1)
          DO II=1,NP
             WindX = WVNX2(II)
             WindY = WVNY2(II)
