@@ -394,7 +394,7 @@ C
       IWMO = IWTIME/10000 - IWYR*100
       IWDAY = IWTIME/100 - IWYR*10000 - IWMO*100
       IWHR = IWTIME - IWYR*1000000 - IWMO*10000 - IWDAY*100
-      CALL TIMECONV(IWYR,IWMO,IWDAY,IWHR,0,0.0,WTIMED,
+      CALL TIMECONV(IWYR,IWMO,IWDAY,IWHR,0,0.0_sz,WTIMED,
      &     MyProc,NScreen,ScreenUnit)
 C
       DO I=1,NWLAT
@@ -2251,7 +2251,7 @@ C     radius to max wind for use in forecasts
 C
 C     Determine the time of this hindcast in seconds since the beginning
 C     of the year.
-               CALL TimeConv(iYear(i),iMth(i),iDay(i),iHr(i),0,0.0,
+               CALL TimeConv(iYear(i),iMth(i),iDay(i),iHr(i),0,0.0_sz,
      &              CastTime(i),MyProc,NScreen,ScreenUnit)
 C
 C     Determine the CastTime in seconds since the beginning of the simulation.
@@ -2277,11 +2277,11 @@ C
 C     Determine the time of this forecast in seconds since the beginning
 C     of the year.
                IF ( iFcstInc(i).eq.0 ) THEN
-                  CALL TimeConv(iYear(i),iMth(i),iDay(i),iHr(i),0,0.0,
+                  CALL TimeConv(iYear(i),iMth(i),iDay(i),iHr(i),0,0.0_sz,
      &                 CastTime(i),MyProc,NScreen,ScreenUnit)
                   CastTime(i)=CastTime(i)-WindRefTime
                ELSE
-                  FcstInc(i) = FcstInc(i) * 3600.0 ! convert hours to seconds
+                  FcstInc(i) = FcstInc(i) * 3600.0_sz ! convert hours to seconds
                   CastTime(i) = CastTime(i-1) +
      &                 ( FcstInc(i) - FcstInc(i-1) )
                ENDIF
@@ -3629,7 +3629,7 @@ c      endif
 !$acc parallel loop default(present)
       do i=1,np
          crmaxw1(i) = spInterp(aziangle(i),dist(i),1)
-         crmaxwTrue1(i) = spInterp(aziangle(i),1.0,1)
+         crmaxwTrue1(i) = spInterp(aziangle(i),1.0_sz,1)
          !an artificial number 1.0 is chosen to ensure only
          !rmax from the highest isotach is picked
          cHollBs1(i)= spInterp(aziangle(i),dist(i),2)
@@ -3659,7 +3659,7 @@ c      endif
 !$acc parallel loop default(present)
       do i=1,np
          crmaxw2(i) = spInterp(aziangle(i),dist(i),1)
-         crmaxwTrue2(i) = spInterp(aziangle(i),1.0,1)
+         crmaxwTrue2(i) = spInterp(aziangle(i),1.0_sz,1)
          !an artificial number 1.0 is chosen to ensure only
          !rmax from the highest isotach is picked
          cHollBs2(i)= spInterp(aziangle(i),dist(i),2)
