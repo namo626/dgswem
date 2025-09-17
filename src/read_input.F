@@ -1089,7 +1089,7 @@ Casey 101118: Changed NRS.EQ.1 to NRS.GE.1 throughout this section.
  6111       FORMAT(5X,'WIND REFERENCE TIME FOR SIMULATION = ',
      &           I2,'/',I2,'/',I2,'  ',I2,'H',/)
          ENDIF
-         CALL TIMECONV(IREFYR,IREFMO,IREFDAY,IREFHR,0,0.0,
+         CALL TIMECONV(IREFYR,IREFMO,IREFDAY,IREFHR,0,0.0_sz,
      &        WindRefTime, MyProc, NScreen, ScreenUnit)
       ENDIF
 

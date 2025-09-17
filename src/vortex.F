@@ -1175,10 +1175,10 @@ C
       REAL(sz) :: dt
       REAL(sz) :: avgLat
 
-      avgLat = (latOld + latNew) / 2.0
+      avgLat = (latOld + latNew) / 2.0_sz
       dx = sphericalDistance( ((lonNew-lonOld)*deg2rad),
-     &         0.00, avgLat, avgLat)
-      dy = sphericalDistance(0.00,((latNew-latOld)*deg2rad),
+     &         0.0_sz, avgLat, avgLat)
+      dy = sphericalDistance(0.0_sz,((latNew-latOld)*deg2rad),
      &         latOld,latNew)
 
       dt = tNew - tOld

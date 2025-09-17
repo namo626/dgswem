@@ -16,41 +16,9 @@ C     06-01-2012 - cem - New fluxes, sediment, etc.
 C     
 C***********************************************************************
 
+#define _FLUX 2
 
-      SUBROUTINE NUMERICAL_FLUX(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
-     &  hb_in,hb_ex,sfac_in,sfac_ex, nx, ny, f_hat, g_hat, h_hat)
-!$acc routine
-
-      USE DG,ONLY : FLUXTYPE
-
-      IMPLICIT NONE
-
-      real(sz), intent(in) :: ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
-     &  hb_in,hb_ex,sfac_in,sfac_ex, nx, ny
-      real(sz), intent(out) :: f_hat, g_hat, h_hat
-
-
-
-      IF(FLUXTYPE.EQ.1) THEN
-         CALL ROE_FLUX(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
-     &  hb_in,hb_ex,sfac_in,sfac_ex, nx, ny, f_hat, g_hat, h_hat)
-      ELSEIF(FLUXTYPE.EQ.2) THEN
-         CALL LLF_FLUX(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
-     &  hb_in,hb_ex,sfac_in,sfac_ex, nx, ny, f_hat, g_hat, h_hat)
-      ELSEIF (FLUXTYPE.EQ.3) THEN
-         CALL HLLC_FLUX(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
-     &  hb_in,hb_ex,sfac_in,sfac_ex, nx, ny, f_hat, g_hat, h_hat)
-      ELSEIF (FLUXTYPE.EQ.4) THEN
-         CALL NCP_FLUX(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
-     &  hb_in,hb_ex,sfac_in,sfac_ex, nx, ny, f_hat, g_hat, h_hat)
-      ELSE
-         STOP 'INVALID FLUXTYPE'
-      ENDIF
-
-      RETURN
-      END SUBROUTINE
- 
-
+#if _FLUX == 1
 ***********************************************************************
 C     
 C     SUBROUTINE ROE_FLUX
@@ -61,7 +29,7 @@ C
 C     Written by Ethan Kubatko (06-11-2004)
 C     
 C***********************************************************************
-      SUBROUTINE ROE_FLUX(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
+      SUBROUTINE numerical_flux(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
      &  hb_in,hb_ex,sfac_in,sfac_ex, nx, ny, f_hat, g_hat, h_hat)
 !$acc routine
       
@@ -760,7 +728,7 @@ C.....Compute upwinding scheme for chem and tracer
 
       RETURN
       END SUBROUTINE
-
+#elif _FLUX == 2
 
 C***********************************************************************
 C     
@@ -773,7 +741,7 @@ C     Written by Ethan Kubatko (07-15-2005)
 C     
 C***********************************************************************
 
-      SUBROUTINE LLF_FLUX(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
+      SUBROUTINE numerical_FLUX(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
      &  hb_in,hb_ex,sfac_in,sfac_ex, nx, ny, f_hat, g_hat, h_hat)
 !$acc routine
 
@@ -1038,7 +1006,7 @@ C.....Compute chem and tracer upwinding
 
       RETURN
       END SUBROUTINE
-      
+#elif _FLUX == 3      
 C***********************************************************************
 C     
 C     SUBROUTINE HLLC_FLUX()
@@ -1050,7 +1018,7 @@ C     Written by Ethan Kubatko
 C     
 C***********************************************************************
 
-      SUBROUTINE HLLC_FLUX(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
+      SUBROUTINE numerical_FLUX(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
      &  hb_in,hb_ex,sfac_in,sfac_ex, nx, ny, f_hat, g_hat, h_hat)
 !$acc routine
 
@@ -1425,7 +1393,7 @@ C.......Set the numerical fluxes equal to the exterior fluxes
       Return
       END SUBROUTINE
 
-
+#else
 C***********************************************************************
 C     
 C     subroutine NCP_flux()
@@ -1441,7 +1409,7 @@ C     Written by cem interpreted from CM's code revamp
 C     
 C***********************************************************************
 
-      SUBROUTINE NCP_FLUX(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
+      SUBROUTINE Numerical_FLUX(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
      &  hb_in,hb_ex,sfac_in,sfac_ex, nx, ny, f_hat, g_hat, h_hat)
 !$acc routine
 
@@ -1804,6 +1772,6 @@ C.......Compute y momentum fluxes at exterior state
       RETURN
       END SUBROUTINE
       
-      
+#endif      
 
       end module
