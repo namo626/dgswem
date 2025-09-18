@@ -176,6 +176,7 @@ C.....to single nodal values
 
       SUBROUTINE WRITE_RESULTS(IT,FORCE_WRITE)
 
+      use, intrinsic :: ieee_arithmetic
       USE precipitation, only: prec3
       USE GLOBAL
       USE DG
@@ -1057,25 +1058,17 @@ c
           elmaxe=0.0
           qmaxe=0.0
           imaxq = 0.0
+          ErrorElevExceeded=0
 !$acc parallel loop reduction(max:elmax,velmax) default(present)
           DO I=1,NP
-             IF((NODECODE(I).EQ.1).AND.(ABS(ETA2(I)).GT.ELMAX))THEN
-                ELMAX=ABS(ETA2(I))
-                !KEMAX=I
-             ENDIF
-             VELABS=UU2(I)*UU2(I)+VV2(I)*VV2(I)
-             IF (VELABS.GT.VELMAX) THEN
-                VELMAX=VELABS
-                !KVMAX=I
-             ENDIF
+            ELMAX = max(elmax, abs(eta2(i))*nodecode(i))
+            VELABS = UU2(I)*UU2(I)+VV2(I)*VV2(I)
+            velmax = max(velmax, velabs*nodecode(i))
+            if (ieee_is_nan(eta2(i)) ) ErrorElevExceeded = 1
           END DO
 
 C
           VELMAX=VELMAX**0.5d0
-          ErrorElevExceeded=0
-          if (KEMAX .eq. 0) then
-             KEMAX = 1
-          endif 
 C          
 #ifdef CMPI
           IF( (MYPROC.EQ.0).AND.(ELMAX.LT.1000.0).AND.
