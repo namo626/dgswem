@@ -120,9 +120,6 @@ C.......element.  Issue warning if not but continue execution.
      &                    ((X+Y).LE.0.0).AND.(ABS(Z).LE.1.0)) THEN
           CONTINUE
         ELSE
-         PRINT*,' ***** WARNING!! in subroutine orthogonal_basis ***** '
-         PRINT*,'       Point is outside of reference element!!        '
-         PRINT*,'               Execution will continue                '
         ENDIF
       
 C.......First basis function and derivatives
@@ -186,9 +183,6 @@ C.......element.  Issue warning if not but continue execution.
      &                                            (ABS(Z).LE.1.0)) THEN
           CONTINUE
         ELSE
-          PRINT*,'  ***** WARNING in suroutine orthogonal_basis *****  '
-          PRINT*,'       Point is outside of reference element!!       '
-          PRINT*,'               Execution will continue               '
         ENDIF
 
 C.......Legendre Polynomials in X

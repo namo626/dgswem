@@ -366,8 +366,8 @@ CWET...
             IF((NNODECODE(I).EQ.1).AND.(MJU(I).EQ.0)) THEN
               NNODECODE(I)=0
 
-              IF (NSCREEN.EQ.1 .AND.MYPROC.EQ.0) WRITE(*,9883) I
-              IF (NABOUT .EQ. 0) WRITE(16,9883) I
+              !IF (NSCREEN.EQ.1 .AND.MYPROC.EQ.0) WRITE(*,9883) I
+              !IF (NABOUT .EQ. 0) WRITE(16,9883) I
             ENDIF
           ENDDO
         ENDIF
