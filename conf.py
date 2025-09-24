@@ -25,3 +25,4 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
 html_theme = 'piccolo_theme'
 html_static_path = ['_static']
+html_baseurl = os.environ.get("READTHEDOCS_CANONICAL_URL") + "/en/latest.index.html"
