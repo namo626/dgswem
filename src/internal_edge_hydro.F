@@ -87,7 +87,7 @@ C.....Declare local variables
 !$acc+private(rhs_ze_in,rhs_qx_in,rhs_qy_in,rhs_ze_ex,rhs_qx_ex,rhs_qy_ex,
 !$acc+ze_ins,qx_ins,qy_ins,ze_exs,qx_exs,qy_exs) async(1) default(present)
       do L = 1, NIEDS
-
+!$acc loop seq
         do k = 1,DOFH
           rhs_ze_in(k) = 0.0_sz
           rhs_qx_in(k) = 0.0_sz
@@ -161,6 +161,7 @@ C.....Set the components for the tangential vector to the edge
          EDFAC_EX = XLEN(GED)/AREAS(EL_EX)
 C.....Compute ZE, QX, QY, and HB at each edge Gauss quadrature point
 
+!$acc loop seq
          gauss_point_loop: DO I = 1,NEGP(pa)
 
             GP_IN = I
@@ -178,16 +179,6 @@ C.....Compute ZE, QX, QY, and HB at each edge Gauss quadrature point
             HB_EX = BATHED(GP_EX,LED_EX,EL_EX,pa)
             SFAC_EX = SFACED(GP_EX,LED_EX,EL_EX,pa)
 
-            LZ_XX_IN = LZ(1,1,1,EL_IN)
-            LZ_XY_IN = LZ(1,1,2,EL_IN)
-            LZ_YX_IN = LZ(1,2,1,EL_IN)
-            LZ_YY_IN = LZ(1,2,2,EL_IN)
-
-            LZ_XX_EX = LZ(1,1,1,EL_EX)
-            LZ_XY_EX = LZ(1,1,2,EL_EX)
-            LZ_YX_EX = LZ(1,2,1,EL_EX)
-            LZ_YY_EX = LZ(1,2,2,EL_EX)
-
             DO K = 1,DOFH
 
                ZE_IN = ZE_IN + ZE_ins(K)*PHI_EDGE(K,GP_IN,LED_IN,pa)
@@ -198,23 +189,6 @@ C.....Compute ZE, QX, QY, and HB at each edge Gauss quadrature point
                QX_EX = QX_EX + QX_exs(K)*PHI_EDGE(K,GP_EX,LED_EX,pa)
                QY_EX = QY_EX + QY_exs(K)*PHI_EDGE(K,GP_EX,LED_EX,pa)
 
-               LZ_XX_IN = LZ_XX_IN
-     &              + LZ(K,1,1,EL_IN)*PHI_EDGE(K,GP_IN,LED_IN,pa)
-               LZ_XY_IN = LZ_XY_IN
-     &              + LZ(K,1,2,EL_IN)*PHI_EDGE(K,GP_IN,LED_IN,pa)
-               LZ_YX_IN = LZ_YX_IN
-     &              + LZ(K,2,1,EL_IN)*PHI_EDGE(K,GP_IN,LED_IN,pa)
-               LZ_YY_IN = LZ_YY_IN
-     &              + LZ(K,2,2,EL_IN)*PHI_EDGE(K,GP_IN,LED_IN,pa)
-
-               LZ_XX_EX = LZ_XX_EX
-     &              + LZ(K,1,1,EL_EX)*PHI_EDGE(K,GP_EX,LED_EX,pa)
-               LZ_XY_EX = LZ_XY_EX
-     &              + LZ(K,1,2,EL_EX)*PHI_EDGE(K,GP_EX,LED_EX,pa)
-               LZ_YX_EX = LZ_YX_EX
-     &              + LZ(K,2,1,EL_EX)*PHI_EDGE(K,GP_EX,LED_EX,pa)
-               LZ_YY_EX = LZ_YY_EX
-     &              + LZ(K,2,2,EL_EX)*PHI_EDGE(K,GP_EX,LED_EX,pa)
 
             ENDDO
 
@@ -232,10 +206,10 @@ C......... dummy
             G_HAT_EX = G_HAT
             H_HAT_EX = H_HAT
 
-
+#if 0
 C........Check to make sure mass flux is not coming from a dry element
 
-            dry_flux: IF (abs(F_HAT).gt.1.d-12) THEN
+            dry_flux: IF (abs(F_HAT).gt.1.d-8) THEN
                !
                IF (WDFLG(EL_IN).EQ.0) THEN
                   ! EL_IN is dry !
@@ -314,28 +288,7 @@ C........Check to make sure mass flux is not coming from a dry element
                   ENDIF
                ENDIF
             ENDIF dry_flux
-
-            G_HAT_IN = G_HAT_IN + 0.50*(LZ_XX_IN*SFAC_IN +
-     &           LZ_XX_EX*SFAC_EX)*NX
-     &           + 0.50*(LZ_XY_IN + LZ_XY_EX)*NY
-cnd try adding the penalty term in the LDG method
-      !$           +ESLM*.010*(QX_IN-QX_EX)
-            H_HAT_IN = H_HAT_IN + 0.50*(LZ_YX_IN*SFAC_IN +
-     &           LZ_YX_EX*SFAC_EX)*NX
-     &           + 0.50*(LZ_YY_IN + LZ_YY_EX)*NY
-cnd try adding the penalty term in the LDG method
-      !$           +ESLM*.010*(QY_IN-QY_EX)
-            G_HAT_EX = G_HAT_EX + 0.50*(LZ_XX_IN*SFAC_IN
-     &           + LZ_XX_EX*SFAC_EX)*NX
-     &           + 0.50*(LZ_XY_IN + LZ_XY_EX)*NY
-cnd try adding the penalty term in the LDG method
-      !$           +ESLM*.010*(QX_IN-QX_EX)
-            H_HAT_EX = H_HAT_EX + 0.50*(LZ_YX_IN*SFAC_IN
-     &           + LZ_YX_EX*SFAC_EX)*NX
-     &           + 0.50*(LZ_YY_IN + LZ_YY_EX)*NY
-cnd try adding the penalty term in the LDG method
-      !$           +ESLM*.010*(QY_IN-QY_EX)
-
+#endif
 
 C.....Compute the edge integral
 
