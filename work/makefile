@@ -124,7 +124,7 @@ PREP_OBJ:= $(patsubst %.F, $(O_DIR)%.o, $(PREP_SRC) )
 POST_OBJ:= $(patsubst %.F, $(O_DIR)%.o, $(POST_SRC) )
 ADC_OBJ:= $(patsubst %.F, $(O_DIR)%.o, $(ADC_SRC) )
 SPECIAL_OBJS = $(O_DIR)internal_edge_hydro.o
-$(SPECIAL_OBJS): EXTRA := -O0
+$(SPECIAL_OBJS): EXTRA := -O1
 
 #################### SWAN Source & Object Files #########################
 #Casey 121126: Added this section for coupling to unstructured SWAN.
