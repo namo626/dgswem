@@ -39,10 +39,10 @@ C.....Declare local variables
       Real(SZ) chi_pref,C_char,MZ_X_IN(layers),MZ_Y_IN(layers)
       real(sz) :: ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
      &  hb_in,hb_ex,sfac_in,sfac_ex, nx, ny
-      real(sz) :: f_hat, g_hat, h_hat
+      real(sz) :: f_hat, g_hat, h_hat, fluxes(3)
 
       test_el = 0
-!$acc parallel loop gang vector async(1) default(present)
+!$acc parallel loop gang vector private(fluxes) async(1) default(present)
       DO 1000 L = 1,NFEDS
          
 C.....Retrieve the global and local edge number
@@ -262,8 +262,12 @@ C.....Set the exterior bed and surface elevation equal to the interior
 
 #endif
 
-            call numerical_flux(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
-     &  hb_in,hb_ex,sfac_in,sfac_ex,nx,ny,f_hat,g_hat,h_hat)
+
+            fluxes = numerical_flux(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
+     &  hb_in,hb_ex,sfac_in,sfac_ex,nx,ny,G)
+            f_hat = fluxes(1)
+            g_hat = fluxes(2)
+            h_hat = fluxes(3)
 
 C.....Add LDG terms
 #ifdef WAVE_DIF

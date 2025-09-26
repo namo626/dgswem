@@ -125,6 +125,8 @@ METIS2_OBJ:= $(patsubst %.F, $(O_DIR)%.o, $(METIS2_SRC) )
 PREP_OBJ:= $(patsubst %.F, $(O_DIR)%.o, $(PREP_SRC) )
 POST_OBJ:= $(patsubst %.F, $(O_DIR)%.o, $(POST_SRC) )
 ADC_OBJ:= $(patsubst %.F, $(O_DIR)%.o, $(ADC_SRC) )
+SPECIAL_OBJS = $(O_DIR)internal_edge_hydro.o
+$(SPECIAL_OBJS): EXTRA := -O3
 
 #################### SWAN Source & Object Files #########################
 #Casey 121126: Added this section for coupling to unstructured SWAN.
@@ -159,7 +161,7 @@ SWAN_OBJ:= $(patsubst %.f90, $(O_DIR)%.o, $(SWAN_OBJ) )
 $(O_DIR)%.o  : %.F
 #  @echo depend $<
 #  @echo target $@
-	$(CF) -c $(FFLAGS) -o $@  $<
+	$(CF) -c $(FFLAGS) $(EXTRA) -o $@  $<
 
 #Casey 121126: Changed the f90 files to F90 extension to avoid conflict with SWAN.
 $(O_DIR)%.o  : %.F90

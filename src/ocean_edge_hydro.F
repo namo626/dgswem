@@ -35,7 +35,7 @@ C.....Declare local variables
 
       real(sz) :: ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
      &  hb_in,hb_ex,sfac_in,sfac_ex, nx, ny
-      real(sz) :: f_hat, g_hat, h_hat
+      real(sz) :: f_hat, g_hat, h_hat, fluxes(3)
       INTEGER L, LED, GED, i,k,jj,II,ll,IT,w
       Real(SZ) DEN2,U_AVG,V_AVG,VEL_NORMAL,q_RoeX, q_RoeY, q_Roe
       REAL(SZ) TX, TY, HUU, HUV, GH2,FH_NL_IN,F1_NL,FX1_IN,FY1_IN
@@ -47,7 +47,7 @@ C.....Declare local variables
       REAL(SZ):: ZEFREQ      
       REAL(SZ), dimension(2):: EFA_GPT, EMO_GPT, ARG_GPT, ZE_GPT
 
-!$acc parallel loop gang vector private(efa_gpt, emo_gpt, arg_gpt, ze_gpt) async(1) default(present)
+!$acc parallel loop gang vector private(efa_gpt, emo_gpt, arg_gpt,ze_gpt,fluxes) async(1) default(present)
       DO 1000 L = 1, needs
          
 C.....Retrieve the global and local edge number
@@ -285,8 +285,11 @@ C.....Set the exterior state flows equal to the interior state flows
 
 C.....Compute the Roe flux
 
-            call numerical_flux(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
-     &  hb_in,hb_ex,sfac_in,sfac_ex,nx,ny,f_hat,g_hat,h_hat)
+            fluxes = numerical_flux(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
+     &  hb_in,hb_ex,sfac_in,sfac_ex,nx,ny,G)
+            f_hat = fluxes(1)
+            g_hat = fluxes(2)
+            h_hat = fluxes(3)
 
 C.....Add LDG terms
             

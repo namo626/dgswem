@@ -29,8 +29,8 @@ C
 C     Written by Ethan Kubatko (06-11-2004)
 C     
 C***********************************************************************
-      SUBROUTINE numerical_flux(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
-     &  hb_in,hb_ex,sfac_in,sfac_ex, nx, ny, f_hat, g_hat, h_hat)
+      pure function numerical_flux(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
+     &  hb_in,hb_ex,sfac_in,sfac_ex, nx, ny, G)
 !$acc routine
       
 C.....Use appropriate modules
@@ -38,18 +38,19 @@ C.....Use appropriate modules
       use fparser
       use fparser2
 
-      USE GLOBAL, only : G, nleq, leq, nleqg, g2root, ifnlfa, ifnlct
+      USE GLOBAL, only : nleq, leq, g2root, ifnlfa, ifnlct
       USE DG, only : fg_l
       use sizes, only: layers, sz
 
       IMPLICIT NONE
 
       real(sz), intent(in) :: ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
-     &  hb_in,hb_ex,sfac_in,sfac_ex, nx, ny
-      real(sz), intent(out) :: f_hat, g_hat, h_hat
+     &  hb_in,hb_ex,sfac_in,sfac_ex, nx, ny, G
+      real(sz) :: numerical_flux(3)
 
 C.....Declare local variables
 
+      real(sz) :: f_hat, g_hat, h_hat
       REAL(SZ) C_ROE,U_ROE,V_ROE,EIGVAL(4),RI(4,4),LE(4,4),A_ROE(4,4), jump(3)
       real(sz) :: u_in, u_ex, v_in, v_ex, ht_in, ht_ex, f_avg, g_avg, h_avg
       real(sz) :: fx_in, fx_ex, fy_in, fy_ex, gx_in, gx_ex, gy_in, gy_ex
@@ -64,6 +65,9 @@ C.....Declare local variables
       Real(SZ) chi,alpha_0,beta_0,gamma1,gamma2,gamma3,gamma4
       Real(SZ) iot,iot2,iot3,iot4,iot5,J6,J7,J8,bigA,bigB
       Real(SZ) bigD,bigE,bigF,J9,epsilon,test_g,xi
+      real(sz) nleqg
+
+      NLEQG = NLEQ * G
       
 C.....Compute the total height of the water column
 
@@ -726,8 +730,10 @@ C.....Compute upwinding scheme for chem and tracer
       endif
 #endif
 
-      RETURN
-      END SUBROUTINE
+      numerical_flux(1) = f_hat
+      numerical_flux(2) = g_hat
+      numerical_flux(3) = h_hat
+      end function
 #elif _FLUX == 2
 
 C***********************************************************************
@@ -741,26 +747,27 @@ C     Written by Ethan Kubatko (07-15-2005)
 C     
 C***********************************************************************
 
-      SUBROUTINE numerical_FLUX(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
-     &  hb_in,hb_ex,sfac_in,sfac_ex, nx, ny, f_hat, g_hat, h_hat)
+      pure function numerical_FLUX(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
+     &  hb_in,hb_ex,sfac_in,sfac_ex, nx, ny, G)
 !$acc routine
 
 C.....Use appropriate modules
 
-      USE GLOBAL, only : G, nleq, leq, nleqg
+      USE GLOBAL, only :  nleq, leq
       USE DG, only : fg_l
       use sizes, only: layers, sz
 
       IMPLICIT NONE
 
       real(sz), intent(in) :: ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
-     &  hb_in,hb_ex,sfac_in,sfac_ex, nx, ny
-      real(sz), intent(out) :: f_hat, g_hat, h_hat
-
+     &  hb_in,hb_ex,sfac_in,sfac_ex, nx, ny,G
+      !real(sz), intent(out) :: f_hat, g_hat, h_hat
+      real(sz) :: numerical_flux(3)
 
 C.....Declare local variables
 
       INTEGER II,l
+      real(sz)  :: f_hat, g_hat, h_hat
       REAL(SZ) EIGVALS(6), jump(3), u_in, v_in, u_ex, v_ex, ht_in, ht_ex
       REAL(SZ) EIGMAX, IDEPTH, HUU, HUV, HVV, GH2
       REAL(SZ) C_EX, C_IN, UN_EX, UN_IN, U_AVG, V_AVG, VEL_NORMAL
@@ -774,6 +781,9 @@ C.....Declare local variables
       Real(SZ) discharge_modelY_IN,discharge_modelY_EX
       Real(SZ) rVncU,rVncV,lambda1_IN,lambda1_EX,lambda2_IN,lambda2_EX
       Real(SZ) lambda3_IN,lambda3_EX,Select_IN,Select_EX
+      real(sz) nleqg
+
+      NLEQG = G * NLEQ
 
 C.....Compute the jump in the variables
 
@@ -886,6 +896,10 @@ C.....Compute the Local Lax Friedrichs Fluxes
       F_HAT = F1_AVG - 0.5D0*EIGMAX*(JUMP(1))
       G_HAT = F2_AVG - 0.5D0*EIGMAX*(JUMP(2)*NX2 + LEQ*JUMP(3)*NXY)
       H_HAT = F3_AVG - 0.5D0*EIGMAX*(JUMP(3)*NY2 + LEQ*JUMP(2)*NXY)
+
+      numerical_flux(1) = f_hat
+      numerical_flux(2) = g_hat
+      numerical_flux(3) = h_hat
 
 #ifdef SED_LAY !this is not well-tested!
 
@@ -1005,7 +1019,7 @@ C.....Compute chem and tracer upwinding
 #endif
 
       RETURN
-      END SUBROUTINE
+      END function
 #elif _FLUX == 3      
 C***********************************************************************
 C     
