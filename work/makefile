@@ -81,6 +81,7 @@ RAIN_MSRC = precipitation.F
 OWIRAIN_MSRC = owi_rain.F
 C_MSRC = c_interface.F90
 FLUX_MSRC = numerical_flux.F
+OWIWIND_MSRC = owiwind.F
 
 PREP_MOBJ:= $(patsubst %.F, $(O_DIR)%.o, $(PREP_MSRC) )
 PGLO_MOBJ:= $(patsubst %.F, $(O_DIR)%.o, $(PGLO_MSRC) )
@@ -97,6 +98,7 @@ FLUX_MOBJ := $(patsubst %.F, $(O_DIR)%.o, $(FLUX_MSRC)  )
 RAIN_MOBJ := $(patsubst %.F, $(O_DIR)%.o, $(RAIN_MSRC)  )
 C_MOBJ := $(patsubst %.F90, $(O_DIR)%.o, $(C_MSRC)  )
 OWIRAIN_MOBJ := $(patsubst %.F, $(O_DIR)%.o, $(OWIRAIN_MSRC)  )
+OWIWIND_MOBJ := $(patsubst %.F, $(O_DIR)%.o, $(OWIWIND_MSRC)  )
 
 ############################# Source & Object Files ##############################
 
@@ -104,7 +106,7 @@ METIS1_SRC =  metis.F
 METIS2_SRC =  metis2.F
 PREP_SRC   =  adcprep.F  decomp.F   read_global.F   prep.F   interp.F  machdep.F
 POST_SRC   =  adcpost.F    post.F  compare.F  diffmerge.F
-ADC_SRC    =  dgswem.F owiwind.F read_input.F cstart.F hstart.F radiation_edge_hydro.F \
+ADC_SRC    =  dgswem.F read_input.F cstart.F hstart.F radiation_edge_hydro.F \
 	ibarrier_edge_hydro.F ebarrier_edge_hydro.F  \
 	calc_normal.F create_edge_data.F detector.F \
 	DG_timestep.F DG_hydro_timestep.F \
@@ -320,8 +322,8 @@ $(O_DIR)owi_rain.o                      :  owi_rain.F $(ADC_MOBJ) $(MSG_MOBJ)
 
 $(O_DIR)owiwind.o   			:  owiwind.F $(ADC_MOBJ) $(MSG_MOBJ)
 $(O_DIR)read_input.o  			:  read_input.F $(ADC_MOBJ) $(HARM_MOBJ) $(WIND_MOBJ)
-$(O_DIR)cstart.o      			:  cstart.F $(ADC_MOBJ)  $(HARM_MOBJ)  $(WIND_MOBJ)
-$(O_DIR)hstart.o      			:  hstart.F $(ADC_MOBJ)  $(HARM_MOBJ)  $(WIND_MOBJ)
+$(O_DIR)cstart.o      			:  cstart.F $(ADC_MOBJ)  $(HARM_MOBJ)  $(WIND_MOBJ) $(OWIWIND_MOBJ)
+$(O_DIR)hstart.o      			:  hstart.F $(ADC_MOBJ)  $(HARM_MOBJ)  $(WIND_MOBJ) $(OWIWIND_MOBJ)
 $(O_DIR)dgswem.o      			:  dgswem.F $(ADC_MOBJ)  $(HARM_MOBJ) $(WIND_MOBJ) $(OWIRAIN_MOBJ) $(MSG_MOBJ)
 $(O_DIR)calc_normal.o         	:  calc_normal.F $(ADC_MOBJ)
 $(O_DIR)create_edge_data.o    	:  create_edge_data.F $(ADC_MOBJ) $(C_MOBJ) $(O_DIR)count_edges.o $(MSG_MOBJ)
@@ -352,7 +354,7 @@ $(O_DIR)slopelimiter.o              :  slopelimiter.F  $(ADC_MOBJ) $(MSG_MOBJ)
 $(O_DIR)prep_slopelim.o             :  prep_slopelim.F  $(ADC_MOBJ)
 $(O_DIR)wetdry.o                    :  wetdry.F  $(ADC_MOBJ)
 $(O_DIR)LDG_hydro.o                 :  LDG_hydro.F  $(ADC_MOBJ) $(FLUX_MOBJ) $(MSG_MOBJ)
-$(O_DIR)met_forcing.o               :  met_forcing.F  $(ADC_MOBJ) $(WIND_MOBJ)
+$(O_DIR)met_forcing.o               :  met_forcing.F  $(ADC_MOBJ) $(WIND_MOBJ) $(OWIWIND_MOBJ)
 $(O_DIR)sta_basis.o                 :  sta_basis.F  $(ADC_MOBJ)
 $(O_DIR)modal2nodal.o               :  modal2nodal.F  $(ADC_MOBJ)
 $(O_DIR)write_output.o              :  write_output.F $(O_DIR)sizes.o
