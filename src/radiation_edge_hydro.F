@@ -37,6 +37,7 @@ C.....Declare local variables
       REAL(SZ) LZ_XX_IN, LZ_XY_IN, LZ_YX_IN, LZ_YY_IN
       Real(sz) HZ_X_IN,HZ_Y_IN,TZ_X_IN,TZ_Y_IN
       Real(SZ) MZ_X_IN(layers),MZ_Y_IN(layers)
+      real(sz) :: fluxes(3)
 
       test_el = 0
       DO 1000 L = 1,NREDS
@@ -214,8 +215,11 @@ C.....Compute the x and y components of the external state flow
 
 C.....Compute the flux
 
-            call numerical_flux(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
-     &  hb_in,hb_ex,sfac_in,sfac_ex,nx,ny,f_hat,g_hat,h_hat)
+            fluxes = numerical_flux(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
+     &  hb_in,hb_ex,sfac_in,sfac_ex,nx,ny,G)
+            f_hat = fluxes(1)
+            g_hat = fluxes(2)
+            h_hat = fluxes(3)
             
 C.....Compute the edge integral
 

@@ -38,14 +38,14 @@ C.....Declare local variables
 
       real(sz) :: ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
      &  hb_in,hb_ex,sfac_in,sfac_ex, nx, ny
-      real(sz) :: f_hat, g_hat, h_hat
+      real(sz) :: f_hat, g_hat, h_hat, fluxes(3)
       INTEGER L, LED, GED, i,k,jj,II,ll,IT,mm
       Real(SZ) DEN2,U_AVG,V_AVG,VEL_NORMAL,q_RoeX, q_RoeY, q_Roe
       REAL(SZ) TX, TY, DEN,ell_1,ell_2,ell_3,HZ_X_IN,HZ_Y_IN
       REAL(SZ) LZ_XX_IN, LZ_XY_IN, LZ_YX_IN, LZ_YY_IN,W_IN
       Real(SZ) MZ_X_IN(layers),MZ_Y_IN(layers),TZ_X_IN,TZ_Y_IN
 
-!$acc parallel loop gang vector async(1) default(present)
+!$acc parallel loop gang vector private(fluxes) async(1) default(present)
       DO 1000 L = 1,NLEDS
          
 C.....Retrieve the global and local edge number
@@ -237,9 +237,12 @@ C.....Compute the x and y components of the external state flow
 
 C.....Compute the Roe flux
 
-            call numerical_flux(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
-     &  hb_in,hb_ex,sfac_in,sfac_ex,nx,ny,f_hat,g_hat,h_hat)
 
+            fluxes = numerical_flux(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
+     &  hb_in,hb_ex,sfac_in,sfac_ex,nx,ny,G)
+            f_hat = fluxes(1)
+            g_hat = fluxes(2)
+            h_hat = fluxes(3)
 C.....Add LDG terms for viscosity
 
 #ifdef WAVE_DIF

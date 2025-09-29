@@ -14,11 +14,11 @@ C.....Declare local variables
       REAL(SZ) ABOVE, SUBSUP, W_IN, TX, TY
       real(sz) :: ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
      &  hb_in,hb_ex,sfac_in,sfac_ex, nx, ny
-      real(sz) :: f_hat, g_hat, h_hat
+      real(sz) :: f_hat, g_hat, h_hat, fluxes(3)
 
 C.....Loop over the external barrier segments
 
-!$acc parallel loop gang vector async(1) default(present)
+!$acc parallel loop gang vector private(fluxes) async(1) default(present)
       DO 1000 L = 1,NEBSEG
          
 C.......Obtain the global and local edge numbers
@@ -169,8 +169,11 @@ C.........Compute the x and y components of the external state flow
             
 C.........Compute numerical flux
             
-            call numerical_flux(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
-     &  hb_in,hb_ex,sfac_in,sfac_ex,nx,ny,f_hat,g_hat,h_hat)
+            fluxes = numerical_flux(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
+     &  hb_in,hb_ex,sfac_in,sfac_ex,nx,ny,G)
+            f_hat = fluxes(1)
+            g_hat = fluxes(2)
+            h_hat = fluxes(3)
 
 !$acc loop seq
             DO K = 1,DOFS(EL)

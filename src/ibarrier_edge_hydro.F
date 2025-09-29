@@ -47,11 +47,12 @@ C.....Declare local variables
       REAL(SZ) NXB, NYB, NXF, NYF, TXB, TYB, TXF, TYF
       REAL(SZ) QB_N_INT, QF_N_INT, QB_N_EXT, QF_N_EXT
       REAL(SZ) QB_T_INT, QF_T_INT, QB_T_EXT, QF_T_EXT
+      real(sz) :: fluxes(3)
 
 C.....Loop over the internal barrier segments (note: an internal barrier
 C.....segment consists of two internal barrier edges -- a "front" edge &
 C.....a "back" edge.
-!$acc parallel loop gang vector async(1) default(present)
+!$acc parallel loop gang vector private(fluxes) async(1) default(present)
       DO 1000 L = 1,NIBSEG
          
 C.......Obtain the global and local edges of the back and front sides
@@ -334,8 +335,11 @@ C...........Compute the x and y components of the external state flow
 
 C...........Compute the numerical flux
                
-               call numerical_flux(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
-     &  hb_in,hb_ex,sfac_in,sfac_ex,nx,ny,f_hat,g_hat,h_hat)
+            fluxes = numerical_flux(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
+     &  hb_in,hb_ex,sfac_in,sfac_ex,nx,ny,G)
+            f_hat = fluxes(1)
+            g_hat = fluxes(2)
+            h_hat = fluxes(3)
                FB_HAT = F_HAT
                GB_HAT = G_HAT
                HB_HAT = H_HAT
@@ -391,8 +395,11 @@ C...........Compute the numerical flux
                      G_TMP = G
                      G = 0.0
                   ENDIF
-                  call numerical_flux(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
-     &  hb_in,hb_ex,sfac_in,sfac_ex,nx,ny,f_hat,g_hat,h_hat)
+            fluxes = numerical_flux(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
+     &  hb_in,hb_ex,sfac_in,sfac_ex,nx,ny,G)
+            f_hat = fluxes(1)
+            g_hat = fluxes(2)
+            h_hat = fluxes(3)
                   FF_HAT = F_HAT
                   GF_HAT = G_HAT
                   HF_HAT = H_HAT
@@ -463,8 +470,11 @@ C...........Compute the x and y components of the external state flow
                QX_EX = ( TYF*Q_N_EXT - NYF*Q_T_EXT)/(NXF*TYF - NYF*TXF)
                QY_EX = (-TXF*Q_N_EXT + NXF*Q_T_EXT)/(NXF*TYF - NYF*TXF)
 
-               call numerical_flux(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
-     &  hb_in,hb_ex,sfac_in,sfac_ex,nx,ny,f_hat,g_hat,h_hat)
+            fluxes = numerical_flux(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
+     &  hb_in,hb_ex,sfac_in,sfac_ex,nx,ny,G)
+            f_hat = fluxes(1)
+            g_hat = fluxes(2)
+            h_hat = fluxes(3)
                FF_HAT = F_HAT
                GF_HAT = G_HAT
                HF_HAT = H_HAT
@@ -518,8 +528,11 @@ C...........Compute the x and y components of the external state flow
                      G_TMP = G
                      G = 0.0
                   ENDIF
-                  call numerical_flux(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
-     &  hb_in,hb_ex,sfac_in,sfac_ex,nx,ny,f_hat,g_hat,h_hat)
+            fluxes = numerical_flux(ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
+     &  hb_in,hb_ex,sfac_in,sfac_ex,nx,ny,G)
+            f_hat = fluxes(1)
+            g_hat = fluxes(2)
+            h_hat = fluxes(3)
                   FB_HAT = F_HAT
                   GB_HAT = G_HAT
 

@@ -11,11 +11,11 @@ Add tests by specifying as a 4-tuple in test_list:
 4. relative tolerance
 '''
 test_list = [
-    (run_serial, "quarter_annular", 0.05, 0.01),
-    (run_parallel, "quarter_annular", 0.05, 0.01),
-    (run_serial, "wetdry", 0.01, 1e-3),
-    (run_parallel, "wetdry", 0.01, 1e-3),
-    (run_serial, "mass_conservation", 1e-3, 1e-4),
+    (run_serial, "quarter_annular", 0.05, 1e-7),
+    (run_parallel, "quarter_annular", 0.05, 1e-7),
+    (run_serial, "wetdry", 0.01, 1e-7),
+    (run_parallel, "wetdry", 0.01, 1e-7),
+    (run_serial, "mass_conservation", 1e-3, 1e-7),
 ]
 
 @pytest.mark.parametrize("runner, name, atol, rtol", test_list)

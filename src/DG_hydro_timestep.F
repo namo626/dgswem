@@ -229,7 +229,7 @@ C.......Compute external barrier edges
 C.......Compute internal edges
          CALL INTERNAL_EDGE_HYDRO(IT)
          call add_internal_flux()
-
+!$acc wait        
 C.......Compute elements to finish building the rhs
          
          CALL RHS_DG_HYDRO(IT)
