@@ -62,7 +62,8 @@ C.....Loop over the elements
 !$acc+private(L2H,dh_hat,ht_hat,ht_mode,ht_node,qx_hat,qx_node,qy_hat,qy_node,ze_hat,ze_node,u_hat,v_hat)
       DO 100 J = 1,NE
 
-         pa = pdg_el(j)
+         !pa = pdg_el(j)
+         pa = 1
          
 #ifdef P0
          if (pa.eq.0) then
@@ -83,6 +84,8 @@ C.......and count number of dry nodes
          NDRYNODE = 0
          HT_MIN = HUGE
          HT_MAX = ZERO
+         HT_MAX_I = 1
+         HT_MIN_I = 1
 !$acc loop seq
          DO I = 1,NCHECK(pa)
             !

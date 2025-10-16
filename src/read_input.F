@@ -3290,20 +3290,7 @@ C.... THE ELEMENT NO. THE STATION LIES IN
          END DO
 
          IF(NNE(I).EQ.0) THEN
-            IF(NSCREEN.EQ.1.AND.MYPROC.EQ.0) WRITE(6,9784) I
-            WRITE(16,9784) I
- 9784       FORMAT(///,1X,'!!!!!!!!!!  WARNING - NONFATAL ',
-     &           'INPUT ERROR  !!!!!!!!!',//
-     &           ,1X,'ELEVATION RECORDING STATION ',I6,' DOES NOT LIE',
-     &           ' WITHIN ANY ELEMENT IN THE DEFINED',
-     &           /,1X,'COMPUTATIONAL DOMAIN,   PLEASE CHECK THE INPUT',
-     &           ' COORDINATES FOR THIS STATION')
             IF(NFOVER.EQ.1) THEN
-               IF(NSCREEN.EQ.1.AND.MYPROC.EQ.0) WRITE(6,9790) AEMIN
-               WRITE(16,9790) AEMIN
- 9790          FORMAT(/,1X,'PROGRAM WILL ESTIMATE NEAREST ELEMENT',
-     &            /,1X,'PROXIMITY INDEX FOR THIS STATION EQUALS ',E15.6,
-     &              //,1X,'!!!!!! EXECUTION WILL CONTINUE !!!!!!',//)
                NNE(I)=KMIN
             ELSE
                IF(NSCREEN.EQ.1.AND.MYPROC.EQ.0) WRITE(6,9791) AEMIN
@@ -3475,17 +3462,7 @@ C.... THEN COMPUTE ELEMENT NO. WITHIN WHICH STATION LIES
          END DO
 
          IF(NNV(I).EQ.0) THEN
-            IF(NSCREEN.EQ.1.AND.MYPROC.EQ.0) WRITE(6,9786) I
-            WRITE(16,9786) I
- 9786       FORMAT(///,1X,'!!!!!!!!!!  WARNING - NONFATAL ',
-     &           'INPUT ERROR  !!!!!!!!!',//
-     &           ,1X,'VELOCITY RECORDING STATION ',I6,' DOES NOT LIE'
-     &           ,' WITHIN ANY ELEMENT IN THE DEFINED',
-     &           /,1X,'COMPUTATIONAL DOMAIN,   PLEASE CHECK THE INPUT'
-     &           ,' COORDINATES FOR THIS STATION')
             IF(NFOVER.EQ.1) THEN
-               IF(NSCREEN.EQ.1.AND.MYPROC.EQ.0) WRITE(6,9790) AEMIN
-               WRITE(16,9790) AEMIN
                NNV(I)=KMIN
             ELSE
                IF(NSCREEN.EQ.1.AND.MYPROC.EQ.0) WRITE(6,9791) AEMIN
@@ -3661,8 +3638,6 @@ C.....THEN COMPUTE ELEMENT NO. WITHIN WHICH STATION LIES
      &          ' COMPUTATIONAL DOMAIN,   PLEASE CHECK THE INPUT',
      &          ' COORDINATES FOR THIS STATION')
                IF(NFOVER.EQ.1) THEN
-                  IF(NSCREEN.EQ.1.AND.MYPROC.EQ.0) WRITE(6,9790) AEMIN
-                  WRITE(16,9790) AEMIN
                   NNC(I)=KMIN
                ELSE
                   IF(NSCREEN.EQ.1.AND.MYPROC.EQ.0) WRITE(6,9791) AEMIN
@@ -3842,8 +3817,6 @@ C.....THEN COMPUTE ELEMENT NO. WITHIN WHICH STATION LIES
      &          ' COMPUTATIONAL DOMAIN,   PLEASE CHECK THE INPUT',
      &          ' COORDINATES FOR THIS STATION')
                IF(NFOVER.EQ.1) THEN
-                  IF(NSCREEN.EQ.1.AND.MYPROC.EQ.0) WRITE(6,9790) AEMIN
-                  WRITE(16,9790) AEMIN
                   NNM(I)=KMIN
                ELSE
                   IF(NSCREEN.EQ.1.AND.MYPROC.EQ.0) WRITE(6,9791) AEMIN
