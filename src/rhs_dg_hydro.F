@@ -37,7 +37,9 @@ C.....Declare local variables
       real(sz) :: f_hat, g_hat, h_hat
       INTEGER IT
       INTEGER L,k,i,ll
-      REAL(SZ) DPSIDX(3), DPSIDY(3)
+      !REAL(SZ) DPSIDX(3), DPSIDY(3)
+      REAL(SZ) DPSIDX1, dpsidx2, dpsidx3
+      REAL(SZ) DPSIDy1, dpsidy2, dpsidy3
       REAL(SZ) AREA, IMASS, TKX, TKY, Xpart, Ypart,H_0,C_1
       REAL(SZ) PHI_AREA_KI,MN_IN, MassAction1st,MassAction2nd,fx,fy
       REAL(SZ) LZ_XX, LZ_XY, LZ_YX, LZ_YY, rate, s_mass, s_sed,b_0
@@ -54,7 +56,7 @@ C.....Declare local variables
       !print *, "max prec2 = ", maxval(prec2)
 
       DTDPH = 1.0/DTDP
-!$acc parallel loop gang vector private(dpsidx, dpsidy) async(1) default(present)
+!$acc parallel loop gang  vector_length(64) async(1) default(present)
       DO 1000 L = 1, NE
 c     nd
          advectqx(l)=0.0
@@ -80,7 +82,7 @@ C.......Compute rain source term if rain is enabled
             IF (rainfall == 1) SOURCE_R =  7.0556e-6 ! 1 inch/hour
 
             IF (SOURCE_R .GT. 0.0) THEN
-!$acc loop seq
+!!$acc loop seq
               DO I = 1,NAGP(pa)
                 DO K = 1,DOFS(L)
                   RHS_ZE(K,L,IRK) = RHS_ZE(K,L,IRK) +
@@ -114,17 +116,17 @@ C.......These will be used later when bottom friction is computed
 C.......Compute derivatives of Lagrange basis functions at nodes
 
          IF ((NWS.NE.0).OR.(NTIP.NE.0)) THEN
-            DPSIDX(1) = DRPSI(1)*DRDX(L) + DSPSI(1)*DSDX(L)
-            DPSIDX(2) = DRPSI(2)*DRDX(L) + DSPSI(2)*DSDX(L)
-            DPSIDX(3) = DRPSI(3)*DRDX(L) + DSPSI(3)*DSDX(L)
-            DPSIDY(1) = DRPSI(1)*DRDY(L) + DSPSI(1)*DSDY(L)
-            DPSIDY(2) = DRPSI(2)*DRDY(L) + DSPSI(2)*DSDY(L)
-            DPSIDY(3) = DRPSI(3)*DRDY(L) + DSPSI(3)*DSDY(L)
+            DPSIDX1 = DRPSI(1)*DRDX(L) + DSPSI(1)*DSDX(L)
+            DPSIDX2 = DRPSI(2)*DRDX(L) + DSPSI(2)*DSDX(L)
+            DPSIDX3 = DRPSI(3)*DRDX(L) + DSPSI(3)*DSDX(L)
+            DPSIDY1 = DRPSI(1)*DRDY(L) + DSPSI(1)*DSDY(L)
+            DPSIDY2 = DRPSI(2)*DRDY(L) + DSPSI(2)*DSDY(L)
+            DPSIDY3 = DRPSI(3)*DRDY(L) + DSPSI(3)*DSDY(L)
          ENDIF
 
 C.......Compute ZE, QX, QY, and HB at each area Gauss quadrature point
 
-!$acc loop seq
+!!$acc loop seq
          DO I = 1,NAGP(pa)
 
             ZE_IN = ZE(1,L,IRK)
@@ -195,7 +197,7 @@ C.......Compute ZE, QX, QY, and HB at each area Gauss quadrature point
 #endif
 
             SFACQUAD = SFAC_ELEM(I,L,pa)
-
+!$acc loop vector reduction(+:ze_in,qx_in,qy_in)
             DO K = 2,DOFS(L)
 
                ZE_IN = ZE_IN + ZE(K,L,IRK)*PHI_AREA(K,I,pa)
@@ -228,7 +230,6 @@ C.......Compute ZE, QX, QY, and HB at each area Gauss quadrature point
                dynP_IN = dynP_IN + dynP(K,L,IRK)*PHI_AREA(K,I,pa)
 #endif
 
-               DEPTH = ZE_IN + HB_IN
 
 #ifdef SED_LAY
                do ll = 1,layers
@@ -252,6 +253,7 @@ C.........Compute sediment discharge model
 #endif
 
             ENDDO
+            DEPTH = ZE_IN + HB_IN
 
 C.........Compute continuity fluxes
 
@@ -364,12 +366,12 @@ C.........4.) Wind and pressure forcing (in x and y)
                SOURCE_X = SOURCE_X + FW_NL*( WSX2(N1)*PSI1(I,pa)
      &              + WSX2(N2)*PSI2(I,pa)  + WSX2(N3)*PSI3(I,pa) )
      &              - G*SFACQUAD*DEPTH
-     $              *( PR2(N1)*DPSIDX(1)
-     &              + PR2(N2)*DPSIDX(2) + PR2(N3)*DPSIDX(3))
+     $              *( PR2(N1)*DPSIDX1
+     &              + PR2(N2)*DPSIDX2 + PR2(N3)*DPSIDX3)
                SOURCE_Y = SOURCE_Y + FW_NL*( WSY2(N1)*PSI1(I,pa)
      &              + WSY2(N2)*PSI2(I,pa)  + WSY2(N3)*PSI3(I,pa) )
-     &              - G*DEPTH*( PR2(N1)*DPSIDY(1)
-     &              + PR2(N2)*DPSIDY(2) + PR2(N3)*DPSIDY(3))
+     &              - G*DEPTH*( PR2(N1)*DPSIDY1
+     &              + PR2(N2)*DPSIDY2 + PR2(N3)*DPSIDY3)
             ENDIF
 
 
@@ -378,11 +380,11 @@ C.........5) Tidal potential forcing (in x and y)
             IF (NTIP.NE.0) THEN
 
                SOURCE_X = SOURCE_X +
-     $              RAMPDG*G*DEPTH*SFACQUAD*( DPSIDX(1)*TIP2(N1)
-     &              + DPSIDX(2)*TIP2(N2) + DPSIDX(3)*TIP2(N3) )
+     $              RAMPDG*G*DEPTH*SFACQUAD*( DPSIDX1*TIP2(N1)
+     &              + DPSIDX2*TIP2(N2) + DPSIDX3*TIP2(N3) )
 
-               SOURCE_Y = SOURCE_Y + RAMPDG*G*DEPTH*( DPSIDY(1)*TIP2(N1)
-     &              + DPSIDY(2)*TIP2(N2) + DPSIDY(3)*TIP2(N3) )
+               SOURCE_Y = SOURCE_Y + RAMPDG*G*DEPTH*( DPSIDY1*TIP2(N1)
+     &              + DPSIDY2*TIP2(N2) + DPSIDY3*TIP2(N3) )
             ENDIF
 
             sourceqx(l)=sourceqx(l)+source_x
@@ -415,8 +417,8 @@ C.........Build the rhs
             RHS_QX(1,L,IRK) = RHS_QX(1,L,IRK) + SRFAC(1,I,L,pa)*SOURCE_X
             RHS_QY(1,L,IRK) = RHS_QY(1,L,IRK) + SRFAC(1,I,L,pa)*SOURCE_Y
 
-!$acc loop seq
-            DO K = 2,DOFS(L)
+!$acc loop vector
+            DO K = 2,DOFH
 
                RHS_ZE(K,L,IRK) = RHS_ZE(K,L,IRK) + XFAC(K,I,L,pa)*FX_IN
      &                + YFAC(K,I,L,pa)*FY_IN
