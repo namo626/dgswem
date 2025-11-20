@@ -56,12 +56,12 @@ C.....Declare local variables
       REAL(SZ) HZ_X_EX, HZ_Y_EX, HZ_X_IN, HZ_Y_IN
       REAL(SZ) TZ_X_EX, TZ_Y_EX, TZ_X_IN, TZ_Y_IN
       REAL(SZ) EDFAC_IN, EDFAC_EX, DEN
-      real(sz) :: ze_ins(3), ze_exs(3), qx_ins(3), qx_exs(3), qy_ins(3), qy_exs(3)
+      real(sz) :: ze_ins(DOFH), ze_exs(DOFH), qx_ins(DOFH), qx_exs(DOFH), qy_ins(DOFH), qy_exs(DOFH)
       REAL(SZ) XLEN_EL_IN, XLEN_EL_EX
       REAL(SZ) MASS_EL_IN, MASS_EL_EX
       REAL(SZ)  ::
-     &     RHS_ZE_IN(3), RHS_QX_IN(3), RHS_QY_IN(3),
-     &     RHS_ZE_EX(3), RHS_QX_EX(3), RHS_QY_EX(3)
+     &     RHS_ZE_IN(DOFH), RHS_QX_IN(DOFH), RHS_QY_IN(DOFH),
+     &     RHS_ZE_EX(DOFH), RHS_QX_EX(DOFH), RHS_QY_EX(DOFH)
 #ifdef TRACE
      &     ,RHS_iota_IN(:), RHS_iota_EX(:)
 #endif
@@ -303,7 +303,7 @@ C........Check to make sure mass flux is not coming from a dry element
 
 C.....Compute the edge integral
 
-            DO K = 1,3
+            DO K = 1,DOFH
 
                W_IN = EDFAC_IN*EDGEQ(K,GP_IN,LED_IN,pa)
                W_EX = EDFAC_EX*EDGEQ(K,GP_EX,LED_EX,pa)
@@ -334,7 +334,7 @@ C.....Compute the edge integral
       enddo
 
 
-      do k = 1,3
+      do k = 1,DOFH
          ze_edge(el_ex,ind_ex,k) = rhs_ze_ex(k)
          qx_edge(el_ex,ind_ex,k) = rhs_qx_ex(k)
          qy_edge(el_ex,ind_ex,k) = rhs_qy_ex(k)
@@ -357,7 +357,7 @@ C.....Compute the edge integral
       integer :: l, k, i
 !$acc parallel loop gang vector async(1) default(present)
       do l = 1,NE
-         do k = 1,3
+         do k = 1,DOFH
             ze_sum = 0.
             qx_sum = 0.
             qy_sum = 0.

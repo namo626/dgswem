@@ -64,11 +64,20 @@ C.....Declare local variables
       elseif (IM .eq. 2) then
          DIM = 3
       endif
+C.....Compute the degrees of freedom per element
+
+      DOF = (pl+1)*(pl+2)/2
+      dofx = (px+1)*(px+2)/2    ! dofx for variable functions f=f(x) 
+      P_0 = pl
+      DOF_0 = (pl+1)*(pl+2)/2   ! dof at lowest order when p!=0
+      dofh = (ph + 1)*(ph + 2)/2
+
       Allocate ( XBCbt(MNE),YBCbt(MNE),radial(MNE),XB(MNE),YB(MNE),
      & l2e(MNE) )
-      Allocate ( iota_check(MNE),iota_check2(MNE),hbo(36,MNE,1),
-     & ydubo(36,mne) ) 
-      Allocate ( YELEM(ph),YED(ph),hb1(36,mne,1,ph), zeo(36,mne,1), 
+      Allocate ( iota_check(MNE),iota_check2(MNE),hbo(dofh,MNE,1),
+     & ydubo(dofh,mne) ) 
+      ALLOCATE ( YDUB(DOFH,MNE,8))
+      Allocate ( YELEM(ph),YED(ph),hb1(dofh,mne,1,ph), zeo(dofh,mne,1), 
      & BARY(DIM) )
       Allocate ( PT(DIM) )
 
@@ -82,13 +91,6 @@ C.....Obtain RK time scheme parameters
 
       CALL RK_TIME()
       
-C.....Compute the degrees of freedom per element
-
-      DOF = (pl+1)*(pl+2)/2
-      dofx = (px+1)*(px+2)/2    ! dofx for variable functions f=f(x) 
-      P_0 = pl
-      DOF_0 = (pl+1)*(pl+2)/2   ! dof at lowest order when p!=0
-      dofh = (ph + 1)*(ph + 2)/2
 
 
 C.....Allocate some DG stuff
@@ -675,9 +677,9 @@ C...........point, order basis functions hierarchically
                DRPHI(1:SZ2,Q,P) = DBASIS(:,1)
                DSPHI(1:SZ2,Q,P) = DBASIS(:,2)
             elseif (Q.eq.NAGP(L)+1) then
-               PHI_CENTER(:,P) = BASIS
+               PHI_CENTER(1:sz2,P) = BASIS
             else
-               PHI_CORNER(:,Q - NAGP(L)-1,P) = BASIS
+               PHI_CORNER(1:sz2,Q - NAGP(L)-1,P) = BASIS
             endif
          enddo
          Deallocate ( BASIS, DBASIS )
@@ -829,9 +831,9 @@ C..............Evaluate basis functions for specified element at current
 C..............point, order basis functions hierarchically   
                call ORTHOGONAL_BASIS(ELEM,PT,P,DIM,BASIS,DBASIS)
                if (Q.le.NEGP(L)) then
-                  PHI_EDGE(:,Q,II,P) = BASIS
+                  PHI_EDGE(1:sz2,Q,II,P) = BASIS
                else
-                  PHI_MID(:,II,P) = BASIS
+                  PHI_MID(1:sz2,II,P) = BASIS
                endif
             enddo
 
