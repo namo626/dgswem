@@ -56,7 +56,8 @@ C.....Declare local variables
       !print *, "max prec2 = ", maxval(prec2)
 
       DTDPH = 1.0/DTDP
-!$acc parallel loop gang  vector_length(64) async(1) default(present)
+!!$acc parallel loop gang  vector_length(64) async(1) default(present)
+!$acc parallel loop gang vector async(1) default(present)
       DO 1000 L = 1, NE
 c     nd
          advectqx(l)=0.0
@@ -126,7 +127,7 @@ C.......Compute derivatives of Lagrange basis functions at nodes
 
 C.......Compute ZE, QX, QY, and HB at each area Gauss quadrature point
 
-!!$acc loop seq
+!$acc loop seq
          DO I = 1,NAGP(pa)
 
             ZE_IN = ZE(1,L,IRK)
@@ -197,7 +198,8 @@ C.......Compute ZE, QX, QY, and HB at each area Gauss quadrature point
 #endif
 
             SFACQUAD = SFAC_ELEM(I,L,pa)
-!$acc loop vector reduction(+:ze_in,qx_in,qy_in)
+!!$acc loop vector reduction(+:ze_in,qx_in,qy_in)
+!$acc loop seq
             DO K = 2,DOFS(L)
 
                ZE_IN = ZE_IN + ZE(K,L,IRK)*PHI_AREA(K,I,pa)
@@ -417,7 +419,8 @@ C.........Build the rhs
             RHS_QX(1,L,IRK) = RHS_QX(1,L,IRK) + SRFAC(1,I,L,pa)*SOURCE_X
             RHS_QY(1,L,IRK) = RHS_QY(1,L,IRK) + SRFAC(1,I,L,pa)*SOURCE_Y
 
-!$acc loop vector
+!!$acc loop vector
+!$acc loop seq
             DO K = 2,DOFH
 
                RHS_ZE(K,L,IRK) = RHS_ZE(K,L,IRK) + XFAC(K,I,L,pa)*FX_IN
