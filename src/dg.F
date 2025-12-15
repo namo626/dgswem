@@ -178,8 +178,8 @@ C.....Declare allocatable real arrays
       REAL(SZ), ALLOCATABLE :: XEGP(:,:), YEGP(:,:), WEGP(:,:)
       REAL(SZ), ALLOCATABLE :: SL3(:,:)
       REAL(SZ), ALLOCATABLE :: XBC(:), YBC(:)
-      REAL(SZ), ALLOCATABLE :: XFAC(:,:,:,:), YFAC(:,:,:,:),
-     & SRFAC(:,:,:,:)
+      REAL(SZ), ALLOCATABLE :: xfac(:,:,:,:), yfac(:,:,:,:),
+     & srfac(:,:,:,:)
       REAL(SZ), ALLOCATABLE :: EDGEQ(:,:,:,:)
       REAL(SZ), ALLOCATABLE :: PHI(:), DPHIDZ1(:), DPHIDZ2(:)
       REAL(SZ), ALLOCATABLE :: PHI_STAE(:,:), PHI_STAV(:,:)

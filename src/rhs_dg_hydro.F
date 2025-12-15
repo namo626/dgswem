@@ -87,7 +87,7 @@ C.......Compute rain source term if rain is enabled
               DO I = 1,NAGP(pa)
                 DO K = 1,DOFS(L)
                   RHS_ze(L,K,IRK) = RHS_ze(L,K,IRK) +
-     &                 SRFAC(K,I,L,pa)*SOURCE_R
+     &                 srfac(L,K,I,pa)*SOURCE_R
                 END DO
               END DO
             END IF
@@ -410,33 +410,33 @@ C.........6) Chemical mass action
 C.........Build the rhs
 
             RHS_iota(1,L,IRK) = RHS_iota(1,L,IRK)
-     &           + MassAction1st*SRFAC(1,I,L,pa)*FH_NL
+     &           + MassAction1st*srfac(L,1,I,pa)*FH_NL
             RHS_iota2(1,L,IRK) = RHS_iota2(1,L,IRK)
-     &           + MassAction2nd*SRFAC(1,I,L,pa)*FH_NL
+     &           + MassAction2nd*srfac(L,1,I,pa)*FH_NL
 #endif
 
 
-            RHS_qx(L,1,IRK) = RHS_qx(L,1,IRK) + SRFAC(1,I,L,pa)*SOURCE_X
-            RHS_qy(L,1,IRK) = RHS_qy(L,1,IRK) + SRFAC(1,I,L,pa)*SOURCE_Y
+            RHS_qx(L,1,IRK) = RHS_qx(L,1,IRK) + srfac(L,1,I,pa)*SOURCE_X
+            RHS_qy(L,1,IRK) = RHS_qy(L,1,IRK) + srfac(L,1,I,pa)*SOURCE_Y
 
 !!$acc loop vector
 !$acc loop seq
             DO K = 2,DOFH
 
-               RHS_ze(L,K,IRK) = RHS_ze(L,K,IRK) + XFAC(K,I,L,pa)*FX_IN
-     &                + YFAC(K,I,L,pa)*FY_IN
-               RHS_qx(L,K,IRK) = RHS_qx(L,K,IRK) + XFAC(K,I,L,pa)*GX_IN
-     &              + YFAC(K,I,L,pa)*GY_IN + SRFAC(K,I,L,pa)*SOURCE_X
-               RHS_qy(L,K,IRK) = RHS_qy(L,K,IRK) + XFAC(K,I,L,pa)*HX_IN
-     &              + YFAC(K,I,L,pa)*HY_IN + SRFAC(K,I,L,pa)*SOURCE_Y
+               RHS_ze(L,K,IRK) = RHS_ze(L,K,IRK) + xfac(L,K,I,pa)*FX_IN
+     &                + yfac(L,K,I,pa)*FY_IN
+               RHS_qx(L,K,IRK) = RHS_qx(L,K,IRK) + xfac(L,K,I,pa)*GX_IN
+     &              + yfac(L,K,I,pa)*GY_IN + srfac(L,K,I,pa)*SOURCE_X
+               RHS_qy(L,K,IRK) = RHS_qy(L,K,IRK) + xfac(L,K,I,pa)*HX_IN
+     &              + yfac(L,K,I,pa)*HY_IN + srfac(L,K,I,pa)*SOURCE_Y
 
 #ifdef SED_LAY
 
                do ll = 1,layers !only really makes sense for single layer
 
                   RHS_bed(K,L,IRK,ll) = RHS_bed(K,L,IRK,ll)
-     &                 + XFAC(K,I,L,pa)*(discharge_modelX_IN+MZ_X(ll)*
-     &                 SFACQUAD) + YFAC(K,I,L,pa)*
+     &                 + xfac(L,K,I,pa)*(discharge_modelX_IN+MZ_X(ll)*
+     &                 SFACQUAD) + yfac(L,K,I,pa)*
      &                 (discharge_modelY_IN+MZ_Y(ll))
 
                enddo
@@ -444,27 +444,27 @@ C.........Build the rhs
 
 #ifdef TRACE
                RHS_iota(K,L,IRK) = RHS_iota(K,L,IRK)
-     &             + XFAC(K,I,L,pa)*(iota_IN*QX_IN*FH_NL+TZ_X*SFACQUAD)
-     &             + YFAC(K,I,L,pa)*(iota_IN*QY_IN*FH_NL+TZ_Y)
+     &             + xfac(L,K,I,pa)*(iota_IN*QX_IN*FH_NL+TZ_X*SFACQUAD)
+     &             + yfac(L,K,I,pa)*(iota_IN*QY_IN*FH_NL+TZ_Y)
 #endif
 
 #ifdef CHEM
                RHS_iota(K,L,IRK) = RHS_iota(K,L,IRK)
-     &              + XFAC(K,I,L,pa)*iota_IN*QX_IN*FH_NL
-     &              + YFAC(K,I,L,pa)*iota_IN*QY_IN*FH_NL
-     &              + MassAction1st*SRFAC(K,I,L,pa)*FH_NL
+     &              + xfac(L,K,I,pa)*iota_IN*QX_IN*FH_NL
+     &              + yfac(L,K,I,pa)*iota_IN*QY_IN*FH_NL
+     &              + MassAction1st*srfac(L,K,I,pa)*FH_NL
 
                RHS_iota2(K,L,IRK) = RHS_iota2(K,L,IRK)
-     &              + XFAC(K,I,L,pa)*iota2_IN*QX_IN*FH_NL
-     &              + YFAC(K,I,L,pa)*iota2_IN*QY_IN*FH_NL
-     &              + MassAction2nd*SRFAC(K,I,L,pa)*FH_NL
+     &              + xfac(L,K,I,pa)*iota2_IN*QX_IN*FH_NL
+     &              + yfac(L,K,I,pa)*iota2_IN*QY_IN*FH_NL
+     &              + MassAction2nd*srfac(L,K,I,pa)*FH_NL
 #endif
 
 #ifdef DYNP
                RHS_dynP(K,L,IRK) = RHS_dynP(K,L,IRK)
-     &              + XFAC(K,I,L,pa)*dynP_IN*QX_IN*FH_NL
-     &              + YFAC(K,I,L,pa)*dynP_IN*QY_IN*FH_NL
-     &              + subphi_IN*SRFAC(K,I,L,pa)*FH_NL
+     &              + xfac(L,K,I,pa)*dynP_IN*QX_IN*FH_NL
+     &              + yfac(L,K,I,pa)*dynP_IN*QY_IN*FH_NL
+     &              + subphi_IN*srfac(L,K,I,pa)*FH_NL
 #endif
 
             ENDDO
