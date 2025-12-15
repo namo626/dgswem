@@ -79,7 +79,7 @@ C.....to single nodal values
                if (NM(NBOR_EL,K) .eq. I) exit
             end do
 
-            ZE_DG = ZE(1,NBOR_EL,1)
+            ZE_DG = ze(NBOR_EL,1,1)
             QX_DG = QX(1,NBOR_EL,1)
             QY_DG = QY(1,NBOR_EL,1)
             HB_DG = HB(1,NBOR_EL,1)
@@ -105,7 +105,7 @@ C.....to single nodal values
 
 
             DO KK = 2,DOFH
-               ZE_DG = ZE_DG+PHI_CORNER(KK,K,ph)*ZE(KK,NBOR_EL,1)
+               ZE_DG = ZE_DG+PHI_CORNER(KK,K,ph)*ze(NBOR_EL,KK,1)
                QX_DG = QX_DG+PHI_CORNER(KK,K,ph)*QX(KK,NBOR_EL,1)
                QY_DG = QY_DG+PHI_CORNER(KK,K,ph)*QY(KK,NBOR_EL,1)
 
@@ -596,7 +596,7 @@ C.....Write DG.63 results
               
                DO J = 1,NE
                  DO K = 1,DOF
-                   WRITE(631,*) J, ZE(K,J,1)
+                   WRITE(631,*) J, ze(J,K,1)
                  ENDDO
                ENDDO
 
@@ -1215,7 +1215,7 @@ C.....If applicable write out a DG hot start
 
             DO J = 1,MNE
                DO K = 1,DOF
-                  WRITE(263,*) ZE(K,J,1)
+                  WRITE(263,*) ze(J,K,1)
                   WRITE(264,*) QX(K,J,1), QY(K,J,1)
                   WRITE(214,*) HB(K,J,1), WDFLG(J)
 #ifdef TRACE
@@ -1271,11 +1271,11 @@ C          QX_DG(1) = 0.0
 C          QY_DG(1) = 0.0
 C
 C          DO K=1,DOF
-C            ZE_DG(1) = ZE_DG(1) + PHI_CENTER(K)*ZE(K,J,1)
+C            ZE_DG(1) = ZE_DG(1) + PHI_CENTER(K)*ze(J,K,1)
 C            QX_DG(1) = QX_DG(1) + PHI_CENTER(K)*QX(K,J,1)
 C            QY_DG(1) = QY_DG(1) + PHI_CENTER(K)*QY(K,J,1)
 C
-C            WRITE(88,*) ZE(K,J,1),QX(K,J,1),QY(K,J,1)
+C            WRITE(88,*) ze(J,K,1),QX(K,J,1),QY(K,J,1)
 C
 C          ENDDO
 C
@@ -1312,7 +1312,7 @@ C      WRITE(632,3645) 1, DOF, DTDP*NSPOOLGE, NSPOOLGE, 1
 C      WRITE(632,2120) 0.0, 1
 C      DO J = 1,NE
 C        DO K = 1,DOF
-C          WRITE(632,2453) J, ZE(K,J,1)
+C          WRITE(632,2453) J, ze(J,K,1)
 C        ENDDO
 C      ENDDO
       

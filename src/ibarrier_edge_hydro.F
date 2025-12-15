@@ -116,12 +116,12 @@ C.......Compute the variables at the quadrature points
             
 C.........Obtain the height of the barrier at the quadrature point
 
-            ZEB = ZE(1,ELB,IRK)
+            ZEB = ze(ELB,1,IRK)
             QXB = QX(1,ELB,IRK)
             QYB = QY(1,ELB,IRK)
             HBB = BATHED(GPB,LEDB,ELB,pa)
             
-            ZEF = ZE(1,ELF,IRK)
+            ZEF = ze(ELF,1,IRK)
             QXF = QX(1,ELF,IRK)
             QYF = QY(1,ELF,IRK)
             HBF = BATHED(GPF,LEDF,ELF,pa)
@@ -160,12 +160,12 @@ C.........Obtain the height of the barrier at the quadrature point
 
 !$acc loop seq
             DO K = 2,dofs(EL)
-               ZEB = ZEB + ZE(K,ELB,IRK)*PHI_EDGE(K,GPB,LEDB,pa)
+               ZEB = ZEB + ze(ELB,K,IRK)*PHI_EDGE(K,GPB,LEDB,pa)
                QXB = QXB + QX(K,ELB,IRK)*PHI_EDGE(K,GPB,LEDB,pa)
                QYB = QYB + QY(K,ELB,IRK)*PHI_EDGE(K,GPB,LEDB,pa)
                                 !HBB = HBB + HB(K,ELB,1  )*PHI_EDGE(K,GPB,LEDB,pa)
 
-               ZEF = ZEF + ZE(K,ELF,IRK)*PHI_EDGE(K,GPF,LEDF,pa)
+               ZEF = ZEF + ze(ELF,K,IRK)*PHI_EDGE(K,GPF,LEDF,pa)
                QXF = QXF + QX(K,ELF,IRK)*PHI_EDGE(K,GPF,LEDF,pa)
                QYF = QYF + QY(K,ELF,IRK)*PHI_EDGE(K,GPF,LEDF,pa)
                                 !HBF = HBF + HB(K,ELF,1  )*PHI_EDGE(K,GPF,LEDF,pa)
@@ -569,14 +569,14 @@ c
      &              *PHI_EDGE(K,GPF,LEDF,pa)*WEGP(GPF,pa)
 
 !$acc atomic
-               RHS_ZE(K,ELB,IRK) = RHS_ZE(K,ELB,IRK) - WEGPB*FB_HAT
+               RHS_ze(ELB,K,IRK) = RHS_ze(ELB,K,IRK) - WEGPB*FB_HAT
 !$acc atomic
                RHS_QX(K,ELB,IRK) = RHS_QX(K,ELB,IRK) - WEGPB*GB_HAT
 !$acc atomic
                RHS_QY(K,ELB,IRK) = RHS_QY(K,ELB,IRK) - WEGPB*HB_HAT
 
 !$acc atomic
-               RHS_ZE(K,ELF,IRK) = RHS_ZE(K,ELF,IRK) - WEGPF*FF_HAT
+               RHS_ze(ELF,K,IRK) = RHS_ze(ELF,K,IRK) - WEGPF*FF_HAT
 !$acc atomic
                RHS_QX(K,ELF,IRK) = RHS_QX(K,ELF,IRK) - WEGPF*GF_HAT
 !$acc atomic

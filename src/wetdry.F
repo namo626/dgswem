@@ -89,10 +89,10 @@ C.......and count number of dry nodes
 !$acc loop seq
          DO I = 1,NCHECK(pa)
             !
-            ZE_NODE(I,pa) = ZE(1,J,IRK+1)
+            ZE_NODE(I,pa) = ze(J,1,IRK+1)
             DO K = 2,DOFS(J)
                ZE_NODE(I,pa) = ZE_NODE(I,pa) +
-     & PHI_CHECK(K,I,pa)*ZE(K,J,IRK+1)
+     & PHI_CHECK(K,I,pa)*ze(J,K,IRK+1)
                                 ! print*,phi_check(k,i,pa),k,i,pa
             ENDDO
             HT_NODE(I) = ZE_NODE(I,pa) + DP_NODE(I,J,pa)
@@ -180,25 +180,25 @@ C.........water depth at all points = average water depth
             IF (pa.EQ.0) THEN
                HT_AVG = H0
             ELSEIF (pa.EQ.1) THEN
-               HT_AVG = ZE(1,J,IRK+1) + DP_AVG
+               HT_AVG = ze(J,1,IRK+1) + DP_AVG
             ELSE
                ZE_VOL = 0.0
                DO K = 1,DOFS(J)
-                  ZE_VOL = ZE_VOL + ZE(K,J,IRK+1)*PHI_INTEGRATED(K,pa)
+                  ZE_VOL = ZE_VOL + ze(J,K,IRK+1)*PHI_INTEGRATED(K,pa)
                ENDDO
                HT_VOL = DP_VOL(J,pa) + 0.25D0*AREAS(J)*ZE_VOL
                HT_AVG = HT_VOL/(0.5D0*AREAS(J))
             ENDIF
             
-            ZE(:,J,IRK+1) = 0.0
-            ZE(1,J,IRK+1) = HT_AVG - DP_AVG ! for pa = 0, i.e FVM
+            ze(J,:,IRK+1) = 0.0
+            ze(J,1,IRK+1) = HT_AVG - DP_AVG ! for pa = 0, i.e FVM
             IF ( pa > 0 ) THEN 
                ! Prevent water from becoming dangeously low by            !
                ! bumping the water depth back to ZERO, i.e. a small value !
-               IF ( HT_AVG < ZERO ) ZE(1,J,IRK+1) = ZERO - DP_AVG 
+               IF ( HT_AVG < ZERO ) ze(J,1,IRK+1) = ZERO - DP_AVG 
             END IF
-            ZE(2,J,IRK+1) = -HB(2,J,1)
-            ZE(3,J,IRK+1) = -HB(3,J,1)
+            ze(J,2,IRK+1) = -HB(2,J,1)
+            ze(J,3,IRK+1) = -HB(3,J,1)
 
 C.........Zero out the fluxes
             QX(:,J,IRK+1) = 0.0
@@ -212,7 +212,7 @@ C.........Set flags to dry and skip element check
 !            !zero out higher order stuff
 !            do i = 4,dofh
 !               
-!               ZE(i,J,IRK+1) = 0.0
+!               ze(J,i,IRK+1) = 0.0
 !               QX(i,J,IRK+1) = 0.0
 !               QY(i,J,IRK+1) = 0.0
 !
@@ -251,11 +251,11 @@ C.........Set averages based on p
             IF (pa.EQ.0) THEN
                HT_AVG = H0
             ELSEIF (pa.EQ.1) THEN
-               HT_AVG = ZE(1,J,IRK+1) + DP_AVG
+               HT_AVG = ze(J,1,IRK+1) + DP_AVG
             ELSE
                ZE_VOL = 0.0
                DO K = 1,DOFS(J)
-                  ZE_VOL = ZE_VOL + ZE(K,J,IRK+1)*PHI_INTEGRATED(K,pa)
+                  ZE_VOL = ZE_VOL + ze(J,K,IRK+1)*PHI_INTEGRATED(K,pa)
                ENDDO
                HT_VOL = DP_VOL(J,pa) + 0.25D0*AREAS(J)*ZE_VOL
                HT_AVG = HT_VOL/(0.5D0*AREAS(J))
@@ -270,16 +270,16 @@ C     --------------------------------------------------------------
 C...........Set surface elevation parallel to bathymetry such that total
 C...........water depth at all points = average water depth
 
-               ZE(:,J,IRK+1) = 0.0
-               ZE(1,J,IRK+1) = HT_AVG - DP_AVG 
+               ze(J,:,IRK+1) = 0.0
+               ze(J,1,IRK+1) = HT_AVG - DP_AVG 
                IF ( pa > 0 ) THEN
                   ! dw: just in case, it is not likely to happen 
-                  IF ( HT_AVG < ZERO ) ZE(1,J,IRK+1) = ZERO - DP_AVG
+                  IF ( HT_AVG < ZERO ) ze(J,1,IRK+1) = ZERO - DP_AVG
 
                END IF
-               ZE(2,J,IRK+1) = -HB(2,J,1)
-               ZE(3,J,IRK+1) = -HB(3,J,1)
-               ZE_HAT(:,pa) = ZE(1,J,IRK+1)
+               ze(J,2,IRK+1) = -HB(2,J,1)
+               ze(J,3,IRK+1) = -HB(3,J,1)
+               ZE_HAT(:,pa) = ze(J,1,IRK+1)
 
 C...........Zero out the fluxes
                QX(:,J,IRK+1) = 0.0
@@ -298,11 +298,11 @@ C...........water depth and the same linear components
                                 !Notice the trick here.  Nodes = vertices
                                 !since we NOW restrict to a linear regime
                   !c--- dw: should it be (?)
-                  ! HT_MODE(2) = -(ZE(2,J,1) + HB(2,J,1))
-                  ! HT_MODE(3) = -(ZE(3,J,1) + HB(3,J,1))
+                  ! HT_MODE(2) = -(ze(J,2,1) + HB(2,J,1))
+                  ! HT_MODE(3) = -(ze(J,3,1) + HB(3,J,1))
                   HT_MODE(1) = HT_AVG
-                  HT_MODE(2) = -(ZE(2,J,1) + HB(2,J,1))
-                  HT_MODE(3) = -(ZE(3,J,1) + HB(3,J,1))
+                  HT_MODE(2) = -(ze(J,2,1) + HB(2,J,1))
+                  HT_MODE(3) = -(ze(J,3,1) + HB(3,J,1))
                   HT_NODE = 0.0
                   DO K = 1,3
                      HT_NODE(1)=HT_NODE(1)+PHI_CORNER(K,1,pa)*HT_MODE(K)
@@ -455,9 +455,9 @@ C...........Compute new nodal surface elevations
 
 C...........Compute the new linear modal dofs for the surface elevation
 
-               ZE(2,J,IRK+1) = -C16*(ZE_HAT(1,pa) +
+               ze(J,2,IRK+1) = -C16*(ZE_HAT(1,pa) +
      & ZE_HAT(2,pa)) + C13*ZE_HAT(3,pa)
-               ZE(3,J,IRK+1) = -0.5D0*ZE_HAT(1,pa) + 0.5D0*ZE_HAT(2,pa)
+               ze(J,3,IRK+1) = -0.5D0*ZE_HAT(1,pa) + 0.5D0*ZE_HAT(2,pa)
 
             ENDIF
             
@@ -466,7 +466,7 @@ C.........If applicable zero out higher dofs
 
             do i = 4,dofh
                
-               ZE(i,J,IRK+1) = 0.0
+               ze(J,i,IRK+1) = 0.0
                QX(i,J,IRK+1) = 0.0
                QY(i,J,IRK+1) = 0.0
 

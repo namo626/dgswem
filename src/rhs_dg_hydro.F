@@ -86,7 +86,7 @@ C.......Compute rain source term if rain is enabled
 !!$acc loop seq
               DO I = 1,NAGP(pa)
                 DO K = 1,DOFS(L)
-                  RHS_ZE(K,L,IRK) = RHS_ZE(K,L,IRK) +
+                  RHS_ze(L,K,IRK) = RHS_ze(L,K,IRK) +
      &                 SRFAC(K,I,L,pa)*SOURCE_R
                 END DO
               END DO
@@ -108,7 +108,7 @@ C.......Retrieve the global node numbers for the element
 C.......Compute avaraged values
 C.......These will be used later when bottom friction is computed
 
-         DEPTH_C = HB(1,L,1) + ZE(1,L,IRK)
+         DEPTH_C = HB(1,L,1) + ze(L,1,IRK)
          FH_NL_C = 1.0/(NLEQ*DEPTH_C + LEQ)
          UX_C = QX(1,L,IRK)*FH_NL_C
          UY_C = QY(1,L,IRK)*FH_NL_C
@@ -130,7 +130,7 @@ C.......Compute ZE, QX, QY, and HB at each area Gauss quadrature point
 !$acc loop seq
          DO I = 1,NAGP(pa)
 
-            ZE_IN = ZE(1,L,IRK)
+            ZE_IN = ze(L,1,IRK)
             QX_IN = QX(1,L,IRK)
             QY_IN = QY(1,L,IRK)
 
@@ -175,8 +175,8 @@ C.......Compute ZE, QX, QY, and HB at each area Gauss quadrature point
                DPHIDY = DRPHI(K,I,pa)*DRDY(L) + DSPHI(K,I,pa)*DSDY(L)
                DHB_X = DHB_X + HB(K,L,irk)*DPHIDX
                DHB_Y = DHB_Y + HB(K,L,irk)*DPHIDY
-               DH_Y = DH_Y + (HB(K,L,irk)+ZE(K,L,irk))*DPHIDY
-               DH_X = DH_X + (HB(K,L,irk)+ZE(K,L,irk))*DPHIDX
+               DH_Y = DH_Y + (HB(K,L,irk)+ze(L,K,irk))*DPHIDY
+               DH_X = DH_X + (HB(K,L,irk)+ze(L,K,irk))*DPHIDX
             enddo
 #endif
 
@@ -202,7 +202,7 @@ C.......Compute ZE, QX, QY, and HB at each area Gauss quadrature point
 !$acc loop seq
             DO K = 2,DOFS(L)
 
-               ZE_IN = ZE_IN + ZE(K,L,IRK)*PHI_AREA(K,I,pa)
+               ZE_IN = ZE_IN + ze(L,K,IRK)*PHI_AREA(K,I,pa)
                QX_IN = QX_IN + QX(K,L,IRK)*PHI_AREA(K,I,pa)
                QY_IN = QY_IN + QY(K,L,IRK)*PHI_AREA(K,I,pa)
 
@@ -423,7 +423,7 @@ C.........Build the rhs
 !$acc loop seq
             DO K = 2,DOFH
 
-               RHS_ZE(K,L,IRK) = RHS_ZE(K,L,IRK) + XFAC(K,I,L,pa)*FX_IN
+               RHS_ze(L,K,IRK) = RHS_ze(L,K,IRK) + XFAC(K,I,L,pa)*FX_IN
      &                + YFAC(K,I,L,pa)*FY_IN
                RHS_QX(K,L,IRK) = RHS_QX(K,L,IRK) + XFAC(K,I,L,pa)*GX_IN
      &              + YFAC(K,I,L,pa)*GY_IN + SRFAC(K,I,L,pa)*SOURCE_X

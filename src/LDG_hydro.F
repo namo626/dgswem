@@ -310,7 +310,7 @@ C.....Compute the solution at the interior state
 
             DO K = 1,DOFS(EL_IN)
 #ifdef WAVE_DIF
-               ZE_IN = ZE_IN + ZE(K,EL_IN,IRK)*PHI_EDGE(K,I,LED,pa)
+               ZE_IN = ZE_IN + ze(EL_IN,K,IRK)*PHI_EDGE(K,I,LED,pa)
 #endif
                QX_IN = QX_IN + QX(K,EL_IN,IRK)*PHI_EDGE(K,I,LED,pa)
                QY_IN = QY_IN + QY(K,EL_IN,IRK)*PHI_EDGE(K,I,LED,pa)
@@ -457,7 +457,7 @@ C.....Compute the solution at the interior state
 
             DO K = 1,DOFS(EL_IN)
 #ifdef WAVE_DIF
-               ZE_IN = ZE_IN + ZE(K,EL_IN,IRK)*PHI_EDGE(K,I,LED,pa)
+               ZE_IN = ZE_IN + ze(EL_IN,K,IRK)*PHI_EDGE(K,I,LED,pa)
 #endif
                QX_IN = QX_IN + QX(K,EL_IN,IRK)*PHI_EDGE(K,I,LED,pa)
                QY_IN = QY_IN + QY(K,EL_IN,IRK)*PHI_EDGE(K,I,LED,pa)
@@ -654,7 +654,7 @@ C.....Compute the solution at the interior state
             DO K = 1,DOFS(EL_IN)
 
 #ifdef WAVE_DIF
-               ZE_IN = ZE_IN + ZE(K,EL_IN,IRK)*PHI_EDGE(K,I,LED,pa)
+               ZE_IN = ZE_IN + ze(EL_IN,K,IRK)*PHI_EDGE(K,I,LED,pa)
 #endif
 
                QX_IN = QX_IN + QX(K,EL_IN,IRK)*PHI_EDGE(K,I,LED,pa)
@@ -789,7 +789,7 @@ C.....Compute the solution at the interior state
             DO K = 1,DOFS(EL_IN)
                
 #ifdef WAVE_DIF
-               ZE_IN = ZE_IN + ZE(K,EL_IN,IRK)*PHI_EDGE(K,I,LED,pa)
+               ZE_IN = ZE_IN + ze(EL_IN,K,IRK)*PHI_EDGE(K,I,LED,pa)
 #endif
                QX_IN = QX_IN + QX(K,EL_IN,IRK)*PHI_EDGE(K,I,LED,pa)
                QY_IN = QY_IN + QY(K,EL_IN,IRK)*PHI_EDGE(K,I,LED,pa)
@@ -927,12 +927,12 @@ C.....Compute ZE, QX, QY, and HB at each edge Gauss quadrature point
             DO K = 1,DOFS(EL)
 
 #ifdef WAVE_DIF
-             ZE_IN = ZE_IN + ZE(K,EL_IN,IRK)*PHI_EDGE(K,GP_IN,LED_IN,pa)
+             ZE_IN = ZE_IN + ze(EL_IN,K,IRK)*PHI_EDGE(K,GP_IN,LED_IN,pa)
 #endif
              QX_IN = QX_IN + QX(K,EL_IN,IRK)*PHI_EDGE(K,GP_IN,LED_IN,pa)
              QY_IN = QY_IN + QY(K,EL_IN,IRK)*PHI_EDGE(K,GP_IN,LED_IN,pa)
 #ifdef WAVE_DIF
-             ZE_EX = ZE_EX + ZE(K,EL_EX,IRK)*PHI_EDGE(K,GP_EX,LED_EX,pa)
+             ZE_EX = ZE_EX + ze(EL_EX,K,IRK)*PHI_EDGE(K,GP_EX,LED_EX,pa)
 #endif
              QX_EX = QX_EX + QX(K,EL_EX,IRK)*PHI_EDGE(K,GP_EX,LED_EX,pa)
              QY_EX = QY_EX + QY(K,EL_EX,IRK)*PHI_EDGE(K,GP_EX,LED_EX,pa)
@@ -1210,7 +1210,7 @@ C.....Compute ZE, QX, QY, and HB at each area Gauss quadrature point
             
             DO K = 1,DOFS(L)
 #ifdef WAVE_DIF
-               ZE_IN = ZE_IN + ZE(K,L,IRK)*PHI_AREA(K,I,pa)
+               ZE_IN = ZE_IN + ze(L,K,IRK)*PHI_AREA(K,I,pa)
 #endif
                QX_IN = QX_IN + QX(K,L,IRK)*PHI_AREA(K,I,pa)
                QY_IN = QY_IN + QY(K,L,IRK)*PHI_AREA(K,I,pa)
@@ -1320,7 +1320,7 @@ C.....Build the rhs
             
             do kk = 2, dofs(L)  !Compute the first sensor
 #ifdef WAVE_DIF 
-               ze_sensor1 = ze_sensor1 + (ze(kk,L,irk)* 
+               ze_sensor1 = ze_sensor1 + (ze(L,kk,irk)* 
      &              phi_area(kk,I,pa))**2.0 * wagp(I,pa)
 #endif
                qx_sensor1 = qx_sensor1 + (qx(kk,L,irk)* 
@@ -1343,7 +1343,7 @@ C.....Build the rhs
             
             do kk = 1,dofs(L) !Compute the second sensor
 #ifdef WAVE_DIF 
-               ze_sensor2 = ze_sensor2 + (ze(kk,L,irk)* 
+               ze_sensor2 = ze_sensor2 + (ze(L,kk,irk)* 
      &              phi_area(kk,I,pa))**2.0 * wagp(I,pa)
 #endif
                qx_sensor2 = qx_sensor2 + (qx(kk,L,irk)* 

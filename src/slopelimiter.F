@@ -105,7 +105,7 @@ C.....Save the original values  02/28/2007 sb
       DO L=1,NE
          if (dofs(l).eq.3) then
             DO K = 1,DOFS(L)
-               ZE(K,L,NRK+2) = ZE(K,L,IRK+1)
+               ze(L,K,NRK+2) = ze(L,K,IRK+1)
                QX(K,L,NRK+2) = QX(K,L,IRK+1)
                QY(K,L,NRK+2) = QY(K,L,IRK+1)
                
@@ -133,8 +133,8 @@ C.....Retrieve the barycenter coordinates of the element
 
 C.....Compute the x and y derivatives of the P1 part of ZE
 
-            DZEDR = ZE(3,L,NRK+2)
-            DZEDS = 3.0/2.0*ZE(2,L,NRK+2) + 1.0/2.0*ZE(3,L,NRK+2)
+            DZEDR = ze(L,3,NRK+2)
+            DZEDS = 3.0/2.0*ze(L,2,NRK+2) + 1.0/2.0*ze(L,3,NRK+2)
 
             DZEDX(4) = DZEDR*DRDX(L) + DZEDS*DSDX(L)
             DZEDY(4) = DZEDR*DRDY(L) + DZEDS*DSDY(L)
@@ -223,11 +223,11 @@ C.......Special treatment for elements that do not have three neighboring elemen
                
 C.....Compute limiting slopes for the surface elevation
 
-               SL1 = ZE(1,L,NRK+2)*(Y3 - Y2) + ZE(1,EL2,NRK+2)*(Y1 - Y3)
-     &              + ZE(1,EL3,NRK+2)*(Y2 - Y1)
+               SL1 = ze(L,1,NRK+2)*(Y3 - Y2) + ze(EL2,1,NRK+2)*(Y1 - Y3)
+     &              + ze(EL3,1,NRK+2)*(Y2 - Y1)
                
-               SL2 = ZE(1,L,NRK+2)*(X2 - X3) + ZE(1,EL2,NRK+2)*(X3 - X1)
-     &              + ZE(1,EL3,NRK+2)*(X1 - X2)
+               SL2 = ze(L,1,NRK+2)*(X2 - X3) + ze(EL2,1,NRK+2)*(X3 - X1)
+     &              + ze(EL3,1,NRK+2)*(X1 - X2)
                
                DZEDX(I) = -SL1/SL3(I,L)
                
@@ -365,14 +365,14 @@ C.....Compute the (possibly) limited gradient
 
             DEN = DRDX(L)*DSDY(L) - DRDY(L)*DSDX(L)
 
-            ZE(2,L,IRK+1) = 1.0/3.0*(2.0*ZELIMY*DRDX(L)
+            ze(L,2,IRK+1) = 1.0/3.0*(2.0*ZELIMY*DRDX(L)
      &           -2.0*DRDY(L)*ZELIMX-ZELIMX*DSDY(L)+DSDX(L)*ZELIMY)/DEN
             QX(2,L,IRK+1) = 1.0/3.0*(2.0*QXLIMY*DRDX(L)
      &           -2.0*DRDY(L)*QXLIMX-QXLIMX*DSDY(L)+DSDX(L)*QXLIMY)/DEN
             QY(2,L,IRK+1) = 1.0/3.0*(2.0*QYLIMY*DRDX(L)
      &           -2.0*DRDY(L)*QYLIMX-QYLIMX*DSDY(L)+DSDX(L)*QYLIMY)/DEN
 
-            ZE(3,L,IRK+1) = (ZELIMX*DSDY(L) - DSDX(L)*ZELIMY)/DEN
+            ze(L,3,IRK+1) = (ZELIMX*DSDY(L) - DSDX(L)*ZELIMY)/DEN
             QX(3,L,IRK+1) = (QXLIMX*DSDY(L) - DSDX(L)*QXLIMY)/DEN
             QY(3,L,IRK+1) = (QYLIMX*DSDY(L) - DSDX(L)*QYLIMY)/DEN
 
@@ -468,7 +468,7 @@ C.....Declare local variables
 C.....Save the original values  02/28/2007 sb
       DO L=1,NE
          DO K = 1,DOFS(L)
-            ZE(K,L,NRK+2) = ZE(K,L,IRK+1)
+            ze(L,K,NRK+2) = ze(L,K,IRK+1)
             QX(K,L,NRK+2) = QX(K,L,IRK+1)
             QY(K,L,NRK+2) = QY(K,L,IRK+1)
          ENDDO
@@ -485,7 +485,7 @@ C.....Save the original values  02/28/2007 sb
 C.....Retrieve the barycenter info of this element
          XB(0) = XBC(L)
          YB(0) = YBC(L)
-         ZB(0) = ZE(1,L,IRK+1)
+         ZB(0) = ze(L,1,IRK+1)
          DB(0) = HB(1,L,1)
          QXB(0) = QX(1,L,IRK+1)
          QYB(0) = QY(1,L,IRK+1)
@@ -497,12 +497,12 @@ C.....Retrieve the nodal info
          N(3) = NM(L,3)
 
          DO K = 1,3
-            ZC(K) = ZE(1,L,IRK+1)
+            ZC(K) = ze(L,1,IRK+1)
             DC(K) = HB(1,L,1)
             QXC(K) = QX(1,L,IRK+1)
             QYC(K) = QY(1,L,IRK+1)
             DO KK = 2,3         ! This slope limiter assumes the functions to limit as a linear function.
-               ZC(K) = ZC(K) + PHI_CORNER(KK,K,pa)*ZE(KK,L,IRK+1)
+               ZC(K) = ZC(K) + PHI_CORNER(KK,K,pa)*ze(L,KK,IRK+1)
                DC(K) = DC(K) + PHI_CORNER(KK,K,pa)*HB(KK,L,1)
                QXC(K) = QXC(K) + PHI_CORNER(KK,K,pa)*QX(KK,L,IRK+1)
                QYC(K) = QYC(K) + PHI_CORNER(KK,K,pa)*QY(KK,L,IRK+1)
@@ -540,7 +540,7 @@ C     baricenter of this element.
             ELSE
                XB(I) = XBC(EL_N)
                YB(I) = YBC(EL_N)
-               ZB(I) = ZE(1,EL_N,IRK+1)
+               ZB(I) = ze(EL_N,1,IRK+1)
                DB(I) = HB(1,EL_N,1)
                QXB(I) = QX(1,EL_N,IRK+1)
                QYB(I) = QY(1,EL_N,IRK+1)
@@ -717,9 +717,9 @@ C     Computing limited variables at the corner nodes
          ENDDO
 
          IF(LIMITIT(1)) THEN
-            ZE(2,L,IRK+1) = -1.0/6.0*(WC_O(1,1) + WC_O(1,2))
+            ze(L,2,IRK+1) = -1.0/6.0*(WC_O(1,1) + WC_O(1,2))
      &           + 1.0/3.0*WC_O(1,3)
-            ZE(3,L,IRK+1) = -0.5D0*WC_O(1,1) + 0.5D0*WC_O(1,2)
+            ze(L,3,IRK+1) = -0.5D0*WC_O(1,1) + 0.5D0*WC_O(1,2)
          ENDIF
          IF(LIMITIT(2)) THEN
             QX(2,L,IRK+1) = -1.0/6.0*(WC_O(2,1) + WC_O(2,2))
@@ -852,7 +852,7 @@ C     ENDDO
 C.....Retrieve the barycenter info of this element
       XB(0) = XBC(L)
       YB(0) = YBC(L)
-      ZB(0) = ZE(1,L,IRK+1)
+      ZB(0) = ze(L,1,IRK+1)
       DB(0) = HB(1,L,1)
       QXB(0) = QX(1,L,IRK+1)
       QYB(0) = QY(1,L,IRK+1)
@@ -870,13 +870,13 @@ C.....Retrieve the nodal info
       N(3) = NM(L,3)
 
       DO K = 1,3
-         ZC(K) = ZE(1,L,IRK+1)
+         ZC(K) = ze(L,1,IRK+1)
          DC(K) = HB(1,L,1)
          QXC(K) = QX(1,L,IRK+1)
          QYC(K) = QY(1,L,IRK+1)         
 
          DO KK = 2,3            ! This slope limiter assumes the functions to limit as a linear function.
-            ZC(K) = ZC(K) + PHI_CORNER(KK,K,pa)*ZE(KK,L,IRK+1)
+            ZC(K) = ZC(K) + PHI_CORNER(KK,K,pa)*ze(L,KK,IRK+1)
             DC(K) = DC(K) + PHI_CORNER(KK,K,pa)*HB(KK,L,1)
             QXC(K) = QXC(K) + PHI_CORNER(KK,K,pa)*QX(KK,L,IRK+1)
             QYC(K) = QYC(K) + PHI_CORNER(KK,K,pa)*QY(KK,L,IRK+1)
@@ -886,7 +886,7 @@ C.....Retrieve the nodal info
 
       HMIN = MAX(0.0,MIN(ZC(1)+DC(1),ZC(2)+DC(2),ZC(3)+DC(3)))
       HMAX = MAX(ZC(1)+DC(1),ZC(2)+DC(2),ZC(3)+DC(3))
-      HAVG = ZE(1,L,IRK+1) + HB(1,L,1)
+      HAVG = ze(L,1,IRK+1) + HB(1,L,1)
       HLIMIT = MIN(1.0,(HMIN*HMIN)/(SL3_MD*SL3_MD))
       HLIMIT = 1.0
       IF(nolifa.eq.2.and.HMIN.LE.H0) RETURN
@@ -923,7 +923,7 @@ C     QYB(I) = 2.0*QYM(I) - QYB(0)
 C     ELSE
          XB(I) = XBC(EL_N)
          YB(I) = YBC(EL_N)
-         ZB(I) = ZE(1,EL_N,IRK+1)
+         ZB(I) = ze(EL_N,1,IRK+1)
          DB(I) = HB(1,EL_N,1)
          QXB(I) = QX(1,EL_N,IRK+1)
          QYB(I) = QY(1,EL_N,IRK+1)
@@ -962,14 +962,14 @@ C.......is negative that element must be set to p = 0.
 
          ALPHA1(I) = ( A(2,2)*B(1) - A(1,2)*B(2))/DTM
          IF (ALPHA1(I).LT.0) THEN
-            ZE(2:DOF,L,IRK+1) = 0.0
+            ze(L,2:DOF,IRK+1) = 0.0
             QX(2:DOF,L,IRK+1) = 0.0
             QY(2:DOF,L,IRK+1) = 0.0
             RETURN
          ENDIF
          ALPHA2(I) = (-A(2,1)*B(1) + A(1,1)*B(2))/DTM
          IF (ALPHA2(I).LT.0) THEN
-            ZE(2:DOF,L,IRK+1) = 0.0
+            ze(L,2:DOF,IRK+1) = 0.0
             QX(2:DOF,L,IRK+1) = 0.0
             QY(2:DOF,L,IRK+1) = 0.0
             RETURN
@@ -1129,9 +1129,9 @@ C.......If the limited water depth < 0, don't apply this slope limiting
          
 C.......Else compute new modal dofs
 
-         ZE(2,L,IRK+1) = -1.0/6.0*(WC_O(1,1) + WC_O(1,2))
+         ze(L,2,IRK+1) = -1.0/6.0*(WC_O(1,1) + WC_O(1,2))
      &        +  1.0/3.0*WC_O(1,3)
-         ZE(3,L,IRK+1) = -0.5D0*WC_O(1,1) + 0.5D0*WC_O(1,2)
+         ze(L,3,IRK+1) = -0.5D0*WC_O(1,1) + 0.5D0*WC_O(1,2)
          QX(2,L,IRK+1) = -1.0/6.0*(WC_O(2,1) + WC_O(2,2))
      &        +  1.0/3.0*WC_O(2,3)
          QX(3,L,IRK+1) = -0.5D0*WC_O(2,1) + 0.5D0*WC_O(2,2)
@@ -1213,7 +1213,7 @@ C     ENDDO
 C.....Retrieve the barycenter info of this element
       XB(0) = XBC(L)
       YB(0) = YBC(L)
-      ZB(0) = ZE(1,L,IRK+1)
+      ZB(0) = ze(L,1,IRK+1)
       DB(0) = HB(1,L,1)
       QXB(0) = QX(1,L,IRK+1)
       QYB(0) = QY(1,L,IRK+1)
@@ -1231,12 +1231,12 @@ C.....Retrieve the nodal info
       endif
 
       DO K = 1,3
-         ZC(K) = ZE(1,L,IRK+1)
+         ZC(K) = ze(L,1,IRK+1)
          DC(K) = HB(1,L,1)
          QXC(K) = QX(1,L,IRK+1)
          QYC(K) = QY(1,L,IRK+1)
          DO KK = 2,3            ! This slope limiter assumes the functions to limit as a linear function.
-            ZC(K) = ZC(K) + PHI_CORNER(KK,K,pa)*ZE(KK,L,IRK+1)
+            ZC(K) = ZC(K) + PHI_CORNER(KK,K,pa)*ze(L,KK,IRK+1)
             DC(K) = DC(K) + PHI_CORNER(KK,K,pa)*HB(KK,L,1)
             QXC(K) = QXC(K) + PHI_CORNER(KK,K,pa)*QX(KK,L,IRK+1)
             QYC(K) = QYC(K) + PHI_CORNER(KK,K,pa)*QY(KK,L,IRK+1)
@@ -1245,7 +1245,7 @@ C.....Retrieve the nodal info
 
       HMIN = MAX(0.0,MIN(ZC(1)+DC(1),ZC(2)+DC(2),ZC(3)+DC(3)))
       HMAX = MAX(ZC(1)+DC(1),ZC(2)+DC(2),ZC(3)+DC(3))
-      HAVG = ZE(1,L,IRK+1) + HB(1,L,1)
+      HAVG = ze(L,1,IRK+1) + HB(1,L,1)
       HLIMIT = MIN(1.0,(HMIN*HMIN)/(SL3_MD*SL3_MD))
       HLIMIT = 1.0
       IF(nolifa.eq.2.and.HMIN.LE.H0) RETURN
@@ -1281,7 +1281,7 @@ C.....Retreive barycenter info
          EL_N = EL_NN(I)
          XB(I) = XBC(EL_N)
          YB(I) = YBC(EL_N)
-         ZB(I) = ZE(1,EL_N,IRK+1)
+         ZB(I) = ze(EL_N,1,IRK+1)
          DB(I) = HB(1,EL_N,1)
          QXB(I) = QX(1,EL_N,IRK+1)
          QYB(I) = QY(1,EL_N,IRK+1)
@@ -1300,14 +1300,14 @@ C.....Compute alpha1 and alpha2
          DTM = A(1,1)*A(2,2) - A(1,2)*A(2,1) ! Compute the determinant
          ALPHA1(I) = ( A(2,2)*B(1) - A(1,2)*B(2))/DTM
          IF (ALPHA1(I).LT.0) THEN
-            ZE(2:DOF,L,IRK+1) = 0.0
+            ze(L,2:DOF,IRK+1) = 0.0
             QX(2:DOF,L,IRK+1) = 0.0
             QY(2:DOF,L,IRK+1) = 0.0
             RETURN
          ENDIF
          ALPHA2(I) = (-A(2,1)*B(1) + A(1,1)*B(2))/DTM
          IF (ALPHA2(I).LT.0) THEN
-            ZE(2:DOF,L,IRK+1) = 0.0
+            ze(L,2:DOF,IRK+1) = 0.0
             QX(2:DOF,L,IRK+1) = 0.0
             QY(2:DOF,L,IRK+1) = 0.0
             RETURN
@@ -1453,9 +1453,9 @@ C.......If the limited water depth < 0, don't apply this slope limiting
          
 C.......Else compute new modal dofs
 
-         ZE(2,L,IRK+1) = -1.0/6.0*(WC_O(1,1) + WC_O(1,2))
+         ze(L,2,IRK+1) = -1.0/6.0*(WC_O(1,1) + WC_O(1,2))
      &        +  1.0/3.0*WC_O(1,3)
-         ZE(3,L,IRK+1) = -0.5D0*WC_O(1,1) + 0.5D0*WC_O(1,2)
+         ze(L,3,IRK+1) = -0.5D0*WC_O(1,1) + 0.5D0*WC_O(1,2)
          QX(2,L,IRK+1) = -1.0/6.0*(WC_O(2,1) + WC_O(2,2))
      &        +  1.0/3.0*WC_O(2,3)
          QX(3,L,IRK+1) = -0.5D0*WC_O(2,1) + 0.5D0*WC_O(2,2)
@@ -1521,7 +1521,7 @@ C.....Declare local variables
 C.....Retrieve the barycenter info of this element
       XB(0) = XBC(L)
       YB(0) = YBC(L)
-      ZB(0) = ZE(1,L,IRK+1)
+      ZB(0) = ze(L,1,IRK+1)
       DB(0) = HB(1,L,1)
       QXB(0) = QX(1,L,IRK+1)
       QYB(0) = QY(1,L,IRK+1)
@@ -1531,8 +1531,8 @@ C.....Retrieve the nodal info
       limitit(2)=.true.
       limitit(3)=.true.
       IF(LIMITIT(1)) THEN
-         ZE(2,L,IRK+1) = 0.0
-         ZE(3,L,IRK+1) = 0.0
+         ze(L,2,IRK+1) = 0.0
+         ze(L,3,IRK+1) = 0.0
       ENDIF
       IF(LIMITIT(2)) THEN
          QX(2,L,IRK+1) = 0.0
@@ -1555,12 +1555,12 @@ C.....Retrieve the nodal info
       endif
 
       DO K = 1,3
-         ZC(K) = ZE(1,L,IRK+1)
+         ZC(K) = ze(L,1,IRK+1)
          DC(K) = HB(1,L,1)
          QXC(K) = QX(1,L,IRK+1)
          QYC(K) = QY(1,L,IRK+1)
          DO KK = 2,3            ! This slope limiter assumes the functions to limit as a linear function.
-            ZC(K) = ZC(K) + PHI_CORNER(KK,K,pa)*ZE(KK,L,IRK+1)
+            ZC(K) = ZC(K) + PHI_CORNER(KK,K,pa)*ze(L,KK,IRK+1)
             DC(K) = DC(K) + PHI_CORNER(KK,K,pa)*HB(KK,L,1)
             QXC(K) = QXC(K) + PHI_CORNER(KK,K,pa)*QX(KK,L,IRK+1)
             QYC(K) = QYC(K) + PHI_CORNER(KK,K,pa)*QY(KK,L,IRK+1)
@@ -1569,7 +1569,7 @@ C.....Retrieve the nodal info
 
       HMIN = MAX(0.0,MIN(ZC(1)+DC(1),ZC(2)+DC(2),ZC(3)+DC(3)))
       HMAX = MAX(ZC(1)+DC(1),ZC(2)+DC(2),ZC(3)+DC(3))
-      HAVG = ZE(1,L,IRK+1) + HB(1,L,1)
+      HAVG = ze(L,1,IRK+1) + HB(1,L,1)
       HLIMIT = MIN(1.0,(HMIN*HMIN)/(SL3_MD*SL3_MD))
       HLIMIT = 1.0
       IF(NOLIFA.eq.2.and.HMIN.LE.H0) RETURN
@@ -1604,7 +1604,7 @@ C     locate a barycenter at the mirroring point and use extrapolated values.
          ELSE
             XB(I) = XBC(EL_N)
             YB(I) = YBC(EL_N)
-            ZB(I) = ZE(1,EL_N,IRK+1)
+            ZB(I) = ze(EL_N,1,IRK+1)
             DB(I) = HB(1,EL_N,1)
             QXB(I) = QX(1,EL_N,IRK+1)
             QYB(I) = QY(1,EL_N,IRK+1)
@@ -1795,9 +1795,9 @@ C     If the limited water depth is less 0, don't apply this slope limiting.
       ENDIF
 
       IF(LIMITIT(1)) THEN
-         ZE(2,L,IRK+1) = -1.0/6.0*(WC_O(1,1) + WC_O(1,2))
+         ze(L,2,IRK+1) = -1.0/6.0*(WC_O(1,1) + WC_O(1,2))
      &        + 1.0/3.0*WC_O(1,3)
-         ZE(3,L,IRK+1) = -0.5D0*WC_O(1,1) + 0.5D0*WC_O(1,2)
+         ze(L,3,IRK+1) = -0.5D0*WC_O(1,1) + 0.5D0*WC_O(1,2)
       ENDIF
       IF(LIMITIT(2)) THEN
          QX(2,L,IRK+1) = -1.0/6.0*(WC_O(2,1) + WC_O(2,2))
@@ -1882,7 +1882,7 @@ c$$$
 c$$$C.....Save the original values  02/28/2007 sb
 c$$$      DO L=1,NE
 c$$$         DO K = 1,DOF
-c$$$            ZE(K,L,NRK+2) = ZE(K,L,IRK+1)
+c$$$            ze(L,K,NRK+2) = ze(L,K,IRK+1)
 c$$$            QX(K,L,NRK+2) = QX(K,L,IRK+1)
 c$$$            QY(K,L,NRK+2) = QY(K,L,IRK+1)
 c$$$         ENDDO
@@ -1893,7 +1893,7 @@ c$$$
 c$$$C.....Retrieve the barycenter info of this element
 c$$$         XB(0) = XBC(L)
 c$$$         YB(0) = YBC(L)
-c$$$         ZB(0) = ZE(1,L,IRK+1)
+c$$$         ZB(0) = ze(L,1,IRK+1)
 c$$$         DB(0) = HB(1,L,1)
 c$$$         QXB(0) = QX(1,L,IRK+1)
 c$$$         QYB(0) = QY(1,L,IRK+1)
@@ -1911,12 +1911,12 @@ c$$$            pa = 1
 c$$$         endif
 c$$$
 c$$$         DO K = 1,3
-c$$$            ZC(K) = ZE(1,L,IRK+1)
+c$$$            ZC(K) = ze(L,1,IRK+1)
 c$$$            DC(K) = HB(1,L,1)
 c$$$            QXC(K) = QX(1,L,IRK+1)
 c$$$            QYC(K) = QY(1,L,IRK+1)
 c$$$            DO KK = 2,3         ! This slope limiter assumes the functions to limit as a linear function.
-c$$$               ZC(K) = ZC(K) + PHI_CORNER(KK,K,pa)*ZE(KK,L,IRK+1)
+c$$$               ZC(K) = ZC(K) + PHI_CORNER(KK,K,pa)*ze(L,KK,IRK+1)
 c$$$               DC(K) = DC(K) + PHI_CORNER(KK,K,pa)*HB(KK,L,1)
 c$$$               QXC(K) = QXC(K) + PHI_CORNER(KK,K,pa)*QX(KK,L,IRK+1)
 c$$$               QYC(K) = QYC(K) + PHI_CORNER(KK,K,pa)*QY(KK,L,IRK+1)
@@ -1925,7 +1925,7 @@ c$$$         ENDDO
 c$$$
 c$$$         HMIN = MAX(0.0,MIN(ZC(1)+DC(1),ZC(2)+DC(2),ZC(3)+DC(3)))
 c$$$         HMAX = MAX(ZC(1)+DC(1),ZC(2)+DC(2),ZC(3)+DC(3))
-c$$$         HAVG = ZE(1,L,IRK+1) + HB(1,L,1)
+c$$$         HAVG = ze(L,1,IRK+1) + HB(1,L,1)
 c$$$         HLIMIT = MIN(1.0,(HMIN*HMIN)/(SL3_MD*SL3_MD))
 c$$$         HLIMIT = 1.0
 c$$$         IF(HMIN.LE.H0) RETURN
@@ -1960,7 +1960,7 @@ c$$$               QYB(I) = 2.0*QYM(I) - QYB(0)
 c$$$            ELSE
 c$$$               XB(I) = XBC(EL_N)
 c$$$               YB(I) = YBC(EL_N)
-c$$$               ZB(I) = ZE(1,EL_N,IRK+1)
+c$$$               ZB(I) = ze(EL_N,1,IRK+1)
 c$$$               DB(I) = HB(1,EL_N,1)
 c$$$               QXB(I) = QX(1,EL_N,IRK+1)
 c$$$               QYB(I) = QY(1,EL_N,IRK+1)
@@ -2144,9 +2144,9 @@ c$$$            ENDIF
 c$$$         ENDDO
 c$$$
 c$$$         IF(LIMITIT(1)) THEN
-c$$$            ZE(2,L,IRK+1) = -1.0/6.0*(WC_O(1,1) + WC_O(1,2))
+c$$$            ze(L,2,IRK+1) = -1.0/6.0*(WC_O(1,1) + WC_O(1,2))
 c$$$     &           + 1.0/3.0*WC_O(1,3)
-c$$$            ZE(3,L,IRK+1) = -0.5D0*WC_O(1,1) + 0.5D0*WC_O(1,2)
+c$$$            ze(L,3,IRK+1) = -0.5D0*WC_O(1,1) + 0.5D0*WC_O(1,2)
 c$$$         ENDIF
 c$$$         IF(LIMITIT(2)) THEN
 c$$$            QX(2,L,IRK+1) = -1.0/6.0*(WC_O(2,1) + WC_O(2,2))
@@ -2376,7 +2376,7 @@ C.....Set initial values
 
             DO ll = 1,dofs(k)
 
-               ZE(ll,k,NRK+2) = ZE(ll,k,IRK+1)
+               ze(k,ll,NRK+2) = ze(k,ll,IRK+1)
                QX(ll,k,NRK+2) = QX(ll,k,IRK+1)
                QY(ll,k,NRK+2) = QY(ll,k,IRK+1)
 
@@ -2426,7 +2426,7 @@ C.....Convert initial values to the Taylor basis (multiply by Nmatrix) on base e
                do ss=1,dofs(k)
 
                   ZEtaylor(k,ll,1) = ZEtaylor(k,ll,1) + Nmatrix(k,ll,ss,
-     &               dofs(k)) * ZE(ss,k,nrk+2)
+     &               dofs(k)) * ze(k,ss,nrk+2)
                   QXtaylor(k,ll,1) = QXtaylor(k,ll,1) + Nmatrix(k,ll,ss,
      &               dofs(k))* QX(ss,k,nrk+2)
                   QYtaylor(k,ll,1) = QYtaylor(k,ll,1) + Nmatrix(k,ll,ss,
@@ -3216,7 +3216,7 @@ C.....Set limit values
 
             do ll = 1,dofs(k)
 
-               ZE(ll,k,irk+1) = ZEconst(k,ll)
+               ze(k,ll,irk+1) = ZEconst(k,ll)
                QX(ll,k,irk+1) = QXconst(k,ll)
                QY(ll,k,irk+1) = QYconst(k,ll)
 
@@ -3332,7 +3332,7 @@ C     SHARING A NODE
 
 c     IF(WDFLG(NBOR_EL).EQ.0) CYCLE ! DON'T COUNT DRY ELEMENTS  sb 02/26/07
 
-            ZE_tmp = ZE(1,NBOR_EL,IRK+1)
+            ZE_tmp = ze(NBOR_EL,1,IRK+1)
             QX_tmp = QX(1,NBOR_EL,IRK+1)
             QY_tmp = QY(1,NBOR_EL,IRK+1)
 
@@ -3458,9 +3458,9 @@ C
          DO IVAR=1,varnum
 
             IF (IVAR.EQ.1) THEN
-               ZEC(1)=ZE(1,I,IRK+1)
-               ZEC(2)=ZE(2,I,IRK+1)
-               ZEC(3)=ZE(3,I,IRK+1)
+               ZEC(1)=ze(I,1,IRK+1)
+               ZEC(2)=ze(I,2,IRK+1)
+               ZEC(3)=ze(I,3,IRK+1)
                ZEMAX1(1)=ZE_MAX1(N1)
                ZEMIN1(1)=ZE_MIN1(N1)
                ZEMAX1(2)=ZE_MAX1(N2)
@@ -3632,9 +3632,9 @@ c$$$                  endif
 c$$$
 c$$$               endif
 
-               ZE(2,I,IRK+1)=-1.0/6.0*(ZEVERTEX(1)+ZEVERTEX(2))
+               ze(I,2,IRK+1)=-1.0/6.0*(ZEVERTEX(1)+ZEVERTEX(2))
      $              +1.0/3.0*ZEVERTEX(3)
-               ZE(3,I,IRK+1)=-.5d0*ZEVERTEX(1)+.5d0*ZEVERTEX(2)
+               ze(I,3,IRK+1)=-.5d0*ZEVERTEX(1)+.5d0*ZEVERTEX(2)
             ENDIF
             IF (IVAR.EQ.2) THEN
 
@@ -3869,7 +3869,7 @@ C     SHARING A NODE
 
 c     IF(WDFLG(NBOR_EL).EQ.0) CYCLE ! DON'T COUNT DRY ELEMENTS  sb 02/26/07
 
-            ZE_DG(J) = ZE(1,NBOR_EL,IRK+1)
+            ZE_DG(J) = ze(NBOR_EL,1,IRK+1)
             QX_DG(J) = QX(1,NBOR_EL,IRK+1)
             QY_DG(J) = QY(1,NBOR_EL,IRK+1)
 
@@ -4004,9 +4004,9 @@ C
          DO IVAR=1,varnum
 
             IF (IVAR.EQ.1) THEN
-               ZEC(1)=ZE(1,I,IRK+1)
-               ZEC(2)=ZE(2,I,IRK+1)
-               ZEC(3)=ZE(3,I,IRK+1)
+               ZEC(1)=ze(I,1,IRK+1)
+               ZEC(2)=ze(I,2,IRK+1)
+               ZEC(3)=ze(I,3,IRK+1)
                ZEMAX1(1)=ZE_MAX1(N1)
                ZEMIN1(1)=ZE_MIN1(N1)
                ZEMAX1(2)=ZE_MAX1(N2)
@@ -4175,9 +4175,9 @@ c$$$                  endif
 c$$$
 c$$$               endif
 
-               ZE(2,I,IRK+1)=-1.0/6.0*(ZEVERTEX(1)+ZEVERTEX(2))
+               ze(I,2,IRK+1)=-1.0/6.0*(ZEVERTEX(1)+ZEVERTEX(2))
      $              +1.0/3.0*ZEVERTEX(3)
-               ZE(3,I,IRK+1)=-.5d0*ZEVERTEX(1)+.5d0*ZEVERTEX(2)
+               ze(I,3,IRK+1)=-.5d0*ZEVERTEX(1)+.5d0*ZEVERTEX(2)
             ENDIF
             IF (IVAR.EQ.2) THEN
 
@@ -4413,7 +4413,7 @@ C     SHARING A NODE
 
 c     IF(WDFLG(NBOR_EL).EQ.0) CYCLE ! DON'T COUNT DRY ELEMENTS  sb 02/26/07
 
-            ZE_DG(J) = ZE(1,NBOR_EL,IRK+1)
+            ZE_DG(J) = ze(NBOR_EL,1,IRK+1)
             QX_DG(J) = QX(1,NBOR_EL,IRK+1)
             QY_DG(J) = QY(1,NBOR_EL,IRK+1)
 
@@ -4551,9 +4551,9 @@ C
          DO IVAR=1,varnum
 
             IF (IVAR.EQ.1) THEN
-               ZEC(1)=ZE(1,I,IRK+1)
-               ZEC(2)=ZE(2,I,IRK+1)
-               ZEC(3)=ZE(3,I,IRK+1)
+               ZEC(1)=ze(I,1,IRK+1)
+               ZEC(2)=ze(I,2,IRK+1)
+               ZEC(3)=ze(I,3,IRK+1)
                ZEMAX1(1)=ZE_MAX1(N1)
                ZEMIN1(1)=ZE_MIN1(N1)
                ZEMAX1(2)=ZE_MAX1(N2)
@@ -4722,9 +4722,9 @@ c$$$                  endif
 c$$$
 c$$$               endif
 
-               ZE(2,I,IRK+1)=-1.0/6.0*(ZEVERTEX(1)+ZEVERTEX(2))
+               ze(I,2,IRK+1)=-1.0/6.0*(ZEVERTEX(1)+ZEVERTEX(2))
      $              +1.0/3.0*ZEVERTEX(3)
-               ZE(3,I,IRK+1)=-.5d0*ZEVERTEX(1)+.5d0*ZEVERTEX(2)
+               ze(I,3,IRK+1)=-.5d0*ZEVERTEX(1)+.5d0*ZEVERTEX(2)
             ENDIF
             IF (IVAR.EQ.2) THEN
 
@@ -4923,7 +4923,7 @@ C.....Set initial values
 
             DO ll = 1,dofs(k)
 
-               ZE(ll,k,NRK+2) = ZE(ll,k,IRK+1)
+               ze(k,ll,NRK+2) = ze(k,ll,IRK+1)
                QX(ll,k,NRK+2) = QX(ll,k,IRK+1)
                QY(ll,k,NRK+2) = QY(ll,k,IRK+1)
 
@@ -4973,7 +4973,7 @@ C.....Convert initial values to the Taylor basis (multiply by Nmatrix) on base e
                
                do ss=1,dofs(k)
 
-                  ZEtaylor(k,ll,1) = ZEtaylor(k,ll,1) + Nmatrix(k,ll,ss,dofs(k)) * ZE(ss,k,nrk+2)
+                  ZEtaylor(k,ll,1) = ZEtaylor(k,ll,1) + Nmatrix(k,ll,ss,dofs(k)) * ze(k,ss,nrk+2)
                   QXtaylor(k,ll,1) = QXtaylor(k,ll,1) + Nmatrix(k,ll,ss,dofs(k)) * QX(ss,k,nrk+2)
                   QYtaylor(k,ll,1) = QYtaylor(k,ll,1) + Nmatrix(k,ll,ss,dofs(k)) * QY(ss,k,nrk+2)
 
@@ -5649,7 +5649,7 @@ C.....Set limit values
 
             do ll = 1,dofs(k)
 
-               ZE(ll,k,irk+1) = ZEconst(k,ll)
+               ze(k,ll,irk+1) = ZEconst(k,ll)
                QX(ll,k,irk+1) = QXconst(k,ll)
                QY(ll,k,irk+1) = QYconst(k,ll)
 
@@ -5719,7 +5719,7 @@ C.....Set initial values
 
             DO ll = 1,dofs(k)
 
-               ZE(ll,k,NRK+2) = ZE(ll,k,IRK+1)
+               ze(k,ll,NRK+2) = ze(k,ll,IRK+1)
                QX(ll,k,NRK+2) = QX(ll,k,IRK+1)
                QY(ll,k,NRK+2) = QY(ll,k,IRK+1)
 
@@ -5769,7 +5769,7 @@ C.....Convert initial values to the Taylor basis (multiply by Nmatrix) on base e
                
                do ss=1,dofs(k)
 
-                  ZEtaylor(k,ll,1) = ZEtaylor(k,ll,1) + Nmatrix(k,ll,ss,dofs(k)) * ZE(ss,k,nrk+2)
+                  ZEtaylor(k,ll,1) = ZEtaylor(k,ll,1) + Nmatrix(k,ll,ss,dofs(k)) * ze(k,ss,nrk+2)
                   QXtaylor(k,ll,1) = QXtaylor(k,ll,1) + Nmatrix(k,ll,ss,dofs(k))* QX(ss,k,nrk+2)
                   QYtaylor(k,ll,1) = QYtaylor(k,ll,1) + Nmatrix(k,ll,ss,dofs(k)) * QY(ss,k,nrk+2)
 
@@ -6671,7 +6671,7 @@ C.....Set limit values
 
             do ll = 1,dofs(k)
 
-               ZE(ll,k,irk+1) = ZEconst(k,ll)
+               ze(k,ll,irk+1) = ZEconst(k,ll)
                QX(ll,k,irk+1) = QXconst(k,ll)
                QY(ll,k,irk+1) = QYconst(k,ll)
 
@@ -6750,7 +6750,7 @@ C.....Set initial values
 
             DO ll = 1,dofs(k)
 
-               ZE(ll,k,NRK+2) = ZE(ll,k,IRK+1)
+               ze(k,ll,NRK+2) = ze(k,ll,IRK+1)
                QX(ll,k,NRK+2) = QX(ll,k,IRK+1)
                QY(ll,k,NRK+2) = QY(ll,k,IRK+1)
 
@@ -6800,7 +6800,7 @@ C.....Convert initial values to the Taylor basis (multiply by Nmatrix) on base e
                
                do ss=1,dofs(k)
 
-                  ZEtaylor(k,ll,1) = ZEtaylor(k,ll,1) + Nmatrix(k,ll,ss,dofs(k)) * ZE(ss,k,nrk+2)
+                  ZEtaylor(k,ll,1) = ZEtaylor(k,ll,1) + Nmatrix(k,ll,ss,dofs(k)) * ze(k,ss,nrk+2)
                   QXtaylor(k,ll,1) = QXtaylor(k,ll,1) + Nmatrix(k,ll,ss,dofs(k)) * QX(ss,k,nrk+2)
                   QYtaylor(k,ll,1) = QYtaylor(k,ll,1) + Nmatrix(k,ll,ss,dofs(k)) * QY(ss,k,nrk+2)
 
@@ -7505,7 +7505,7 @@ C.....Set limit values
 
             do ll = 1,dofs(k)
 
-               ZE(ll,k,irk+1) = ZEconst(k,ll)
+               ze(k,ll,irk+1) = ZEconst(k,ll)
                QX(ll,k,irk+1) = QXconst(k,ll)
                QY(ll,k,irk+1) = QYconst(k,ll)
 
@@ -7605,7 +7605,7 @@ C.....Set initial values
 
             DO ll = 1,dofs(k)
 
-               ZE(ll,k,NRK+2) = ZE(ll,k,IRK+1)
+               ze(k,ll,NRK+2) = ze(k,ll,IRK+1)
                QX(ll,k,NRK+2) = QX(ll,k,IRK+1)
                QY(ll,k,NRK+2) = QY(ll,k,IRK+1)
 
@@ -7654,7 +7654,7 @@ C.....Convert initial values to the Taylor basis (multiply by Nmatrix) on base e
                
                do ss=1,dofs(k)
 
-                  ZEtaylor(k,ll,1) = ZEtaylor(k,ll,1) + Nmatrix(k,ll,ss,dofs(k)) * ZE(ss,k,nrk+2)
+                  ZEtaylor(k,ll,1) = ZEtaylor(k,ll,1) + Nmatrix(k,ll,ss,dofs(k)) * ze(k,ss,nrk+2)
                   QXtaylor(k,ll,1) = QXtaylor(k,ll,1) + Nmatrix(k,ll,ss,dofs(k)) * QX(ss,k,nrk+2)
                   QYtaylor(k,ll,1) = QYtaylor(k,ll,1) + Nmatrix(k,ll,ss,dofs(k)) * QY(ss,k,nrk+2)
 
@@ -8303,7 +8303,7 @@ C.....Set limit values
 
             do ll = 3,dofs(k)
 
-               ZE(ll,k,irk+1) = ZEconst(k,ll)
+               ze(k,ll,irk+1) = ZEconst(k,ll)
                QX(ll,k,irk+1) = QXconst(k,ll)
                QY(ll,k,irk+1) = QYconst(k,ll)
 
@@ -8385,7 +8385,7 @@ C     SHARING A NODE
 
             do ll = 1,dofs(k)
 
-               ze(ll,k,nrk+2) = ze(ll,k,irk+1)
+               ze(k,ll,nrk+2) = ze(k,ll,irk+1)
                qx(ll,k,nrk+2) = qx(ll,k,irk+1)
                qy(ll,k,nrk+2) = qy(ll,k,irk+1)
 
@@ -8432,7 +8432,7 @@ c.....convert initial values to the taylor basis (multiply by nmatrix) on base e
             
             do ss=1,dofs(k)
 
-               zetaylor(k,ll,1) = zetaylor(k,ll,1) + nmatrix(k,ll,ss,dofs(k)) * ze(ss,k,irk+1)
+               zetaylor(k,ll,1) = zetaylor(k,ll,1) + nmatrix(k,ll,ss,dofs(k)) * ze(k,ss,irk+1)
                qxtaylor(k,ll,1) = qxtaylor(k,ll,1) + nmatrix(k,ll,ss,dofs(k)) * qx(ss,k,irk+1)
                qytaylor(k,ll,1) = qytaylor(k,ll,1) + nmatrix(k,ll,ss,dofs(k)) * qy(ss,k,irk+1)
 
@@ -8728,7 +8728,7 @@ C.....Set limit values
 
             do ll = 1,dofs(k)
 
-               ZE(ll,k,irk+1) = ZEconst(k,ll)
+               ze(k,ll,irk+1) = ZEconst(k,ll)
                QX(ll,k,irk+1) = QXconst(k,ll)
                QY(ll,k,irk+1) = QYconst(k,ll)
 
@@ -9232,7 +9232,7 @@ c$$$         if (dofs(k).gt.1) then
 c$$$
 c$$$            DO ll = 1,dofs(k)
 c$$$
-c$$$               ZE(ll,k,NRK+2) = ZE(ll,k,IRK+1)
+c$$$               ze(k,ll,NRK+2) = ze(k,ll,IRK+1)
 c$$$               QX(ll,k,NRK+2) = QX(ll,k,IRK+1)
 c$$$               QY(ll,k,NRK+2) = QY(ll,k,IRK+1)
 c$$$
@@ -9284,7 +9284,7 @@ c$$$            do ll=1,dofs(k)
 c$$$               
 c$$$               do ss=1,dofs(k)
 c$$$
-c$$$                  ZEtaylor(k,ll,1) = ZEtaylor(k,ll,1) + Nmatrix(k,ll,ss,dofs(k)) * ZE(ss,k,nrk+2)
+c$$$                  ZEtaylor(k,ll,1) = ZEtaylor(k,ll,1) + Nmatrix(k,ll,ss,dofs(k)) * ze(k,ss,nrk+2)
 c$$$                  QXtaylor(k,ll,1) = QXtaylor(k,ll,1) + Nmatrix(k,ll,ss,dofs(k))* QX(ss,k,nrk+2)
 c$$$                  QYtaylor(k,ll,1) = QYtaylor(k,ll,1) + Nmatrix(k,ll,ss,dofs(k)) * QY(ss,k,nrk+2)
 c$$$
@@ -10244,7 +10244,7 @@ c$$$         if (dofs(k).gt.1) then
 c$$$
 c$$$            do ll = 1,dofs(k)
 c$$$
-c$$$               ZE(ll,k,irk+1) = ZEconst(k,ll)
+c$$$               ze(k,ll,irk+1) = ZEconst(k,ll)
 c$$$               QX(ll,k,irk+1) = QXconst(k,ll)
 c$$$               QY(ll,k,irk+1) = QYconst(k,ll)
 c$$$

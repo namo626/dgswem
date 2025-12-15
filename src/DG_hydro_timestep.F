@@ -249,14 +249,14 @@ C.......SSP Runge-Kutta Time Scheme
      &                  + ARK*bed(K,J,I,l) + BRK*RHS_bed(K,J,I,l)
 
                      !adjust for state variable represenation
-                     ZE(K,J,IRK+1) = ZE(K,J,IRK+1)-BRK*RHS_bed(K,J,I,l)
+                     ze(J,K,IRK+1) = ze(J,K,IRK+1)-BRK*RHS_bed(K,J,I,l)
 
 
                   enddo
 #endif
 
-                  ZE(K,J,IRK+1) = ZE(K,J,irk+1) + ARK*ZE(K,J,I)
-     &                 + BRK*RHS_ZE(K,J,I) 
+                  ze(J,K,IRK+1) = ze(J,K,irk+1) + ARK*ze(J,K,I)
+     &                 + BRK*RHS_ze(J,K,I) 
                   QX(K,J,IRK+1) = QX(K,J,irk+1) + ARK*QX(K,J,I)
      &                 + BRK*RHS_QX(K,J,I)
                   QY(K,J,IRK+1) = QY(K,J,irk+1) + ATVD(IRK,I)*QY(K,J,I)
@@ -378,13 +378,13 @@ C.......RKC Time Scheme
      &                    + BRK*RHS_bed(K,J,1,l)
 
                    !adjust for state variable represenation
-                     ZE(K,J,IRK+1) = ZE(K,J,IRK+1)-BRK*RHS_bed(K,J,1,l)
+                     ze(J,K,IRK+1) = ze(J,K,IRK+1)-BRK*RHS_bed(K,J,1,l)
                      
                   enddo
 #endif
                   
-                  ZE(K,J,IRK+1) = ZE(K,J,irk+1) + ZE(K,J,1)
-     &                 + BRK*RHS_ZE(K,J,1)
+                  ze(J,K,IRK+1) = ze(J,K,irk+1) + ze(J,K,1)
+     &                 + BRK*RHS_ze(J,K,1)
                   QX(K,J,IRK+1) = QX(K,J,irk+1) + QX(K,J,1)
      &                 + BRK*RHS_QX(K,J,1)
                   QY(K,J,IRK+1) = QY(K,J,irk+1)  + QY(K,J,1)
@@ -437,14 +437,14 @@ C.......Compute the dynamic pressure if flagged
 
 
                    !adjust for state variable represenation
-                     ZE(K,J,IRK+1) = ZE(K,J,IRK+1) 
+                     ze(J,K,IRK+1) = ze(J,K,IRK+1) 
      &                   - BRK*RHS_bed(K,J,irk,l) - ERK*RHS_bed(K,J,1,l)
                      
                   enddo
 #endif
-                  ZE(K,J,IRK+1) = ZE(K,J,irk+1) + ARK*ZE(K,J,1) 
-     &                + CRK*ZE(K,J,irk) + DRK*ZE(K,J,irk-1) 
-     &                + BRK*RHS_ZE(K,J,irk) + ERK*RHS_ZE(K,J,1)
+                  ze(J,K,IRK+1) = ze(J,K,irk+1) + ARK*ze(J,K,1) 
+     &                + CRK*ze(J,K,irk) + DRK*ze(J,K,irk-1) 
+     &                + BRK*RHS_ze(J,K,irk) + ERK*RHS_ze(J,K,1)
                   QX(K,J,IRK+1) = QX(K,J,irk+1) + ARK*QX(K,J,1)
      &                + CRK*QX(K,J,irk) + DRK*QX(K,J,irk-1) 
      &                + BRK*RHS_QX(K,J,irk) + ERK*RHS_QX(K,J,1)
@@ -652,7 +652,7 @@ C.......Filter the layers if flagged
             enddo
 #endif
 
-            ZE(K,J,NRK+1) = sigma*ZE(K,J,nrk+1) 
+            ze(J,K,NRK+1) = sigma*ze(J,K,nrk+1) 
             QX(K,J,NRK+1) = sigma*QX(K,J,nrk+1)
             QY(K,J,NRK+1) = sigma*QY(K,J,nrk+1)
 
@@ -679,7 +679,7 @@ C......Filter chemistry transported terms if flagged
 !$acc parallel loop gang vector async(1) default(present)
       DO J = 1,MNE
          DO K = 1,DOFS(J)
-            ZE(K,J,1) = ZE(K,J,NRK+1)
+            ze(J,K,1) = ze(J,K,NRK+1)
             QX(K,J,1) = QX(K,J,NRK+1)
             QY(K,J,1) = QY(K,J,NRK+1)
 
@@ -706,10 +706,10 @@ C......Filter chemistry transported terms if flagged
       DO J = 1,MNE
          DO KK = 2,NRK+1
             DO K = 1,DOFH
-               ZE(K,J,KK) = 0.0
+               ze(J,K,KK) = 0.0
                QX(K,J,KK) = 0.0
                QY(K,J,KK) = 0.0
-               RHS_ZE(K,J,KK-1) = 0.0
+               RHS_ze(J,K,KK-1) = 0.0
                RHS_QX(K,J,KK-1) = 0.0
                RHS_QY(K,J,KK-1) = 0.0
 #ifdef TRACE
