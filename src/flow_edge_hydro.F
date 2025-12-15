@@ -180,8 +180,8 @@ C.....Compute the solution at the interior state
             DO K = 1,DOFS(EL_IN)
 
                ZE_IN = ZE_IN + ze(EL_IN,K,IRK)*PHI_EDGE(K,I,LED,pa)
-               QX_IN = QX_IN + QX(K,EL_IN,IRK)*PHI_EDGE(K,I,LED,pa)
-               QY_IN = QY_IN + QY(K,EL_IN,IRK)*PHI_EDGE(K,I,LED,pa)
+               QX_IN = QX_IN + qx(EL_IN,K,IRK)*PHI_EDGE(K,I,LED,pa)
+               QY_IN = QY_IN + qy(EL_IN,K,IRK)*PHI_EDGE(K,I,LED,pa)
                
 #ifdef TRACE    
              iota_IN = iota_IN + iota(K,EL_IN,IRK)*PHI_EDGE(K,I,LED,pa)
@@ -295,8 +295,8 @@ C.....Compute the edge integral
      &              PHI_EDGE(K,I,LED,pa)*WEGP(I,pa)
 
                RHS_ze(EL_IN,K,IRK) = RHS_ze(EL_IN,K,IRK) - W_IN*F_HAT
-               RHS_QX(K,EL_IN,IRK) = RHS_QX(K,EL_IN,IRK) - W_IN*G_HAT
-               RHS_QY(K,EL_IN,IRK) = RHS_QY(K,EL_IN,IRK) - W_IN*H_HAT
+               RHS_qx(EL_IN,K,IRK) = RHS_qx(EL_IN,K,IRK) - W_IN*G_HAT
+               RHS_qy(EL_IN,K,IRK) = RHS_qy(EL_IN,K,IRK) - W_IN*H_HAT
 
 #ifdef TRACE
               RHS_iota(K,EL_IN,IRK) = RHS_iota(K,EL_IN,IRK) - W_IN*I_HAT

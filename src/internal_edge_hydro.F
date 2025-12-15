@@ -120,11 +120,11 @@ C.......If both elements on either side of edge are dry then skip
          IF((WDFLG(EL_IN).EQ.0).AND.(WDFLG(EL_EX).EQ.0)) goto 100
 
          ze_ins = ze(el_in,:,irk)
-         qx_ins = qx(:,el_in,irk)
-         qy_ins = qy(:,el_in,irk)
+         qx_ins = qx(el_in,:,irk)
+         qy_ins = qy(el_in,:,irk)
          ze_exs = ze(el_ex,:,irk)
-         qx_exs = qx(:,el_ex,irk)
-         qy_exs = qy(:,el_ex,irk)
+         qx_exs = qx(el_ex,:,irk)
+         qy_exs = qy(el_ex,:,irk)
 
 
 
@@ -368,8 +368,8 @@ C.....Compute the edge integral
             enddo
 
             rhs_ze(L,k, IRK) = rhs_ze(L,k, IRK) + ze_sum
-            rhs_qx(k,L, IRK) = rhs_qx(k,L, IRK) + qx_sum
-            rhs_qy(k,L, IRK) = rhs_qy(k,L, IRK) + qy_sum
+            rhs_qx(L,k, IRK) = rhs_qx(L,k, IRK) + qx_sum
+            rhs_qy(L,k, IRK) = rhs_qy(L,k, IRK) + qy_sum
          enddo
 
          ze_edge(L,:,:) = 0.

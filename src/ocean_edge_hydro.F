@@ -87,8 +87,8 @@ C.....Compute ZE, QX, QY, and HB at each edge Gauss quadrature point
          DO I = 1,NEGP(pa)
 
             ZE_IN = ze(EL_IN,1,IRK)
-            QX_IN = QX(1,EL_IN,IRK)
-            QY_IN = QY(1,EL_IN,IRK)
+            QX_IN = qx(EL_IN,1,IRK)
+            QY_IN = qy(EL_IN,1,IRK)
 
             ZE_EX = 0.0
             QX_EX = 0.0
@@ -191,8 +191,8 @@ C.....Compute the solution at the interior state
             DO K = 2,DOFS(EL_IN)
 
                ZE_IN = ZE_IN + ze(EL_IN,K,IRK)*PHI_EDGE(K,I,LED,pa)
-               QX_IN = QX_IN + QX(K,EL_IN,IRK)*PHI_EDGE(K,I,LED,pa)
-               QY_IN = QY_IN + QY(K,EL_IN,IRK)*PHI_EDGE(K,I,LED,pa)
+               QX_IN = QX_IN + qx(EL_IN,K,IRK)*PHI_EDGE(K,I,LED,pa)
+               QY_IN = QY_IN + qy(EL_IN,K,IRK)*PHI_EDGE(K,I,LED,pa)
 
 #ifdef TRACE
               iota_IN = iota_IN + iota(K,EL_IN,IRK)*PHI_EDGE(K,I,LED,pa)
@@ -321,9 +321,9 @@ C.....Compute the edge integral
 !$acc atomic
                RHS_ze(EL_IN,K,IRK) = RHS_ze(EL_IN,K,IRK) - W_IN*F_HAT
 !$acc atomic
-               RHS_QX(K,EL_IN,IRK) = RHS_QX(K,EL_IN,IRK) - W_IN*G_HAT
+               RHS_qx(EL_IN,K,IRK) = RHS_qx(EL_IN,K,IRK) - W_IN*G_HAT
 !$acc atomic
-               RHS_QY(K,EL_IN,IRK) = RHS_QY(K,EL_IN,IRK) - W_IN*H_HAT
+               RHS_qy(EL_IN,K,IRK) = RHS_qy(EL_IN,K,IRK) - W_IN*H_HAT
 
 #ifdef TRACE
               RHS_iota(K,EL_IN,IRK) = RHS_iota(K,EL_IN,IRK) - W_IN*I_HAT

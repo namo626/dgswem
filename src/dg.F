@@ -150,7 +150,7 @@ C.....Declare allocatable real arrays
       REAL(SZ), ALLOCATABLE :: PSI1(:,:), PSI2(:,:), PSI3(:,:)
       REAL(SZ), ALLOCATABLE :: Q_HAT(:)
       REAL(SZ), ALLOCATABLE :: QIB(:)
-      REAL(SZ), ALLOCATABLE :: QX(:,:,:), QY(:,:,:), ze(:,:,:)
+      REAL(SZ), ALLOCATABLE :: qx(:,:,:), qy(:,:,:), ze(:,:,:)
       REAL(SZ), ALLOCATABLE :: ze_edge(:,:,:), qx_edge(:,:,:), qy_edge(:,:,:)
       integer, allocatable :: elem_edge(:,:), nieds_count(:)
       Real(SZ), ALLOCATABLE, target:: bed(:,:,:,:)
@@ -169,7 +169,7 @@ C.....Declare allocatable real arrays
       Real(SZ), Allocatable :: HZ(:,:,:,:),TZ(:,:,:,:)
       REAL(SZ), ALLOCATABLE :: QNAM_DG(:,:,:), QNPH_DG(:,:,:)
       REAL(SZ), ALLOCATABLE :: RHS_ze(:,:,:), RHS_bed(:,:,:,:)
-      REAL(SZ), ALLOCATABLE :: RHS_QX(:,:,:),RHS_QY(:,:,:)
+      REAL(SZ), ALLOCATABLE :: RHS_qx(:,:,:),RHS_qy(:,:,:)
       Real(SZ), Allocatable :: RHS_iota(:,:,:),RHS_iota2(:,:,:),
      & RHS_dynP(:,:,:)
       Real(SZ), Allocatable :: RHS_bed_IN(:,:),RHS_bed_EX(:,:),
@@ -285,7 +285,7 @@ C.....Set DG SWE array sizes
 Csb-20070228 NRK+1-->NRK+2 --- XX(:,:,NRK+2) will be used by slope limiter
       ALLOCATE ( HB(DOFH,MNE,NRK+2),e1(layers+5),balance(layers+5) )
       ALLOCATE ( MANN(DOFH,MNE) ) !,arrayfix(DOFH,MNE,NRK+2) )
-      ALLOCATE ( QY(DOFH,MNE,NRK+2), QX(DOFH,MNE,NRK+2) )
+      ALLOCATE ( qy(MNE,DOFH,NRK+2), qx(MNE,DOFH,NRK+2) )
       ALLOCATE ( ze(MNE,DOFH,NRK+2), bed(DOFH,MNE,NRK+2,layers) )
       Allocate ( iota(DOFH,MNE,NRK+2),iota2(DOFH,MNE,NRK+2) ) 
       Allocate ( dynP(DOFH,MNE,NRK+2) ) 
@@ -308,7 +308,7 @@ Csb-20070101
       ALLOCATE ( LZ(DOFH,2,2,MNE),MZ(DOFH,2,layers,MNE) )
       Allocate ( HZ(DOFH,2,2,MNE),TZ(DOFH,2,2,MNE) )
 C--
-      ALLOCATE ( RHS_QX(DOFH,MNE,NRK), RHS_QY(DOFH,MNE,NRK) )
+      ALLOCATE ( RHS_qx(MNE,DOFH,NRK), RHS_qy(MNE,DOFH,NRK) )
       ALLOCATE ( RHS_ze(MNE,DOFH,NRK), RHS_bed(DOFH,MNE,NRK,layers) )
       Allocate ( RHS_iota(DOFH,MNE,NRK),RHS_iota2(DOFH,MNE,NRK) )
       Allocate ( RHS_dynP(DOFH,MNE,NRK) )

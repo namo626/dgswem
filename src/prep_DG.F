@@ -1391,7 +1391,7 @@ C.....Read in modal dof for initial conditions
          DO J = 1,MNE
             DO K = 1,DOFH
                READ(163,*) ze(J,K,1)
-               READ(164,*) QX(K,J,1), QY(K,J,1)
+               READ(164,*) qx(J,K,1), qy(J,K,1)
                READ(114,*) HB(K,J,1)
             ENDDO
          ENDDO
@@ -1429,7 +1429,7 @@ c$$$#endif
          DO J = 1,MNE
             DO K = 1,DOFH
                READ(263,*) ze(J,K,1)
-               READ(264,*) QX(K,J,1), QY(K,J,1)
+               READ(264,*) qx(J,K,1), qy(J,K,1)
                READ(214,*) HB(K,J,1), WDFLG(J)
 #ifdef TRACE
                READ(288,*) iota(K,J,1)
