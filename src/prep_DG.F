@@ -1537,6 +1537,8 @@ C.....Close files
 !      CLOSE(115)
 !      CLOSE(25)
       
+      print *, 'DOFH = ', dofh
+      print *, 'NAGP = ', nagp(pa)
       RETURN
       END SUBROUTINE PREP_DG
 

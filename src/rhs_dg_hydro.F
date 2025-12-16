@@ -200,7 +200,7 @@ C.......Compute ZE, QX, QY, and HB at each area Gauss quadrature point
             SFACQUAD = SFAC_ELEM(I,L,pa)
 !!$acc loop vector reduction(+:ze_in,qx_in,qy_in)
 !$acc loop seq
-            DO K = 2,DOFS(L)
+            DO K = 2,DOFH
 
                ZE_IN = ZE_IN + ze(L,K,IRK)*PHI_AREA(K,I,pa)
                QX_IN = QX_IN + qx(L,K,IRK)*PHI_AREA(K,I,pa)
