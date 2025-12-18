@@ -364,8 +364,8 @@ C.....Set sizes for arrays for area integrals
       ALLOCATE ( BATH(NAGP(ph),MNE,ph),DBATHDX(NAGP(ph),MNE,ph) )
       Allocate ( DBATHDY(NAGP(ph),MNE,ph) )
       ALLOCATE ( SFAC_ELEM(NAGP(ph),MNE,ph) )
-      ALLOCATE ( XFAC(DOFH,NAGP(ph),MNE,ph), YFAC(DOFH,NAGP(ph),MNE,ph))
-      ALLOCATE ( SRFAC(DOFH,NAGP(ph),MNE,ph) )
+      ALLOCATE ( XFAC(MNE,DOFH,NAGP(ph),ph), YFAC(MNE,DOFH,NAGP(ph),ph))
+      ALLOCATE ( SRFAC(MNE,DOFH,NAGP(ph),ph) )
       RETURN
       END SUBROUTINE
       
