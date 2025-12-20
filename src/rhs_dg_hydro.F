@@ -48,8 +48,8 @@ C.....Declare local variables
       REAL(SZ) DEPTH_C, FH_NL_C, UX_C, UY_C, UMAG_C, DTDPH,SFACQUAD
       Real(SZ) discharge_modelX_IN,discharge_modelY_IN
       Real(SZ) DH_X,DH_Y,phi_tot,C_0,HZ_X,HZ_Y,TZ_X,TZ_Y
-      real(sz), dimension(6) :: ze_tmp, qx_tmp, qy_tmp
-      real(sz), dimension(6) :: ze_ins, qx_ins, qy_ins
+      real(sz), dimension(15) :: ze_tmp, qx_tmp, qy_tmp
+      real(sz), dimension(16) :: ze_ins, qx_ins, qy_ins
 
 
       real(sz) source_max, source_r
