@@ -49,6 +49,7 @@ C.....Declare local variables
       Real(SZ) discharge_modelX_IN,discharge_modelY_IN
       Real(SZ) DH_X,DH_Y,phi_tot,C_0,HZ_X,HZ_Y,TZ_X,TZ_Y
       real(sz), dimension(DOFH) :: ze_tmp, qx_tmp, qy_tmp
+      real(sz), dimension(nagp(pa)) :: ze_ins, qx_ins, qy_ins
 
 
       real(sz) source_max, source_r
@@ -58,7 +59,7 @@ C.....Declare local variables
 
       DTDPH = 1.0/DTDP
 !!$acc parallel loop gang  vector_length(64) async(1) default(present)
-!$acc parallel loop gang vector private(qx_tmp,qy_tmp,ze_tmp) async(1) default(present)
+!$acc parallel loop gang vector private(qx_tmp,qy_tmp,ze_tmp,ze_ins,qx_ins,qy_ins) async(1) default(present)
       DO 1000 L = 1, NE
 
          ze_tmp = rhs_ze(L,:,IRK)
@@ -124,13 +125,25 @@ C.......Compute derivatives of Lagrange basis functions at nodes
          ENDIF
 
 C.......Compute ZE, QX, QY, and HB at each area Gauss quadrature point
+         ze_ins = 0.
+         qx_ins = 0.
+         qy_ins = 0.
+!$acc loop seq
+         DO k = 1,DOFH
+            DO I = 1,NAGP(pa)
+               ze_ins(i) = ze_ins(i) + ze(L,K,IRK)*PHI_AREA(K,I,pa) 
+               qx_ins(i) = qx_ins(i) + qx(L,K,IRK)*PHI_AREA(K,I,pa) 
+               qy_ins(i) = qy_ins(i) + qy(L,K,IRK)*PHI_AREA(K,I,pa) 
+            ENDDO
+         ENDDO
+         
 
 !$acc loop seq
          DO I = 1,NAGP(pa)
 
-            ZE_IN = ze(L,1,IRK)
-            QX_IN = qx(L,1,IRK)
-            QY_IN = qy(L,1,IRK)
+c$$$            ZE_IN = ze(L,1,IRK)
+c$$$            QX_IN = qx(L,1,IRK)
+c$$$            QY_IN = qy(L,1,IRK)
 
 #ifdef TRACE
             iota_IN = iota(1,L,IRK)
@@ -196,6 +209,7 @@ C.......Compute ZE, QX, QY, and HB at each area Gauss quadrature point
 #endif
 
             SFACQUAD = SFAC_ELEM(I,L,pa)
+#if 0
 !!$acc loop vector reduction(+:ze_in,qx_in,qy_in)
 !$acc loop seq
             DO K = 2,DOFH
@@ -253,6 +267,10 @@ C.........Compute sediment discharge model
 #endif
 
             ENDDO
+#endif
+            ze_in = ze_ins(i)
+            qx_in = qx_ins(i)
+            qy_in = qy_ins(i)
             DEPTH = ZE_IN + HB_IN
 
 C.........Compute continuity fluxes
