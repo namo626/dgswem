@@ -26,6 +26,18 @@ C.....Use appropriate modules
 
 
 C.....Declare integer variables
+#ifdef PORDER
+#if PORDER == 1
+      integer, parameter :: dof_c = 3
+      integer, parameter :: nagp_c = 3
+#elif PORDER == 2
+      integer, parameter :: dof_c = 6
+      integer, parameter :: nagp_c = 6
+#elif PORDER == 4
+      integer, parameter :: dof_c = 15
+      integer, parameter :: nagp_c = 16
+#endif
+#endif
       INTEGER, TARGET :: rainfall
       INTEGER, TARGET :: DGFLAG,DGHOT,DGHOTSPOOL
       INTEGER DOF,dofh,dofl,dofx

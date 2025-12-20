@@ -48,12 +48,13 @@ C.....Declare local variables
       REAL(SZ) DEPTH_C, FH_NL_C, UX_C, UY_C, UMAG_C, DTDPH,SFACQUAD
       Real(SZ) discharge_modelX_IN,discharge_modelY_IN
       Real(SZ) DH_X,DH_Y,phi_tot,C_0,HZ_X,HZ_Y,TZ_X,TZ_Y
-      integer, parameter :: dof_c = 15
-      integer, parameter :: nagp_c = 16
+#ifdef PORDER
       real(sz), dimension(dof_c) :: ze_tmp, qx_tmp, qy_tmp
       real(sz), dimension(nagp_c) :: ze_ins, qx_ins, qy_ins
-      real(sz), dimension(NE,dof_c,nagp_c) :: x_in, y_in, sr_in
-
+#else
+      real(sz), dimension(dofh) :: ze_tmp, qx_tmp, qy_tmp
+      real(sz), dimension(nagp(pa)) :: ze_ins, qx_ins, qy_ins
+#endif      
 
       real(sz) source_max, source_r
 
@@ -61,19 +62,8 @@ C.....Declare local variables
       !print *, "max prec2 = ", maxval(prec2)
 
       DTDPH = 1.0/DTDP
-!!$acc parallel loop gang  vector_length(64) async(1) default(present)
 !$acc parallel loop gang vector async(1) private(qx_tmp,qy_tmp,ze_tmp,ze_ins,qx_ins,qy_ins) default(present)
       DO 1000 L = 1, NE
-!!$acc cache(x_in,y_in,sr_in)
-!$acc loop seq
-        DO I = 1,nagp_c
-          DO k = 1,dof_c
-            !x_in(L,k,i) = xfac(L,k,i,pa)
-            !y_in(L,k,i) = yfac(L,k,i,pa)
-            !sr_in(L,k,i) = srfac(L,k,i,pa)
-          ENDDO
-        ENDDO
-
 
          ze_tmp = rhs_ze(L,:,IRK)
          qx_tmp = rhs_qx(L,:,IRK)
@@ -97,9 +87,14 @@ C.......Compute rain source term if rain is enabled
 
             IF (SOURCE_R .GT. 0.0) THEN
 !$acc loop seq
+#ifdef PORDER     
+              DO I = 1,nagp_c
+                DO K = 1,dof_c
+#else
               DO I = 1,NAGP(pa)
                 DO K = 1,DOFH
-                   ze_tmp(k) = ze_tmp(K) +  sr_in(L,k,i)*SOURCE_R
+#endif                   
+                   ze_tmp(k) = ze_tmp(K) +  srfac(L,k,i,pa)*SOURCE_R
                 END DO
               END DO
             END IF
@@ -142,8 +137,13 @@ C.......Compute ZE, QX, QY, and HB at each area Gauss quadrature point
          qx_ins = 0.
          qy_ins = 0.
 !$acc loop seq
+#ifdef PORDER
          DO k = 1,DOF_c
             DO I = 1,Nagp_c
+#else
+         DO k = 1,DOFH
+            DO I = 1,NAGP(pa)
+#endif
                ze_ins(i) = ze_ins(i) + ze(L,K,IRK)*PHI_AREA(K,I,pa) 
                qx_ins(i) = qx_ins(i) + qx(L,K,IRK)*PHI_AREA(K,I,pa) 
                qy_ins(i) = qy_ins(i) + qy(L,K,IRK)*PHI_AREA(K,I,pa) 
@@ -152,7 +152,11 @@ C.......Compute ZE, QX, QY, and HB at each area Gauss quadrature point
          
 
 !$acc loop seq
+#ifdef PORDER
          DO I = 1,NAGP_c
+#else
+         DO I = 1,NAGP(pa)
+#endif
 
 c$$$            ZE_IN = ze(L,1,IRK)
 c$$$            QX_IN = qx(L,1,IRK)
@@ -448,7 +452,11 @@ C.........Build the rhs
 
 !!$acc loop vector
 !$acc loop seq
+#ifdef PORDER
             DO K = 1,dof_c
+#else
+            DO K = 1,DOFH
+#endif
 
                ze_tmp(K) = ze_tmp(k) + xfac(L,k,i,pa)*FX_IN
      &                + yfac(L,k,i,pa)*FY_IN
@@ -496,8 +504,11 @@ C.........Build the rhs
             ENDDO
 
          ENDDO
-
+#ifdef PORDER
          DO k = 1,DOF_c
+#else
+         DO k = 1,DOFH
+#endif
             RHS_ze(L,K,IRK) = ze_tmp(k)
             RHS_qx(L,K,IRK) = qx_tmp(k)
             RHS_qy(L,K,IRK) = qy_tmp(k)
