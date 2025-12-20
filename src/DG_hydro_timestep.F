@@ -235,12 +235,12 @@ C.......Compute elements to finish building the rhs
          CALL RHS_DG_HYDRO(IT)
 
 C.......SSP Runge-Kutta Time Scheme
+         DO I = 1,IRK
+            ARK = ATVD(IRK,I)
+            BRK = BTVD(IRK,I)*DT
 !$acc parallel loop gang vector async(1) default(present)
          DO J = 1,NE
 !$acc loop seq
-            DO I = 1,IRK
-               ARK = ATVD(IRK,I)
-               BRK = BTVD(IRK,I)*DT
 #ifdef PORDER
                DO K = 1,DOF_c
 #else
@@ -264,7 +264,7 @@ C.......SSP Runge-Kutta Time Scheme
      &                 + BRK*RHS_ze(J,K,I) 
                   qx(J,K,IRK+1) = qx(J,K,irk+1) + ARK*qx(J,K,I)
      &                 + BRK*RHS_qx(J,K,I)
-                  qy(J,K,IRK+1) = qy(J,K,irk+1) + ATVD(IRK,I)*qy(J,K,I)
+                  qy(J,K,IRK+1) = qy(J,K,irk+1) + ARK*qy(J,K,I)
      &                 + BRK*RHS_qy(J,K,I)
 C.......Compute the transported tracer term if flagged
 
