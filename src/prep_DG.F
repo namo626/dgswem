@@ -1543,6 +1543,7 @@ C.....Close files
       
       print *, 'DOFH = ', dofh
       print *, 'NAGP = ', nagp(pa)
+      print *, 'NEGP = ', negp(pa)
       RETURN
       END SUBROUTINE PREP_DG
 

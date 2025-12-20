@@ -28,6 +28,9 @@ C     C***********************************************************************
      &     hb, bathed, dofs, edgeq, negp, max_boa_dt, phi_edge, sfaced, lz, nedel, niedn,
      &     nedsd, elem_edge, ze_edge, qx_edge, qy_edge,
      &     irk, nieds, dofh
+#ifdef PORDER
+     &    , dof_c, negp_c
+#endif
       USE NodalAttributes, ONLY :  ESLM
       use sizes, only:  sz, myproc
       use mod_numerical_flux
@@ -56,13 +59,19 @@ C.....Declare local variables
       REAL(SZ) HZ_X_EX, HZ_Y_EX, HZ_X_IN, HZ_Y_IN
       REAL(SZ) TZ_X_EX, TZ_Y_EX, TZ_X_IN, TZ_Y_IN
       REAL(SZ) EDFAC_IN, EDFAC_EX, DEN
+#ifdef PORDER
+      real(sz),dimension(dof_c) :: ze_ins, ze_exs, qx_ins, qx_exs, qy_ins, qy_exs
+      REAL(SZ), dimension(dof_c)  :: rhs_ze_in, rhs_qx_in, rhs_qy_in, rhs_ze_ex,rhs_qx_ex,rhs_qy_ex
+#else
       real(sz) :: ze_ins(DOFH), ze_exs(DOFH), qx_ins(DOFH), qx_exs(DOFH), qy_ins(DOFH), qy_exs(DOFH)
-      REAL(SZ) XLEN_EL_IN, XLEN_EL_EX
-      REAL(SZ) MASS_EL_IN, MASS_EL_EX
       REAL(SZ)  ::
      &     RHS_ZE_IN(DOFH), RHS_QX_IN(DOFH), RHS_QY_IN(DOFH),
      &     RHS_ZE_EX(DOFH), RHS_QX_EX(DOFH), RHS_QY_EX(DOFH)
+#endif
+      REAL(SZ) XLEN_EL_IN, XLEN_EL_EX
+      REAL(SZ) MASS_EL_IN, MASS_EL_EX
 #ifdef TRACE
+      REAL(SZ) ::
      &     ,RHS_iota_IN(:), RHS_iota_EX(:)
 #endif
 #ifdef CHEM
@@ -86,7 +95,11 @@ C.....Declare local variables
 !$acc+ze_ins,qx_ins,qy_ins,ze_exs,qx_exs,qy_exs,fluxes) async(1) default(present)
       do L = 1, NIEDS
 !$acc loop seq
+#ifdef PORDER
+        do k = 1,DOF_c
+#else
         do k = 1,DOFH
+#endif
           rhs_ze_in(k) = 0.0_sz
           rhs_qx_in(k) = 0.0_sz
           rhs_qy_in(k) = 0.0_sz
@@ -160,7 +173,11 @@ C.....Set the components for the tangential vector to the edge
 C.....Compute ZE, QX, QY, and HB at each edge Gauss quadrature point
 
 !$acc loop seq
+#ifdef PORDER
+         gauss_point_loop: DO I = 1,NEGP_c
+#else
          gauss_point_loop: DO I = 1,NEGP(pa)
+#endif
 
             GP_IN = I
             GP_EX = NEGP(pa) - I + 1
@@ -176,8 +193,11 @@ C.....Compute ZE, QX, QY, and HB at each edge Gauss quadrature point
             QY_EX = 0.0_sz
             HB_EX = BATHED(GP_EX,LED_EX,EL_EX,pa)
             SFAC_EX = SFACED(GP_EX,LED_EX,EL_EX,pa)
-
+#ifdef PORDER
+            DO K = 1,DOF_C
+#else
             DO K = 1,DOFH
+#endif
 
                ZE_IN = ZE_IN + ZE_ins(K)*PHI_EDGE(K,GP_IN,LED_IN,pa)
                QX_IN = QX_IN + QX_ins(K)*PHI_EDGE(K,GP_IN,LED_IN,pa)
@@ -302,8 +322,11 @@ C........Check to make sure mass flux is not coming from a dry element
             ENDIF dry_flux
 
 C.....Compute the edge integral
-
+#ifdef PORDER
+            DO K = 1,DOF_c
+#else
             DO K = 1,DOFH
+#endif
 
                W_IN = EDFAC_IN*EDGEQ(K,GP_IN,LED_IN,pa)
                W_EX = EDFAC_EX*EDGEQ(K,GP_EX,LED_EX,pa)
@@ -333,8 +356,11 @@ C.....Compute the edge integral
          endif
       enddo
 
-
+#ifdef PORDER
+      do k = 1,DOF_C
+#else
       do k = 1,DOFH
+#endif
          ze_edge(el_ex,ind_ex,k) = rhs_ze_ex(k)
          qx_edge(el_ex,ind_ex,k) = rhs_qx_ex(k)
          qy_edge(el_ex,ind_ex,k) = rhs_qy_ex(k)
