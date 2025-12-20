@@ -62,6 +62,7 @@ C.....Declare local variables
 !$acc parallel loop gang vector private(qx_tmp,qy_tmp,ze_tmp,ze_ins,qx_ins,qy_ins) async(1) default(present)
       DO 1000 L = 1, NE
 
+!$acc cache(xfac(:,:,:,pa), yfac(:,:,:,pa), srfac(:,:,:,pa))
          ze_tmp = rhs_ze(L,:,IRK)
          qx_tmp = rhs_qx(L,:,IRK)
          qy_tmp = rhs_qy(L,:,IRK)
