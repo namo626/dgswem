@@ -180,7 +180,11 @@ C.....Compute ZE, QX, QY, and HB at each edge Gauss quadrature point
 #endif
 
             GP_IN = I
+#ifdef PORDER
+            GP_EX = NEGP_C - I + 1
+#else
             GP_EX = NEGP(pa) - I + 1
+#endif
 
             ZE_IN = 0.0_sz
             QX_IN = 0.0_sz
@@ -344,7 +348,7 @@ C.....Compute the edge integral
       ENDDO gauss_point_loop
 
 
-
+#if 0
       ind_ex = -1
       ind_in = -1
       do k = 1,3
@@ -369,8 +373,29 @@ C.....Compute the edge integral
          qx_edge(el_in,ind_in,k) = rhs_qx_in(k)
          qy_edge(el_in,ind_in,k) = rhs_qy_in(k)
       enddo
-
+#endif
 100   continue
+
+!$acc loop seq      
+#ifdef PORDER
+      do k = 1,DOF_C
+#else
+      do k = 1,DOFH
+#endif
+!$acc atomic
+         rhs_ze(el_ex,k,irk) = rhs_ze(el_ex,k,irk) + rhs_ze_ex(k)
+!$acc atomic                                                
+         rhs_qx(el_ex,k,irk) = rhs_qx(el_ex,k,irk) + rhs_qx_ex(k)
+!$acc atomic                                               
+         rhs_qy(el_ex,k,irk) = rhs_qy(el_ex,k,irk) + rhs_qy_ex(k)
+!$acc atomic                                               
+         rhs_ze(el_in,k,irk) = rhs_ze(el_in,k,irk) + rhs_ze_in(k)
+!$acc atomic                                               
+         rhs_qx(el_in,k,irk) = rhs_qx(el_in,k,irk) + rhs_qx_in(k)
+!$acc atomic                                               
+         rhs_qy(el_in,k,irk) = rhs_qy(el_in,k,irk) + rhs_qy_in(k)
+      enddo
+      
       enddo
 
       END SUBROUTINE
