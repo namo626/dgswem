@@ -237,10 +237,15 @@ C.......Compute elements to finish building the rhs
 C.......SSP Runge-Kutta Time Scheme
 !$acc parallel loop gang vector async(1) default(present)
          DO J = 1,NE
+!$acc loop seq
             DO I = 1,IRK
                ARK = ATVD(IRK,I)
                BRK = BTVD(IRK,I)*DT
-               DO K = 1,DOFS(J)
+#ifdef PORDER
+               DO K = 1,DOF_c
+#else
+               DO K = 1,DOFH
+#endif
 
 #ifdef SED_LAY
 
