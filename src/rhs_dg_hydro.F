@@ -48,6 +48,7 @@ C.....Declare local variables
       REAL(SZ) DEPTH_C, FH_NL_C, UX_C, UY_C, UMAG_C, DTDPH,SFACQUAD
       Real(SZ) discharge_modelX_IN,discharge_modelY_IN
       Real(SZ) DH_X,DH_Y,phi_tot,C_0,HZ_X,HZ_Y,TZ_X,TZ_Y
+      real(sz), dimension(DOFH) :: ze_tmp, qx_tmp, qy_tmp
 
 
       real(sz) source_max, source_r
@@ -57,14 +58,12 @@ C.....Declare local variables
 
       DTDPH = 1.0/DTDP
 !!$acc parallel loop gang  vector_length(64) async(1) default(present)
-!$acc parallel loop gang vector async(1) default(present)
+!$acc parallel loop gang vector private(qx_tmp,qy_tmp,ze_tmp) async(1) default(present)
       DO 1000 L = 1, NE
-c     nd
-         advectqx(l)=0.0
-         advectqx(l)=0.0
-         sourceqx(l)=0.0
-         sourceqy(l)=0.0
-c     nd
+
+         ze_tmp = rhs_ze(L,:,IRK)
+         qx_tmp = rhs_qx(L,:,IRK)
+         qy_tmp = rhs_qy(L,:,IRK)
 
 C.......Adjust the p values for constants
 
@@ -83,11 +82,10 @@ C.......Compute rain source term if rain is enabled
             IF (rainfall == 1) SOURCE_R =  7.0556e-6 ! 1 inch/hour
 
             IF (SOURCE_R .GT. 0.0) THEN
-!!$acc loop seq
+!$acc loop seq
               DO I = 1,NAGP(pa)
-                DO K = 1,DOFS(L)
-                  RHS_ze(L,K,IRK) = RHS_ze(L,K,IRK) +
-     &                 srfac(L,K,I,pa)*SOURCE_R
+                DO K = 1,DOFH
+                   ze_tmp(k) = ze_tmp(K) +  srfac(L,K,I,pa)*SOURCE_R
                 END DO
               END DO
             END IF
@@ -325,7 +323,7 @@ C     height even though it does not happen in reality. To avoid this, the MIN
 C     function bellow is added. It is expected that this MIN function upper-limits
 C     TAU so the bottom friction force does not reverse the currents within
 C     half a time step.  S.B. 9-Feb-2008
-               TAU = MIN(TAU, .9D0*DTDPH)
+               TAU = MIN(TAU, .9_sz*DTDPH)
             ENDIF
 
 C.........Compute the x momentum source/sink terms
@@ -416,20 +414,17 @@ C.........Build the rhs
 #endif
 
 
-            RHS_qx(L,1,IRK) = RHS_qx(L,1,IRK) + srfac(L,1,I,pa)*SOURCE_X
-            RHS_qy(L,1,IRK) = RHS_qy(L,1,IRK) + srfac(L,1,I,pa)*SOURCE_Y
 
 !!$acc loop vector
 !$acc loop seq
-            DO K = 2,DOFH
+            DO K = 1,DOFH
 
-               RHS_ze(L,K,IRK) = RHS_ze(L,K,IRK) + xfac(L,K,I,pa)*FX_IN
+               ze_tmp(K) = ze_tmp(k) + xfac(L,K,I,pa)*FX_IN
      &                + yfac(L,K,I,pa)*FY_IN
-               RHS_qx(L,K,IRK) = RHS_qx(L,K,IRK) + xfac(L,K,I,pa)*GX_IN
+               qx_tmp(k) = qx_tmp(k) + xfac(L,K,I,pa)*GX_IN
      &              + yfac(L,K,I,pa)*GY_IN + srfac(L,K,I,pa)*SOURCE_X
-               RHS_qy(L,K,IRK) = RHS_qy(L,K,IRK) + xfac(L,K,I,pa)*HX_IN
+               qy_tmp(k) = qy_tmp(k) + xfac(L,K,I,pa)*HX_IN
      &              + yfac(L,K,I,pa)*HY_IN + srfac(L,K,I,pa)*SOURCE_Y
-
 #ifdef SED_LAY
 
                do ll = 1,layers !only really makes sense for single layer
@@ -471,6 +466,12 @@ C.........Build the rhs
 
          ENDDO
 
+         DO k = 1,DOFH
+            RHS_ze(L,K,IRK) = ze_tmp(k)
+            RHS_qx(L,K,IRK) = qx_tmp(k)
+            RHS_qy(L,K,IRK) = qy_tmp(k)
+         ENDDO
+            
 
  1000 CONTINUE
       !print *, "max source = ", source_max
