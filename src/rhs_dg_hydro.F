@@ -48,8 +48,8 @@ C.....Declare local variables
       REAL(SZ) DEPTH_C, FH_NL_C, UX_C, UY_C, UMAG_C, DTDPH,SFACQUAD
       Real(SZ) discharge_modelX_IN,discharge_modelY_IN
       Real(SZ) DH_X,DH_Y,phi_tot,C_0,HZ_X,HZ_Y,TZ_X,TZ_Y
-      integer, parameter :: dof_c = 3
-      integer, parameter :: nagp_c = 3
+      integer, parameter :: dof_c = 15
+      integer, parameter :: nagp_c = 16
       real(sz), dimension(dof_c) :: ze_tmp, qx_tmp, qy_tmp
       real(sz), dimension(nagp_c) :: ze_ins, qx_ins, qy_ins
       real(sz), dimension(NE,dof_c,nagp_c) :: x_in, y_in, sr_in
@@ -64,13 +64,13 @@ C.....Declare local variables
 !!$acc parallel loop gang  vector_length(64) async(1) default(present)
 !$acc parallel loop gang vector async(1) private(qx_tmp,qy_tmp,ze_tmp,ze_ins,qx_ins,qy_ins) default(present)
       DO 1000 L = 1, NE
-!$acc cache(x_in,y_in,sr_in)
+!!$acc cache(x_in,y_in,sr_in)
 !$acc loop seq
         DO I = 1,nagp_c
           DO k = 1,dof_c
-            x_in(L,k,i) = xfac(L,k,i,pa)
-            y_in(L,k,i) = yfac(L,k,i,pa)
-            sr_in(L,k,i) = srfac(L,k,i,pa)
+            !x_in(L,k,i) = xfac(L,k,i,pa)
+            !y_in(L,k,i) = yfac(L,k,i,pa)
+            !sr_in(L,k,i) = srfac(L,k,i,pa)
           ENDDO
         ENDDO
 
@@ -142,8 +142,8 @@ C.......Compute ZE, QX, QY, and HB at each area Gauss quadrature point
          qx_ins = 0.
          qy_ins = 0.
 !$acc loop seq
-         DO k = 1,DOFH
-            DO I = 1,NAGP(pa)
+         DO k = 1,DOF_c
+            DO I = 1,Nagp_c
                ze_ins(i) = ze_ins(i) + ze(L,K,IRK)*PHI_AREA(K,I,pa) 
                qx_ins(i) = qx_ins(i) + qx(L,K,IRK)*PHI_AREA(K,I,pa) 
                qy_ins(i) = qy_ins(i) + qy(L,K,IRK)*PHI_AREA(K,I,pa) 
@@ -152,7 +152,7 @@ C.......Compute ZE, QX, QY, and HB at each area Gauss quadrature point
          
 
 !$acc loop seq
-         DO I = 1,NAGP(pa)
+         DO I = 1,NAGP_c
 
 c$$$            ZE_IN = ze(L,1,IRK)
 c$$$            QX_IN = qx(L,1,IRK)
@@ -448,14 +448,14 @@ C.........Build the rhs
 
 !!$acc loop vector
 !$acc loop seq
-            DO K = 1,DOFH
+            DO K = 1,dof_c
 
-               ze_tmp(K) = ze_tmp(k) + x_in(L,k,i)*FX_IN
-     &                + y_in(L,k,i)*FY_IN
-               qx_tmp(k) = qx_tmp(k) + x_in(L,K,I)*GX_IN
-     &              + y_in(L,k,i)*GY_IN + sr_in(L,k,i)*SOURCE_X
-               qy_tmp(k) = qy_tmp(k) + x_in(L,K,I)*HX_IN
-     &              + y_in(L,k,i)*HY_IN + sr_in(L,k,i)*SOURCE_Y
+               ze_tmp(K) = ze_tmp(k) + xfac(L,k,i,pa)*FX_IN
+     &                + yfac(L,k,i,pa)*FY_IN
+               qx_tmp(k) = qx_tmp(k) + xfac(L,K,I,pa)*GX_IN
+     &              + yfac(L,k,i,pa)*GY_IN + srfac(L,k,i,pa)*SOURCE_X
+               qy_tmp(k) = qy_tmp(k) + xfac(L,K,I,pa)*HX_IN
+     &              + yfac(L,k,i,pa)*HY_IN + srfac(L,k,i,pa)*SOURCE_Y
 #ifdef SED_LAY
 
                do ll = 1,layers !only really makes sense for single layer
@@ -497,7 +497,7 @@ C.........Build the rhs
 
          ENDDO
 
-         DO k = 1,DOFH
+         DO k = 1,DOF_c
             RHS_ze(L,K,IRK) = ze_tmp(k)
             RHS_qx(L,K,IRK) = qx_tmp(k)
             RHS_qy(L,K,IRK) = qy_tmp(k)
