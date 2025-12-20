@@ -65,7 +65,11 @@ C.....Declare local variables
          DIM = 3
       endif
 C.....Compute the degrees of freedom per element
-
+#ifdef PORDER
+      pl = PORDER
+      px = PORDER
+      ph = PORDER
+#endif 
       DOF = (pl+1)*(pl+2)/2
       dofx = (px+1)*(px+2)/2    ! dofx for variable functions f=f(x) 
       P_0 = pl
