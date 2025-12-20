@@ -50,6 +50,7 @@ C.....Declare local variables
       Real(SZ) DH_X,DH_Y,phi_tot,C_0,HZ_X,HZ_Y,TZ_X,TZ_Y
       real(sz), dimension(15) :: ze_tmp, qx_tmp, qy_tmp
       real(sz), dimension(16) :: ze_ins, qx_ins, qy_ins
+      real(sz), dimension(15,16) :: x_in, y_in, sr_in
 
 
       real(sz) source_max, source_r
@@ -61,8 +62,17 @@ C.....Declare local variables
 !!$acc parallel loop gang  vector_length(64) async(1) default(present)
 !$acc parallel loop gang vector private(qx_tmp,qy_tmp,ze_tmp,ze_ins,qx_ins,qy_ins) async(1) default(present)
       DO 1000 L = 1, NE
+!$acc cache(x_in,y_in,sr_in)
+!$acc loop seq
+        DO I = 1,16
+          DO k = 1,15
+            x_in(k,i) = xfac(L,k,i,pa)
+            y_in(k,i) = yfac(L,k,i,pa)
+            sr_in(k,i) = srfac(L,k,i,pa)
+          ENDDO
+        ENDDO
 
-!$acc cache(xfac(:,:,:,pa), yfac(:,:,:,pa), srfac(:,:,:,pa))
+
          ze_tmp = rhs_ze(L,:,IRK)
          qx_tmp = rhs_qx(L,:,IRK)
          qy_tmp = rhs_qy(L,:,IRK)
@@ -87,7 +97,7 @@ C.......Compute rain source term if rain is enabled
 !$acc loop seq
               DO I = 1,NAGP(pa)
                 DO K = 1,DOFH
-                   ze_tmp(k) = ze_tmp(K) +  srfac(L,K,I,pa)*SOURCE_R
+                   ze_tmp(k) = ze_tmp(K) +  sr_in(k,i)*SOURCE_R
                 END DO
               END DO
             END IF
@@ -438,19 +448,19 @@ C.........Build the rhs
 !$acc loop seq
             DO K = 1,DOFH
 
-               ze_tmp(K) = ze_tmp(k) + xfac(L,K,I,pa)*FX_IN
-     &                + yfac(L,K,I,pa)*FY_IN
-               qx_tmp(k) = qx_tmp(k) + xfac(L,K,I,pa)*GX_IN
-     &              + yfac(L,K,I,pa)*GY_IN + srfac(L,K,I,pa)*SOURCE_X
-               qy_tmp(k) = qy_tmp(k) + xfac(L,K,I,pa)*HX_IN
-     &              + yfac(L,K,I,pa)*HY_IN + srfac(L,K,I,pa)*SOURCE_Y
+               ze_tmp(K) = ze_tmp(k) + x_in(k,i)*FX_IN
+     &                + y_in(k,i)*FY_IN
+               qx_tmp(k) = qx_tmp(k) + x_in(K,I)*GX_IN
+     &              + y_in(k,i)*GY_IN + sr_in(k,i)*SOURCE_X
+               qy_tmp(k) = qy_tmp(k) + x_in(K,I)*HX_IN
+     &              + y_in(k,i)*HY_IN + sr_in(k,i)*SOURCE_Y
 #ifdef SED_LAY
 
                do ll = 1,layers !only really makes sense for single layer
 
                   RHS_bed(K,L,IRK,ll) = RHS_bed(K,L,IRK,ll)
      &                 + xfac(L,K,I,pa)*(discharge_modelX_IN+MZ_X(ll)*
-     &                 SFACQUAD) + yfac(L,K,I,pa)*
+     &                 SFACQUAD) + y_in(k,i)*
      &                 (discharge_modelY_IN+MZ_Y(ll))
 
                enddo
@@ -459,26 +469,26 @@ C.........Build the rhs
 #ifdef TRACE
                RHS_iota(K,L,IRK) = RHS_iota(K,L,IRK)
      &             + xfac(L,K,I,pa)*(iota_IN*QX_IN*FH_NL+TZ_X*SFACQUAD)
-     &             + yfac(L,K,I,pa)*(iota_IN*QY_IN*FH_NL+TZ_Y)
+     &             + y_in(k,i)*(iota_IN*QY_IN*FH_NL+TZ_Y)
 #endif
 
 #ifdef CHEM
                RHS_iota(K,L,IRK) = RHS_iota(K,L,IRK)
      &              + xfac(L,K,I,pa)*iota_IN*QX_IN*FH_NL
-     &              + yfac(L,K,I,pa)*iota_IN*QY_IN*FH_NL
-     &              + MassAction1st*srfac(L,K,I,pa)*FH_NL
+     &              + y_in(k,i)*iota_IN*QY_IN*FH_NL
+     &              + MassAction1st*sr_in(k,i)*FH_NL
 
                RHS_iota2(K,L,IRK) = RHS_iota2(K,L,IRK)
      &              + xfac(L,K,I,pa)*iota2_IN*QX_IN*FH_NL
-     &              + yfac(L,K,I,pa)*iota2_IN*QY_IN*FH_NL
-     &              + MassAction2nd*srfac(L,K,I,pa)*FH_NL
+     &              + y_in(k,i)*iota2_IN*QY_IN*FH_NL
+     &              + MassAction2nd*sr_in(k,i)*FH_NL
 #endif
 
 #ifdef DYNP
                RHS_dynP(K,L,IRK) = RHS_dynP(K,L,IRK)
      &              + xfac(L,K,I,pa)*dynP_IN*QX_IN*FH_NL
-     &              + yfac(L,K,I,pa)*dynP_IN*QY_IN*FH_NL
-     &              + subphi_IN*srfac(L,K,I,pa)*FH_NL
+     &              + y_in(k,i)*dynP_IN*QY_IN*FH_NL
+     &              + subphi_IN*sr_in(k,i)*FH_NL
 #endif
 
             ENDDO
