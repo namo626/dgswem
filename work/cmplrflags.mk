@@ -22,7 +22,7 @@ else ifneq (,$(findstring nvfortran,$(FC)))   # NVIDIA
   ifeq ($(gpu),1)
 	FFLAGS1	:=  -DPORDER=1 -Mextend -r$(sz)   -cuda -traceback -g -O3 -acc -gpu=mem:unified,lineinfo -Minfo=accel
   else
-    FFLAGS1	:=  -Mextend -Mbounds -r$(sz) -traceback -g -O3 -tp=native
+    FFLAGS1	:=  -DPORDER=1 -Mextend -Mbounds -r$(sz) -traceback -g -O3 -tp=native
   endif
   FFLAGS2	:=  $(FFLAGS1)
   FFLAGS3	:=  $(FFLAGS1)

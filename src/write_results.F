@@ -223,9 +223,9 @@ C...
                 NCELE=NC1*NC2*NC3                                           
                 if (ncele.eq.1) then
                   if (ModetoNode.eq.1) then
-                    ET00(I)=ze(1,nne(i),1)
+                    ET00(I)=ze(nne(i), 1,1)
                     DO K = 2,DOF
-                       ET00(I) = ET00(I) + ZE(K,NNE(I),1)*PHI_STAE(K,I)
+                       ET00(I) = ET00(I) + ZE(NNE(I),k,1)*PHI_STAE(K,I)
                     ENDDO
                   else
                     ET00(I)=EE1
@@ -290,13 +290,13 @@ C...
                   DP2 = DP(NM(NNV(I),2))
                   DP3 = DP(NM(NNV(I),3))
                   DP00    = DP1*STAIV1(I) + DP2*STAIV2(I)+DP3*STAIV3(I)
-                  ZE00    = ZE(1,NNV(I),1)
-                  UU00(I) = QX(1,NNV(I),1)
-                  VV00(I) = QY(1,NNV(I),1)
+                  ZE00    = ZE(NNV(I),1,1)
+                  UU00(I) = QX(NNV(I),1,1)
+                  VV00(I) = QY(NNV(I),1,1)
                   DO K = 2,DOF
-                     ZE00    = ZE00    + ZE(K,NNV(I),1)*PHI_STAV(K,I)
-                     UU00(I) = UU00(I) + QX(K,NNV(I),1)*PHI_STAV(K,I)
-                     VV00(I) = VV00(I) + QY(K,NNV(I),1)*PHI_STAV(K,I)
+                     ZE00    = ZE00    + ZE(NNV(I),k,1)*PHI_STAV(K,I)
+                     UU00(I) = UU00(I) + QX(NNV(I),k,1)*PHI_STAV(K,I)
+                     VV00(I) = VV00(I) + QY(NNV(I),k,1)*PHI_STAV(K,I)
                   ENDDO
                   DEPTH   = ZE00 + DP00
                   FH_NL   = 1.0/(NLEQ*DEPTH + LEQ)
@@ -851,9 +851,9 @@ C                  EE1=ETA2(NM(NNE(I),1))
 C                  EE2=ETA2(NM(NNE(I),2))
 C                  EE3=ETA2(NM(NNE(I),3))
 C                  ET00(I)=EE1*STAIE1(I)+EE2*STAIE2(I)+EE3*STAIE3(I)
-                  ET00(I) = ZE(1,NNE(I),1)
+                  ET00(I) = ZE(NNE(I),1,1)
                   DO K = 2,DOFH
-                    ET00(I) = ET00(I) + ZE(K,NNE(I),1)*PHI_STAE(K,I)
+                    ET00(I) = ET00(I) + ZE(NNE(I),1,1)*PHI_STAE(K,I)
                   ENDDO
                 ENDDO
                 CALL LSQUPDES(ET00,NSTAE)
@@ -863,9 +863,9 @@ C.....IF DESIRED COMPUTE VELOCITY STATION INFORMATION AND UPDATE LOAD VECTOR
 C...
               IF(NHASV.EQ.1) THEN
                 DO I=1,NSTAV
-                  ZE00    = ZE(1,NNV(I),1)
-                  UU00(I) = QX(1,NNV(I),1)
-                  VV00(I) = QY(1,NNV(I),1)
+                  ZE00    = ZE(NNV(I),1,1)
+                  UU00(I) = QX(NNV(I),1,1)
+                  VV00(I) = QY(NNV(I),1,1)
                   if (ModetoNode.eq.1) then
                     DP1     = DP(NM(NNV(I),1))
                     DP2     = DP(NM(NNV(I),2))
@@ -878,9 +878,9 @@ C...
                   endif
 
                   DO K = 2,DOFH
-                    ZE00    = ZE00    + ZE(K,NNV(I),1)*PHI_STAV(K,I)
-                    UU00(I) = UU00(I) + QX(K,NNV(I),1)*PHI_STAV(K,I)
-                    VV00(I) = VV00(I) + QY(K,NNV(I),1)*PHI_STAV(K,I)
+                    ZE00    = ZE00    + ZE(NNV(I),k,1)*PHI_STAV(K,I)
+                    UU00(I) = UU00(I) + QX(NNV(I),k,1)*PHI_STAV(K,I)
+                    VV00(I) = VV00(I) + QY(NNV(I),k,1)*PHI_STAV(K,I)
                   ENDDO
                   FH_NL   = 1.0/(NLEQ*DEPTH + LEQ)
                   UU00(I) = UU00(I)*FH_NL
