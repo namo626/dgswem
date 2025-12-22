@@ -9,9 +9,9 @@ padapt = 0            ! padapt(1=on,0=off)
 pflag = 2             ! pflag(1=smooth,2=shocks)
 gflag = 1             ! gflag(0=fixed,1=dioristic)
 dis_tol = 8           ! dioristic tolerance (0-100)
-pl = 2                ! low p
-ph = 2                ! high p
-px = 2                ! fixed p
+pl = 6                ! low p
+ph = 6                ! high p
+px = 6                ! fixed p
 slimit = 0.00005      ! epsilon tolerance in pflag=1 p_enrichment
 plimit = 10           ! integer timestep counter for p_enrichment
 k = 1                 ! pflag=2 tolerance:log((k*p)**(-L*2))-ks

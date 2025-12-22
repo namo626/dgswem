@@ -35,10 +35,22 @@ C.....Declare integer variables
       integer, parameter :: dof_c = 6
       integer, parameter :: nagp_c = 6
       integer, parameter :: negp_c = 4
+#elif PORDER == 3
+      integer, parameter :: dof_c = 10
+      integer, parameter :: nagp_c = 12
+      integer, parameter :: negp_c = 5
 #elif PORDER == 4
       integer, parameter :: dof_c = 15
       integer, parameter :: nagp_c = 16
       integer, parameter :: negp_c = 6
+#elif PORDER == 5
+      integer, parameter :: dof_c = 21
+      integer, parameter :: nagp_c = 25
+      integer, parameter :: negp_c = 7
+#elif PORDER == 6
+      integer, parameter :: dof_c = 28
+      integer, parameter :: nagp_c = 33
+      integer, parameter :: negp_c = 8
 #endif
 #endif
       INTEGER, TARGET :: rainfall
