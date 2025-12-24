@@ -470,14 +470,16 @@ C.....time step falls within the specified window
                 
                   IF (ABS(ETA2(I)).LE.(10.0**(-30))) ETA2(I) = 0.0
                   IF (NOLIFA .EQ. 2) THEN
-                    ! namo - 6/22 temporarily plot total depth (H)
-                    !IF (NODECODE(I).EQ.1) WRITE(63,2453) I,ETA2(I)+DP(I)
                     IF (NODECODE(I).EQ.1) WRITE(63,2453) I,ETA2(I)
                     IF (NODECODE(I).EQ.0) WRITE(63,2453) I,-99999.
                   ELSE
                     WRITE(63,2453) I,ETA2(I)
                   ENDIF
+#ifdef REAL8
+2453              FORMAT(2X,I8,2X,E23.15)
+#else
 2453              FORMAT(2X,I8,2X,E16.8E3)
+#endif
                 ENDDO
                 IF(SEDFLAG.GE.1) THEN
                   WRITE(84,2120) TIME_A, IT

@@ -23,7 +23,7 @@ Simple Mesh                              ! 32 CHARACTER ALPHANUMERIC RUN DESCRIP
 {:f}                                     ! DT - TIME STEP (IN SECONDS)
 0.00000                                  ! STATIM - STARTING SIMULATION TIME IN DAYS
 0.00000                                  ! REFTIME - REFERENCE TIME (IN DAYS) FOR NODAL FACTORS AND EQUILIBRIUM ARGS
-1.00000                                  ! RNDAY - TOTAL LENGTH OF SIMULATION (IN DAYS)
+5.00000                                  ! RNDAY - TOTAL LENGTH OF SIMULATION (IN DAYS)
 1.00000                                  ! DRAMP - DURATION OF RAMP FUNCTION (IN DAYS)
 0.800000 0.200000 0.000000               ! TIME WEIGHTING FACTORS FOR THE GWCE EQUATION
 0.100000 2 10 0.010000                   ! H0, NODEDRYMIN, NODEWETMIN, VELMIN - MINIMUM WATER DEPTH AND DRYING/WETTING OPTIONS
@@ -100,7 +100,7 @@ def main():
     # ...Preallocate the nodes array
     nodes = np.zeros((len(x_pos) * len(y_pos), 3), dtype=float)
 
-    v_shore = 10.0
+    v_shore = -10.0
     v_offshore = -200.0
 
     log.info(
