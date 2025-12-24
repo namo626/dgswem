@@ -51,6 +51,10 @@ C.....Declare integer variables
       integer, parameter :: dof_c = 28
       integer, parameter :: nagp_c = 33
       integer, parameter :: negp_c = 8
+#else
+      integer, parameter :: dof_c = 3
+      integer, parameter :: nagp_c = 3
+      integer, parameter :: negp_c = 3
 #endif
 #endif
       INTEGER, TARGET :: rainfall
