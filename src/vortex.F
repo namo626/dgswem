@@ -850,7 +850,7 @@ c$$$      CALL rotate(u,v, fang(idist,irmx_true), cLat, uf,vf)
 c$$$      u = uf
 c$$$      v = vf
       ! Inline rotate() due to OpenACC error
-      A = SIGN(1.0, cLat) * deg2rad * fang(idist,irmx_true)
+      A = SIGN(1.0_sz, cLat) * deg2rad * fang(idist,irmx_true)
       cosA = COS(A)
       sinA = SIN(A)
       uf = u * cosA - v * sinA
@@ -1108,7 +1108,7 @@ C     &            + Rmaxes(base_quadrant)
 
       REAL(sz) :: A, cosA, sinA
 
-      A = SIGN(1.0, whichWay) * deg2rad * angle
+      A = SIGN(1.0_sz, whichWay) * deg2rad * angle
       cosA = COS(A)
       sinA = SIN(A)
 

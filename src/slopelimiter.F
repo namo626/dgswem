@@ -3586,7 +3586,7 @@ C
             DO LL=1,3
                SUMLOC=(ZEVERTEX(1)+ZEVERTEX(2)+ZEVERTEX(3))/3.0
                SUMDIF=(SUMLOC-ZEC(1))*3.0
-               SIGNDIF=SIGN(1.0,SUMDIF)
+               SIGNDIF=SIGN(1.0_sz,SUMDIF)
                DIF(1)=(ZEVERTEX(1)-ZEC(1))*SIGNDIF
                DIF(2)=(ZEVERTEX(2)-ZEC(1))*SIGNDIF
                DIF(3)=(ZEVERTEX(3)-ZEC(1))*SIGNDIF
