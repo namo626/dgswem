@@ -60,10 +60,10 @@ C.....Declare local variables
       REAL(SZ) TZ_X_EX, TZ_Y_EX, TZ_X_IN, TZ_Y_IN
       REAL(SZ) EDFAC_IN, EDFAC_EX, DEN
 #ifdef PORDER
-      real(sz),dimension(dof_c) :: ze_ins, ze_exs, qx_ins, qx_exs, qy_ins, qy_exs
+      real(sz),dimension(negp_c) :: ze_ins, ze_exs, qx_ins, qx_exs, qy_ins, qy_exs
       REAL(SZ), dimension(dof_c)  :: rhs_ze_in, rhs_qx_in, rhs_qy_in, rhs_ze_ex,rhs_qx_ex,rhs_qy_ex
 #else
-      real(sz) :: ze_ins(DOFH), ze_exs(DOFH), qx_ins(DOFH), qx_exs(DOFH), qy_ins(DOFH), qy_exs(DOFH)
+      real(sz),dimension(negp(pa)) :: ze_ins,ze_exs,qx_ins,qx_exs,qy_ins,qy_exs
       REAL(SZ)  ::
      &     RHS_ZE_IN(DOFH), RHS_QX_IN(DOFH), RHS_QY_IN(DOFH),
      &     RHS_ZE_EX(DOFH), RHS_QX_EX(DOFH), RHS_QY_EX(DOFH)
@@ -132,13 +132,19 @@ C.......If both elements on either side of edge are dry then skip
 
          IF((WDFLG(EL_IN).EQ.0).AND.(WDFLG(EL_EX).EQ.0)) goto 100
 
-         ze_ins = ze(el_in,:,irk)
-         qx_ins = qx(el_in,:,irk)
-         qy_ins = qy(el_in,:,irk)
-         ze_exs = ze(el_ex,:,irk)
-         qx_exs = qx(el_ex,:,irk)
-         qy_exs = qy(el_ex,:,irk)
+         ze_ins = 0
+         qx_ins = 0
+         qy_ins = 0
+         ze_exs = 0
+         qx_exs = 0
+         qy_exs = 0
 
+         do k = 1,dofh
+           do i = 1,negp(pa)
+             tmp_in = phi_edge(k,gp_in,led_in,pa)
+             ZE_INs(i) = ZE_INs(i) + ZE(el_in,k,IRK)*tmp_in
+             QX_INs(i) = QX_INs(i) + QX(el_in,k,IRK)*tmp_in
+             QY_INs(i) = QY_INs(i) + QY(el_in,k,IRK)*tmp_in
 
 
 C.....Compute the sum of the lengths of three edges
