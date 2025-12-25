@@ -45,7 +45,7 @@ C     C***********************************************************************
       integer, value :: it
 
 C.....Declare local variables
-      real(sz) :: tmp, fluxes(3)
+      real(sz) :: tmp, fluxes(3), tmp_in, tmp_ex
       logical :: is_large_flux
       integer :: el_in, el_ex, pa, el, test_el, ind_ex, ind_in
       real(sz) :: nx, ny, ze_in, qx_in, qy_in, qx_ex, qy_ex, hb_ex, hb_in
@@ -139,12 +139,28 @@ C.......If both elements on either side of edge are dry then skip
          qx_exs = 0
          qy_exs = 0
 
+#ifdef PORDER
+         do k = 1,dof_c
+           do i = 1,negp_c
+            GP_EX = NEGP_C - I + 1
+#else
          do k = 1,dofh
            do i = 1,negp(pa)
+            GP_EX = NEGP(pa) - I + 1
+#endif
+            gp_in = i
              tmp_in = phi_edge(k,gp_in,led_in,pa)
              ZE_INs(i) = ZE_INs(i) + ZE(el_in,k,IRK)*tmp_in
              QX_INs(i) = QX_INs(i) + QX(el_in,k,IRK)*tmp_in
              QY_INs(i) = QY_INs(i) + QY(el_in,k,IRK)*tmp_in
+
+             tmp_ex = phi_edge(k,gp_ex,led_ex,pa)
+             ZE_exs(i) = ZE_exs(i) + ZE(el_ex,k,IRK)*tmp_ex
+             QX_exs(i) = QX_exs(i) + QX(el_ex,k,IRK)*tmp_ex
+             QY_exs(i) = QY_exs(i) + QY(el_ex,k,IRK)*tmp_ex
+          enddo
+       enddo
+
 
 
 C.....Compute the sum of the lengths of three edges
@@ -192,33 +208,18 @@ C.....Compute ZE, QX, QY, and HB at each edge Gauss quadrature point
             GP_EX = NEGP(pa) - I + 1
 #endif
 
-            ZE_IN = 0.0_sz
-            QX_IN = 0.0_sz
-            QY_IN = 0.0_sz
             HB_IN = BATHED(GP_IN,LED_IN,EL_IN,pa)
             SFAC_IN = SFACED(GP_IN,LED_IN,EL_IN,pa)
 
-            ZE_EX = 0.0_sz
-            QX_EX = 0.0_sz
-            QY_EX = 0.0_sz
             HB_EX = BATHED(GP_EX,LED_EX,EL_EX,pa)
             SFAC_EX = SFACED(GP_EX,LED_EX,EL_EX,pa)
-#ifdef PORDER
-            DO K = 1,DOF_C
-#else
-            DO K = 1,DOFH
-#endif
 
-               ZE_IN = ZE_IN + ZE_ins(K)*PHI_EDGE(K,GP_IN,LED_IN,pa)
-               QX_IN = QX_IN + QX_ins(K)*PHI_EDGE(K,GP_IN,LED_IN,pa)
-               QY_IN = QY_IN + QY_ins(K)*PHI_EDGE(K,GP_IN,LED_IN,pa)
-
-               ZE_EX = ZE_EX + ZE_exs(K)*PHI_EDGE(K,GP_EX,LED_EX,pa)
-               QX_EX = QX_EX + QX_exs(K)*PHI_EDGE(K,GP_EX,LED_EX,pa)
-               QY_EX = QY_EX + QY_exs(K)*PHI_EDGE(K,GP_EX,LED_EX,pa)
-
-
-            ENDDO
+            ze_in = ze_ins(i)
+            qx_in = qx_ins(i)
+            qy_in = qy_ins(i)
+            ze_ex = ze_exs(i)
+            qx_ex = qx_exs(i)
+            qy_ex = qy_exs(i)
 
 C.....Compute the numerical flux
 
