@@ -20,9 +20,9 @@ else ifneq (,$(findstring nvfortran,$(FC)))   # NVIDIA
   PPFC	        :=  nvfortran
   PFC	        :=  mpif90
   ifeq ($(gpu),1)
-	FFLAGS1	:=   -Mextend -r$(sz)   -cuda -traceback -g -O3 -acc -gpu=mem:unified,lineinfo,stacklimit:nostacklimit -Minfo=accel
+	FFLAGS1	:=   -Mextend -r$(sz)   -cuda -traceback -g -O3 -acc -gpu=mem:unified,lineinfo,stacklimit:nostacklimit -Minfo=accel -lnvhpcwrapnvtx
   else
-    FFLAGS1	:=  -Mextend -r$(sz) -traceback -g -O3 -tp=native
+    FFLAGS1	:=  -Mextend -r$(sz) -traceback -g -O3 -tp=native -lnvhpcwrapnvtx
   endif
   FFLAGS2	:=  $(FFLAGS1)
   FFLAGS3	:=  $(FFLAGS1)

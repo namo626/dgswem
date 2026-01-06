@@ -14,6 +14,7 @@ C.....Use appropriate modules
       
       USE SIZES, ONLY : SZ,layers
       USE GLOBAL, ONLY : SEDFLAG
+      use nvtx
 
 #ifdef CMPI
       USE MESSENGER_ELEM
@@ -26,9 +27,11 @@ C.....Declare local variables
       INTEGER IT
       
 C.....Hydrodynamics
-
+!$acc wait
+      call nvtxstartrange("Timestep")
       CALL DG_HYDRO_TIMESTEP(IT)
       call modal2nodal()
+      call nvtxendrange
 !$acc wait
 C.....Write out results
 

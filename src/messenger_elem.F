@@ -838,6 +838,7 @@ C
 C  vjp  8/06/1999
 C--------------------------------------------------------------------------
 C 
+      use nvtx
       IMPLICIT NONE
 #ifndef HAVE_MPI_MOD
       include 'mpif.h'
@@ -852,6 +853,7 @@ C
 C      DO JJ=1,NEIGHPROC_S
 C         J = MOD(JJ-1+MYPROC,NEIGHPROC_S)+1
 !$acc wait
+      call nvtxstartrange("updater_elem")
       num = 1                             
       DO J=1,NEIGHPROC_S
          NCOUNT = 0
@@ -979,6 +981,7 @@ cdebug     print *, myproc, tot,nfini,index(1),index(2)
 C 
  999  continue
 !$acc wait
+      call nvtxendrange()
       END SUBROUTINE
 
       SUBROUTINE UPDATER_ELEM_MOD2( VEC1, VEC2, VEC3, IRK, NMSG )

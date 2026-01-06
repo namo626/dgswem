@@ -466,6 +466,7 @@ C
 C  vjp  8/06/1999
 C--------------------------------------------------------------------------
 C 
+      use nvtx
       IMPLICIT NONE
 #ifndef HAVE_MPI_MOD
       include 'mpif.h'
@@ -477,6 +478,7 @@ C
 C
                              !..Pack 1, 2, or 3 Messages
 !$acc wait
+      call nvtxstartrange("updater")
       DO J=1,NEIGHPROC
          call packNodes(NNODSEND(j), isendloc(:,j), vec1, sendbuf(:,j))
          ncount = NNODSEND(j) + 1
@@ -577,6 +579,7 @@ cdebug     print *, myproc, tot,nfini,index(1),index(2)
 C 
  999  continue
 !$acc wait
+      call nvtxendrange()
       END SUBROUTINE
 
 
