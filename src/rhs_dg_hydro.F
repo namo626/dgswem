@@ -94,7 +94,7 @@ C.......Compute rain source term if rain is enabled
               DO I = 1,NAGP(pa)
                 DO K = 1,DOFH
 #endif                   
-                   ze_tmp(k) = ze_tmp(K) +  srfac(L,k,i,pa)*SOURCE_R
+                   ze_tmp(k) = ze_tmp(K) +  srfac(k,i,L,pa)*SOURCE_R
                 END DO
               END DO
             END IF
@@ -443,9 +443,9 @@ C.........6) Chemical mass action
 C.........Build the rhs
 
             RHS_iota(1,L,IRK) = RHS_iota(1,L,IRK)
-     &           + MassAction1st*srfac(L,1,I,pa)*FH_NL
+     &           + MassAction1st*srfac(1,I,L,pa)*FH_NL
             RHS_iota2(1,L,IRK) = RHS_iota2(1,L,IRK)
-     &           + MassAction2nd*srfac(L,1,I,pa)*FH_NL
+     &           + MassAction2nd*srfac(1,I,L,pa)*FH_NL
 #endif
 
 
@@ -458,18 +458,18 @@ C.........Build the rhs
             DO K = 1,DOFH
 #endif
 
-               ze_tmp(K) = ze_tmp(k) + xfac(L,k,i,pa)*FX_IN
-     &                + yfac(L,k,i,pa)*FY_IN
-               qx_tmp(k) = qx_tmp(k) + xfac(L,K,I,pa)*GX_IN
-     &              + yfac(L,k,i,pa)*GY_IN + srfac(L,k,i,pa)*SOURCE_X
-               qy_tmp(k) = qy_tmp(k) + xfac(L,K,I,pa)*HX_IN
-     &              + yfac(L,k,i,pa)*HY_IN + srfac(L,k,i,pa)*SOURCE_Y
+               ze_tmp(K) = ze_tmp(k) + xfac(k,i,L,pa)*FX_IN
+     &                + yfac(k,i,L,pa)*FY_IN
+               qx_tmp(k) = qx_tmp(k) + xfac(K,I,L,pa)*GX_IN
+     &              + yfac(k,i,L,pa)*GY_IN + srfac(k,i,L,pa)*SOURCE_X
+               qy_tmp(k) = qy_tmp(k) + xfac(K,I,L,pa)*HX_IN
+     &              + yfac(k,i,L,pa)*HY_IN + srfac(k,i,L,pa)*SOURCE_Y
 #ifdef SED_LAY
 
                do ll = 1,layers !only really makes sense for single layer
 
                   RHS_bed(K,L,IRK,ll) = RHS_bed(K,L,IRK,ll)
-     &                 + xfac(L,K,I,pa)*(discharge_modelX_IN+MZ_X(ll)*
+     &                 + xfac(K,I,L,pa)*(discharge_modelX_IN+MZ_X(ll)*
      &                 SFACQUAD) + y_in(k,i)*
      &                 (discharge_modelY_IN+MZ_Y(ll))
 
@@ -478,25 +478,25 @@ C.........Build the rhs
 
 #ifdef TRACE
                RHS_iota(K,L,IRK) = RHS_iota(K,L,IRK)
-     &             + xfac(L,K,I,pa)*(iota_IN*QX_IN*FH_NL+TZ_X*SFACQUAD)
+     &             + xfac(K,I,L,pa)*(iota_IN*QX_IN*FH_NL+TZ_X*SFACQUAD)
      &             + y_in(k,i)*(iota_IN*QY_IN*FH_NL+TZ_Y)
 #endif
 
 #ifdef CHEM
                RHS_iota(K,L,IRK) = RHS_iota(K,L,IRK)
-     &              + xfac(L,K,I,pa)*iota_IN*QX_IN*FH_NL
+     &              + xfac(K,I,L,pa)*iota_IN*QX_IN*FH_NL
      &              + y_in(k,i)*iota_IN*QY_IN*FH_NL
      &              + MassAction1st*sr_in(k,i)*FH_NL
 
                RHS_iota2(K,L,IRK) = RHS_iota2(K,L,IRK)
-     &              + xfac(L,K,I,pa)*iota2_IN*QX_IN*FH_NL
+     &              + xfac(K,I,L,pa)*iota2_IN*QX_IN*FH_NL
      &              + y_in(k,i)*iota2_IN*QY_IN*FH_NL
      &              + MassAction2nd*sr_in(k,i)*FH_NL
 #endif
 
 #ifdef DYNP
                RHS_dynP(K,L,IRK) = RHS_dynP(K,L,IRK)
-     &              + xfac(L,K,I,pa)*dynP_IN*QX_IN*FH_NL
+     &              + xfac(K,I,L,pa)*dynP_IN*QX_IN*FH_NL
      &              + y_in(k,i)*dynP_IN*QY_IN*FH_NL
      &              + subphi_IN*sr_in(k,i)*FH_NL
 #endif
