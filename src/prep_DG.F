@@ -81,7 +81,7 @@ C.....Compute the degrees of freedom per element
       Allocate ( iota_check(MNE),iota_check2(MNE),hbo(dofh,MNE,1),
      & ydubo(dofh,mne) ) 
       ALLOCATE ( YDUB(DOFH,MNE,8))
-      Allocate ( YELEM(ph),YED(ph),hb1(dofh,mne,1,ph), zeo(mne,dofh,1), 
+      Allocate ( YELEM(ph),YED(ph),hb1(dofh,mne,1,ph), zeo(dofh,mne,1), 
      & BARY(DIM) )
       Allocate ( PT(DIM) )
 
@@ -409,12 +409,12 @@ C     this assumes a cold start
                N1 = NM(J,1)
                N2 = NM(J,2)
                N3 = NM(J,3)
-               zeo(J,1,1)=1.0/3.0*(GeoidOffset(N1)+GeoidOffset(N2)+
+               zeo(1,J,1)=1.0/3.0*(GeoidOffset(N1)+GeoidOffset(N2)+
      $              GeoidOffset(N3))
                IF (dof_0.NE.1) THEN
-                 zeo(J,2,1)=-1.0/6.0*(GeoidOffset(N1)+GeoidOffset(N2))
+                 zeo(2,J,1)=-1.0/6.0*(GeoidOffset(N1)+GeoidOffset(N2))
      $                 +1.0/3.0*GeoidOffset(N3)
-                  zeo(J,3,1)=-.5d0*GeoidOffset(N1)+.5d0*GeoidOffset(N2)
+                  zeo(3,J,1)=-.5d0*GeoidOffset(N1)+.5d0*GeoidOffset(N2)
                ENDIF
             ENDDO
          endif
@@ -886,7 +886,7 @@ C.....Do the L2-projection of the initial conditions
       hb1 = 0.0
  
       hb(1:dofh,:,1) = hbo(1:dofh,:,1)
-      ze(1:dofh,:,1) = zeo(:,1:dofh,1)
+      ze(1:dofh,:,1) = zeo(1:dofh,:,1)
       ydub(1:dofh,:,1) = ydubo(1:dofh,:)
       do chi=pl,ph
          hb1(1:dofh,:,1,chi) = hbo(1:dofh,:,1)
