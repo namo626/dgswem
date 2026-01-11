@@ -79,9 +79,9 @@ C.....to single nodal values
                if (NM(NBOR_EL,K) .eq. I) exit
             end do
 
-            ZE_DG = ze(NBOR_EL,1,1)
-            QX_DG = qx(NBOR_EL,1,1)
-            QY_DG = qy(NBOR_EL,1,1)
+            ZE_DG = ze(1,NBOR_EL,1)
+            QX_DG = qx(1,NBOR_EL,1)
+            QY_DG = qy(1,NBOR_EL,1)
             HB_DG = HB(1,NBOR_EL,1)
 #ifdef TRACE
             iota_DG(J) = iota(1,NBOR_EL,1)
@@ -105,9 +105,9 @@ C.....to single nodal values
 
 
             DO KK = 2,DOFH
-               ZE_DG = ZE_DG+PHI_CORNER(KK,K,ph)*ze(NBOR_EL,KK,1)
-               QX_DG = QX_DG+PHI_CORNER(KK,K,ph)*qx(NBOR_EL,KK,1)
-               QY_DG = QY_DG+PHI_CORNER(KK,K,ph)*qy(NBOR_EL,KK,1)
+               ZE_DG = ZE_DG+PHI_CORNER(KK,K,ph)*ze(KK,NBOR_EL,1)
+               QX_DG = QX_DG+PHI_CORNER(KK,K,ph)*qx(KK,NBOR_EL,1)
+               QY_DG = QY_DG+PHI_CORNER(KK,K,ph)*qy(KK,NBOR_EL,1)
 
 #ifdef TRACE
                iota_DG(J) = iota_DG(J)
@@ -598,7 +598,7 @@ C.....Write DG.63 results
               
                DO J = 1,NE
                  DO K = 1,DOF
-                   WRITE(631,*) J, ze(J,K,1)
+                   WRITE(631,*) J, ze(K,J,1)
                  ENDDO
                ENDDO
 
@@ -684,7 +684,7 @@ C.....Write DG.64 results
 #ifdef DGOUT
               DO J = 1,NE
                 DO K = 1,DOFS(J)
-                  WRITE(641,*) J, qx(J,K,1), qy(J,K,1)
+                  WRITE(641,*) J, qx(K,J,1), qy(K,J,1)
                 ENDDO
               ENDDO
 #endif
@@ -1217,8 +1217,8 @@ C.....If applicable write out a DG hot start
 
             DO J = 1,MNE
                DO K = 1,DOF
-                  WRITE(263,*) ze(J,K,1)
-                  WRITE(264,*) qx(J,K,1), qy(J,K,1)
+                  WRITE(263,*) ze(K,J,1)
+                  WRITE(264,*) qx(K,J,1), qy(K,J,1)
                   WRITE(214,*) HB(K,J,1), WDFLG(J)
 #ifdef TRACE
                WRITE(288,*) iota(K,J,1)
@@ -1273,11 +1273,11 @@ C          QX_DG(1) = 0.0
 C          QY_DG(1) = 0.0
 C
 C          DO K=1,DOF
-C            ZE_DG(1) = ZE_DG(1) + PHI_CENTER(K)*ze(J,K,1)
-C            QX_DG(1) = QX_DG(1) + PHI_CENTER(K)*qx(J,K,1)
-C            QY_DG(1) = QY_DG(1) + PHI_CENTER(K)*qy(J,K,1)
+C            ZE_DG(1) = ZE_DG(1) + PHI_CENTER(K)*ze(K,J,1)
+C            QX_DG(1) = QX_DG(1) + PHI_CENTER(K)*qx(K,J,1)
+C            QY_DG(1) = QY_DG(1) + PHI_CENTER(K)*qy(K,J,1)
 C
-C            WRITE(88,*) ze(J,K,1),qx(J,K,1),qy(J,K,1)
+C            WRITE(88,*) ze(K,J,1),qx(K,J,1),qy(K,J,1)
 C
 C          ENDDO
 C
@@ -1314,7 +1314,7 @@ C      WRITE(632,3645) 1, DOF, DTDP*NSPOOLGE, NSPOOLGE, 1
 C      WRITE(632,2120) 0.0, 1
 C      DO J = 1,NE
 C        DO K = 1,DOF
-C          WRITE(632,2453) J, ze(J,K,1)
+C          WRITE(632,2453) J, ze(K,J,1)
 C        ENDDO
 C      ENDDO
       
@@ -1328,7 +1328,7 @@ C
 C      WRITE(642,2120) 0.0, 1
 C      DO J = 1,NE
 C        DO K = 1,DOF
-C          WRITE(642,2454) J, qx(J,K,1), qy(J,K,1)
+C          WRITE(642,2454) J, qx(K,J,1), qy(K,J,1)
 C        ENDDO
 C      ENDDO
 C

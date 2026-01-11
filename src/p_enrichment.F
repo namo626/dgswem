@@ -143,9 +143,9 @@ c..........................
                
                do k = 1,dofs(l)
                   
-                  ze_center = ze_center + ze(l,k,irk+1)*phi_center(k,pa)
-                  qx_center = qx_center + qx(l,k,irk+1)*phi_center(k,pa)
-                  qy_center = qy_center + qy(l,k,irk+1)*phi_center(k,pa)
+                  ze_center = ze_center + ze(k,l,irk+1)*phi_center(k,pa)
+                  qx_center = qx_center + qx(k,l,irk+1)*phi_center(k,pa)
+                  qy_center = qy_center + qy(k,l,irk+1)*phi_center(k,pa)
                   
 #ifdef TRACE
             iota_center = iota_center + iota(k,l,irk+1)*phi_center(k,pa)
@@ -196,9 +196,9 @@ c......Compute the sensor using edges in each variable
                   
                   do k = 1,dofs(l)
                      
-                     ze_mid = ze_mid + ze(l,k,irk+1)*phi_mid(k,i,pa)
-                     qx_mid = qx_mid + qx(l,k,irk+1)*phi_mid(k,i,pa)
-                     qy_mid = qy_mid + qy(l,k,irk+1)*phi_mid(k,i,pa)
+                     ze_mid = ze_mid + ze(k,l,irk+1)*phi_mid(k,i,pa)
+                     qx_mid = qx_mid + qx(k,l,irk+1)*phi_mid(k,i,pa)
+                     qy_mid = qy_mid + qy(k,l,irk+1)*phi_mid(k,i,pa)
                      
 #ifdef TRACE
                    iota_mid = iota_mid + iota(k,l,irk+1)*phi_mid(k,i,pa)
@@ -991,11 +991,11 @@ c$$$            enddo
                do k = (pa*(pa+1))/2 + 1 ,dofs(l)
                   do mm = 1,nagp(pa)
                      
-                     ze_sensor1 = ze_sensor1 + abs(ze(l,k,irkp+1)* 
+                     ze_sensor1 = ze_sensor1 + abs(ze(k,l,irkp+1)* 
      &                    phi_area(k,mm,pa))**lebesgue * wagp(mm,pa)
-                     qx_sensor1 = qx_sensor1 + abs(qx(l,k,irkp+1)* 
+                     qx_sensor1 = qx_sensor1 + abs(qx(k,l,irkp+1)* 
      &                    phi_area(k,mm,pa))**lebesgue * wagp(mm,pa)
-                     qy_sensor1 = qy_sensor1 + abs(qy(l,k,irkp+1)* 
+                     qy_sensor1 = qy_sensor1 + abs(qy(k,l,irkp+1)* 
      &                    phi_area(k,mm,pa))**lebesgue * wagp(mm,pa)
                      
 #ifdef TRACE       
@@ -1035,11 +1035,11 @@ c$$$            enddo
 
                   do mm=1,nagp(pa)
                      
-                     ze_sensor2 = ze_sensor2 + abs(ze(l,k,irkp+1)* 
+                     ze_sensor2 = ze_sensor2 + abs(ze(k,l,irkp+1)* 
      &                    phi_area(k,mm,pa))**lebesgue * wagp(mm,pa)
-                     qx_sensor2 = qx_sensor2 + abs(qx(l,k,irkp+1)* 
+                     qx_sensor2 = qx_sensor2 + abs(qx(k,l,irkp+1)* 
      &                    phi_area(k,mm,pa))**lebesgue * wagp(mm,pa)
-                     qy_sensor2 = qy_sensor2 + abs(qy(l,k,irkp+1)* 
+                     qy_sensor2 = qy_sensor2 + abs(qy(k,l,irkp+1)* 
      &                    phi_area(k,mm,pa))**lebesgue * wagp(mm,pa)
                      
 #ifdef TRACE

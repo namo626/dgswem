@@ -91,13 +91,13 @@ C.....Detect negative mass
          DPAVG =  1.0/ncheck(pdg_el(j)) * (sum(DP_NODE(:,J,pdg_el(j))))
          !(DP(NM(J,1))+DP(NM(J,2))+DP(NM(J,3)))/3.0
          Detected = .FALSE.
-         IF((ze(J,1,1)+DPAVG).LE.0.0) THEN
+         IF((ze(1,J,1)+DPAVG).LE.0.0) THEN
             PRINT *, ''
 #ifdef CMPI
             PRINT *, 'IN SUBDOMAIN ',MYPROC
 #endif
-            PRINT *, '  ze(',',1,',',J,1) = ',ze(J,1,1)
-            PRINT *, '  HE(',1,',',J,',1) = ',ze(J,1,1)+DPAVG
+            PRINT *, '  ze(J,',',1,',',1) = ',ze(1,J,1)
+            PRINT *, '  HE(',1,',',J,',1) = ',ze(1,J,1)+DPAVG
             PRINT *, '  DP = ',DP(NM(J,1)),DP(NM(J,2)),DP(NM(J,3))
             PRINT *, '  DPAVG = ',DPAVG
             PRINT *, ' x,  y ',SLAM(NM(J,1))/DEG2RAD,
@@ -152,34 +152,34 @@ C.....Detect NaN
          DO K = 1,DOF
 
             Detected = .FALSE.
-            IF(ze(J,K,1).NE.ze(J,K,1)) THEN
+            IF(ze(K,J,1).NE.ze(K,J,1)) THEN
                PRINT *, ''
 #ifdef CMPI
                PRINT *, 'IN SUBDOMAIN ',MYPROC
 #endif
-               PRINT *, '  ze(',',K,',',J,1) IS ',ze(J,K,1)
+               PRINT *, '  ze(J,',',K,',',1) IS ',ze(K,J,1)
                PRINT *, ' x,  y ',SLAM(NM(J,1))/DEG2RAD,
      $              SFEA(NM(J,1))/DEG2RAD
                Detected = .TRUE.
                ErrorElevExceeded = 1
             ENDIF
-            IF(qx(J,K,1).NE.qx(J,K,1)) THEN
+            IF(qx(K,J,1).NE.qx(K,J,1)) THEN
 #ifdef CMPI
                PRINT *, 'IN SUBDOMAIN ',MYPROC
 #endif
                PRINT *, ''
-               PRINT *, '  qx(',',K,',',J,1) IS ',qx(J,K,1)
+               PRINT *, '  qx(J,',',K,',',1) IS ',qx(K,J,1)
                PRINT *, ' x,  y ',SLAM(NM(J,1))/DEG2RAD,
      $              SFEA(NM(J,1))/DEG2RAD
                Detected = .TRUE.
                ErrorElevExceeded = 1
             ENDIF
-            IF(qy(J,K,1).NE.qy(J,K,1)) THEN
+            IF(qy(K,J,1).NE.qy(K,J,1)) THEN
 #ifdef CMPI
                PRINT *, 'IN SUBDOMAIN ',MYPROC
 #endif
                PRINT *, ''
-               PRINT *, '  qy(',',K,',',J,1) IS ',qy(J,K,1)
+               PRINT *, '  qy(J,',',K,',',1) IS ',qy(K,J,1)
                PRINT *, ' x,  y ',SLAM(NM(J,1))/DEG2RAD,
      $              SFEA(NM(J,1))/DEG2RAD
                Detected = .TRUE.

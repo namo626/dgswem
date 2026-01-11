@@ -56,9 +56,9 @@ C.......Compute the variables at the quadrature points
             
 C.........Obtain the height of the barrier at the quadrature point
 
-            ZE_IN = ze(EL,1,IRK)
-            QX_IN = qx(EL,1,IRK)
-            QY_IN = qy(EL,1,IRK)
+            ZE_IN = ze(1,EL,IRK)
+            QX_IN = qx(1,EL,IRK)
+            QY_IN = qy(1,EL,IRK)
             HB_IN = BATHED(I,LED,EL,pa)
 
 #ifdef TRACE
@@ -86,9 +86,9 @@ C.........Obtain the height of the barrier at the quadrature point
 
 !$acc loop seq
             DO K = 2,DOFS(EL)
-               ZE_IN = ZE_IN + ze(EL,K,IRK)*PHI_EDGE(K,I,LED,pa)
-               QX_IN = QX_IN + qx(EL,K,IRK)*PHI_EDGE(K,I,LED,pa)
-               QY_IN = QY_IN + qy(EL,K,IRK)*PHI_EDGE(K,I,LED,pa)
+               ZE_IN = ZE_IN + ze(K,EL,IRK)*PHI_EDGE(K,I,LED,pa)
+               QX_IN = QX_IN + qx(K,EL,IRK)*PHI_EDGE(K,I,LED,pa)
+               QY_IN = QY_IN + qy(K,EL,IRK)*PHI_EDGE(K,I,LED,pa)
                !HB_IN = HB_IN + HB(K,EL,IRK)*PHI_EDGE(K,I,LED,pa)
 
 #ifdef TRACE
@@ -182,11 +182,11 @@ C.........Compute numerical flux
      &              *PHI_EDGE(K,I,LED,pa)*WEGP(I,pa)
 
 !$acc atomic
-               RHS_ze(EL,K,IRK) = RHS_ze(EL,K,IRK) - W_IN*F_HAT
+               RHS_ze(K,EL,IRK) = RHS_ze(K,EL,IRK) - W_IN*F_HAT
 !$acc atomic
-               RHS_qx(EL,K,IRK) = RHS_qx(EL,K,IRK) - W_IN*G_HAT
+               RHS_qx(K,EL,IRK) = RHS_qx(K,EL,IRK) - W_IN*G_HAT
 !$acc atomic
-               RHS_qy(EL,K,IRK) = RHS_qy(EL,K,IRK) - W_IN*H_HAT
+               RHS_qy(K,EL,IRK) = RHS_qy(K,EL,IRK) - W_IN*H_HAT
 
 #ifdef TRACE
                RHS_iota(K,EL,IRK) = RHS_iota(K,EL,IRK) - W_IN*I_HAT

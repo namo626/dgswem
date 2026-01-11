@@ -886,7 +886,7 @@ C.....Do the L2-projection of the initial conditions
       hb1 = 0.0
  
       hb(1:dofh,:,1) = hbo(1:dofh,:,1)
-      ze(:,1:dofh,1) = zeo(:,1:dofh,1)
+      ze(1:dofh,:,1) = zeo(:,1:dofh,1)
       ydub(1:dofh,:,1) = ydubo(1:dofh,:)
       do chi=pl,ph
          hb1(1:dofh,:,1,chi) = hbo(1:dofh,:,1)
@@ -1236,33 +1236,33 @@ C.........Check to see if there are initially any dry nodes
                                 !ZE2 = 0.0
                                 !ZE3 = 0.0 
 
-            ZE1 = ze(J,1,1)
-            ZE2 = ze(J,1,1)
-            ZE3 = ze(J,1,1)
+            ZE1 = ze(1,J,1)
+            ZE2 = ze(1,J,1)
+            ZE3 = ze(1,J,1)
             IF (DP(NM(J,1)).LT.H0) ZE1 = max(ze1,H0 - DP(NM(J,1)))
             IF (DP(NM(J,2)).LT.H0) ZE2 = max(ze2,H0 - DP(NM(J,2)))
             IF (DP(NM(J,3)).LT.H0) ZE3 = max(ze3,H0 - DP(NM(J,3)))
             
 C.........If so set initial surface elevation values
             
-            IF ((ZE1 + ZE2 + ZE3)/3.0.NE.ze(J,1,1)) THEN
+            IF ((ZE1 + ZE2 + ZE3)/3.0.NE.ze(1,J,1)) THEN
                IF (p_0.EQ.0) THEN
                   DP_MIN = MIN(DP(NM(J,1)),DP(NM(J,2)),DP(NM(J,3)))
-                  ze(J,1,1) = max(ze(j,1,1),H0 - DP_MIN)
+                  ze(1,J,1) = max(ze(1,j,1),H0 - DP_MIN)
                ELSE
-                  IF (ze(J,1,1).GT.(ZE1+ZE2+ZE3)/3.0) THEN
+                  IF (ze(1,J,1).GT.(ZE1+ZE2+ZE3)/3.0) THEN
                      IF (dof_0.NE.1) THEN
-                        ze(J,2,1)=0.0
-                        ze(J,3,1)=0.0
-                        ze(J,4:dofh,1) = 0.0 ! forced again for
+                        ze(2,J,1)=0.0
+                        ze(3,J,1)=0.0
+                        ze(4:dofh,J,1) = 0.0 ! forced again for
                                               ! transparency
                      ENDIF
                   ELSE
-                     ze(J,1,1)=(ZE1+ZE2+ZE3)/3.0
+                     ze(1,J,1)=(ZE1+ZE2+ZE3)/3.0
                      IF (DOF_0.NE.1) THEN
-                        ze(J,2,1) = -1.0/6.0*(ZE1 + ZE2)+1.0/3.0*ZE3
-                        ze(J,3,1) = -0.5D0*ZE1 + 0.5D0*ZE2
-                        ze(J,4:dofh,1) = 0.0 ! forced again for 
+                        ze(2,J,1) = -1.0/6.0*(ZE1 + ZE2)+1.0/3.0*ZE3
+                        ze(3,J,1) = -0.5D0*ZE1 + 0.5D0*ZE2
+                        ze(4:dofh,J,1) = 0.0 ! forced again for 
                                               ! transparency
                      ENDIF
                   ENDIF
@@ -1329,21 +1329,21 @@ C.........If so set initial surface elevation values
             IF ((ZE1 + ZE2 + ZE3).NE.0) THEN
                IF (P_0.EQ.0) THEN
                   DP_MIN = MIN(DP(NM(J,1)),DP(NM(J,2)),DP(NM(J,3)))
-                  ze(J,1,1) = max(ze(j,1,1),H0 - DP_MIN)
+                  ze(1,J,1) = max(ze(1,j,1),H0 - DP_MIN)
                ELSE
-                  IF (ze(J,1,1).GT.(ZE1+ZE2+ZE3)/3.0) THEN
+                  IF (ze(1,J,1).GT.(ZE1+ZE2+ZE3)/3.0) THEN
                      IF (DOF_0.NE.1) THEN
-                        ze(J,2,1)=0.0
-                        ze(J,3,1)=0.0
-                        ze(J,4:dofh,1) = 0.0 ! forced again for 
+                        ze(2,J,1)=0.0
+                        ze(3,J,1)=0.0
+                        ze(4:dofh,J,1) = 0.0 ! forced again for 
                                               ! transparency
                      ENDIF
                   ELSE
-                     ze(J,1,1)=(ZE1+ZE2+ZE3)/3.0
+                     ze(1,J,1)=(ZE1+ZE2+ZE3)/3.0
                      IF (DOF_0.NE.1) THEN
-                        ze(J,2,1) = -1.0/6.0*(ZE1 + ZE2)+1.0/3.0*ZE3
-                        ze(J,3,1) = -0.5D0*ZE1 + 0.5D0*ZE2
-                        ze(J,4:dofh,1) = 0.0 ! forced again for 
+                        ze(2,J,1) = -1.0/6.0*(ZE1 + ZE2)+1.0/3.0*ZE3
+                        ze(3,J,1) = -0.5D0*ZE1 + 0.5D0*ZE2
+                        ze(4:dofh,J,1) = 0.0 ! forced again for 
                                               ! transparency
                      ENDIF
                   ENDIF
@@ -1394,8 +1394,8 @@ C.....Read in modal dof for initial conditions
          ENDIF
          DO J = 1,MNE
             DO K = 1,DOFH
-               READ(163,*) ze(J,K,1)
-               READ(164,*) qx(J,K,1), qy(J,K,1)
+               READ(163,*) ze(K,J,1)
+               READ(164,*) qx(K,J,1), qy(K,J,1)
                READ(114,*) HB(K,J,1)
             ENDDO
          ENDDO
@@ -1432,8 +1432,8 @@ c$$$#endif
          ENDIF
          DO J = 1,MNE
             DO K = 1,DOFH
-               READ(263,*) ze(J,K,1)
-               READ(264,*) qx(J,K,1), qy(J,K,1)
+               READ(263,*) ze(K,J,1)
+               READ(264,*) qx(K,J,1), qy(K,J,1)
                READ(214,*) HB(K,J,1), WDFLG(J)
 #ifdef TRACE
                READ(288,*) iota(K,J,1)

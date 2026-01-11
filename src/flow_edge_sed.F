@@ -63,9 +63,9 @@ C.....Compute the solution at the interior state
 
         DO K = 1,DOF
 
-          ZE_IN = ZE_IN + ze(EL_IN,K,1  )*PHI_EDGE(K,I,LED)
-          QX_IN = QX_IN + qx(EL_IN,K,1  )*PHI_EDGE(K,I,LED)
-          QY_IN = QY_IN + qy(EL_IN,K,1  )*PHI_EDGE(K,I,LED)
+          ZE_IN = ZE_IN + ze(K,EL_IN,1  )*PHI_EDGE(K,I,LED)
+          QX_IN = QX_IN + qx(K,EL_IN,1  )*PHI_EDGE(K,I,LED)
+          QY_IN = QY_IN + qy(K,EL_IN,1  )*PHI_EDGE(K,I,LED)
 
           HB_IN = HB_IN + HB(K,EL_IN,IRK)*PHI_EDGE(K,I,LED)
           HB_EX = HB_EX + HB0(K,EL_IN,1  )*PHI_EDGE(K,I,LED)

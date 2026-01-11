@@ -84,8 +84,8 @@ C.....Compute the solution at the midpoint of the edge
       
         DO K = 1,DOFS(L)
 
-          QX_IN = QX_IN + qx(L,K,IRK+1)*PHI_MID(K,LED_IN,pa)
-          QY_IN = QY_IN + qy(L,K,IRK+1)*PHI_MID(K,LED_IN,pa)
+          QX_IN = QX_IN + qx(K,L,IRK+1)*PHI_MID(K,LED_IN,pa)
+          QY_IN = QY_IN + qy(K,L,IRK+1)*PHI_MID(K,LED_IN,pa)
           
         ENDDO
          
@@ -103,7 +103,7 @@ C.....Sum of the length of the outflow boundaries for the given element
             ZE_EX = 0.0
 
             DO K = 1,DOF
-              ZE_IN = ZE_IN+ze(L,K,IRK+1)*PHI_EDGE(K,GP_IN(I),LED_IN,pa)
+              ZE_IN = ZE_IN+ze(K,L,IRK+1)*PHI_EDGE(K,GP_IN(I),LED_IN,pa)
             ENDDO
 
 C.....If the edge is an open ocean edge compute the specified elevation
@@ -141,7 +141,7 @@ C.....If the edge is a land edge compute the exterior value
 !            ELSE
               DO K = 1,DOFS(L)
                 ZE_EX = ZE_EX
-     &                + ze(EL_EX,K,IRK+1)*PHI_EDGE(K,GP_EX(I),LED_EX,pa)
+     &                + ze(K,EL_EX,IRK+1)*PHI_EDGE(K,GP_EX(I),LED_EX,pa)
               ENDDO
 !            ENDIF
             
@@ -172,7 +172,7 @@ C.....If the given element has inflow boundaries estimate the max norm
 
           DO K = 1,DOFS(L)
 
-            ZE_IN = ZE_IN + ze(L,K,IRK)*PHI_AREA(K,I,pa)
+            ZE_IN = ZE_IN + ze(K,L,IRK)*PHI_AREA(K,I,pa)
 
           ENDDO
           
@@ -194,9 +194,9 @@ C.....Compute the discontinuity detector
       IF (ZE_DECT.GT.1) THEN
         !WRITE(89,*) L,ZE_DECT,TIME,IT
         DO K=2,DOFS(L)
-          ze(L,K,IRK+1) = 0
-          qx(L,K,IRK+1) = 0
-          qy(L,K,IRK+1) = 0
+          ze(K,L,IRK+1) = 0
+          qx(K,L,IRK+1) = 0
+          qy(K,L,IRK+1) = 0
         ENDDO
       ENDIF
       

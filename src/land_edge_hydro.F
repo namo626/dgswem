@@ -85,9 +85,9 @@ C.....Compute ZE, QX, QY, and HB at each Gauss point
 !$acc loop seq
          DO I = 1,NEGP(pa)
             
-            ZE_IN = ze(EL_IN,1,IRK)
-            QX_IN = qx(EL_IN,1,IRK)
-            QY_IN = qy(EL_IN,1,IRK)
+            ZE_IN = ze(1,EL_IN,IRK)
+            QX_IN = qx(1,EL_IN,IRK)
+            QY_IN = qy(1,EL_IN,IRK)
             HB_IN = BATHED(I,LED,EL_IN,pa)
 
             SFAC_IN = SFACED(I,LED,EL_IN,pa)
@@ -143,9 +143,9 @@ C.....(modified for wetting and drying)
 !$acc loop seq
             DO K = 2,DOFS(EL_IN)
                
-               ZE_IN = ZE_IN + ze(EL_IN,K,IRK)*PHI_EDGE(K,I,LED,pa)
-               QX_IN = QX_IN + qx(EL_IN,K,IRK)*PHI_EDGE(K,I,LED,pa)
-               QY_IN = QY_IN + qy(EL_IN,K,IRK)*PHI_EDGE(K,I,LED,pa)
+               ZE_IN = ZE_IN + ze(K,EL_IN,IRK)*PHI_EDGE(K,I,LED,pa)
+               QX_IN = QX_IN + qx(K,EL_IN,IRK)*PHI_EDGE(K,I,LED,pa)
+               QY_IN = QY_IN + qy(K,EL_IN,IRK)*PHI_EDGE(K,I,LED,pa)
 
                                 !LDG terms
 #ifdef WAVE_DIF
@@ -275,11 +275,11 @@ C.....Compute the edge integral
                W_IN = 2.0*M_INV(K,pa)/AREAS(EL_IN)*XLEN(GED)*
      &              PHI_EDGE(K,I,LED,pa)*WEGP(I,pa)
 !$acc atomic
-               RHS_ze(EL_IN,K,IRK) = RHS_ze(EL_IN,K,IRK) - W_IN*F_HAT
+               RHS_ze(K,EL_IN,IRK) = RHS_ze(K,EL_IN,IRK) - W_IN*F_HAT
 !$acc atomic
-               RHS_qx(EL_IN,K,IRK) = RHS_qx(EL_IN,K,IRK) - W_IN*G_HAT
+               RHS_qx(K,EL_IN,IRK) = RHS_qx(K,EL_IN,IRK) - W_IN*G_HAT
 !$acc atomic
-               RHS_qy(EL_IN,K,IRK) = RHS_qy(EL_IN,K,IRK) - W_IN*H_HAT
+               RHS_qy(K,EL_IN,IRK) = RHS_qy(K,EL_IN,IRK) - W_IN*H_HAT
 
 #ifdef TRACE
                RHS_iota(K,EL_IN,IRK) = RHS_iota(K,EL_IN,IRK) - W_IN*I_HAT

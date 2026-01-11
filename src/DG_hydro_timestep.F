@@ -254,18 +254,18 @@ C.......SSP Runge-Kutta Time Scheme
      &                  + ARK*bed(K,J,I,l) + BRK*RHS_bed(K,J,I,l)
 
                      !adjust for state variable represenation
-                     ze(J,K,IRK+1) = ze(J,K,IRK+1)-BRK*RHS_bed(K,J,I,l)
+                     ze(K,J,IRK+1) = ze(K,J,IRK+1)-BRK*RHS_bed(K,J,I,l)
 
 
                   enddo
 #endif
 
-                  ze(J,K,IRK+1) = ze(J,K,irk+1) + ARK*ze(J,K,I)
-     &                 + BRK*RHS_ze(J,K,I) 
-                  qx(J,K,IRK+1) = qx(J,K,irk+1) + ARK*qx(J,K,I)
-     &                 + BRK*RHS_qx(J,K,I)
-                  qy(J,K,IRK+1) = qy(J,K,irk+1) + ARK*qy(J,K,I)
-     &                 + BRK*RHS_qy(J,K,I)
+                  ze(K,J,IRK+1) = ze(K,J,irk+1) + ARK*ze(K,J,I)
+     &                 + BRK*RHS_ze(K,J,I) 
+                  qx(K,J,IRK+1) = qx(K,J,irk+1) + ARK*qx(K,J,I)
+     &                 + BRK*RHS_qx(K,J,I)
+                  qy(K,J,IRK+1) = qy(K,J,irk+1) + ARK*qy(K,J,I)
+     &                 + BRK*RHS_qy(K,J,I)
 C.......Compute the transported tracer term if flagged
 
 #ifdef TRACE
@@ -383,17 +383,17 @@ C.......RKC Time Scheme
      &                    + BRK*RHS_bed(K,J,1,l)
 
                    !adjust for state variable represenation
-                     ze(J,K,IRK+1) = ze(J,K,IRK+1)-BRK*RHS_bed(K,J,1,l)
+                     ze(K,J,IRK+1) = ze(K,J,IRK+1)-BRK*RHS_bed(K,J,1,l)
                      
                   enddo
 #endif
                   
-                  ze(J,K,IRK+1) = ze(J,K,irk+1) + ze(J,K,1)
-     &                 + BRK*RHS_ze(J,K,1)
-                  qx(J,K,IRK+1) = qx(J,K,irk+1) + qx(J,K,1)
-     &                 + BRK*RHS_qx(J,K,1)
-                  qy(J,K,IRK+1) = qy(J,K,irk+1)  + qy(J,K,1)
-     &                 + BRK*RHS_qy(J,K,1)
+                  ze(K,J,IRK+1) = ze(K,J,irk+1) + ze(K,J,1)
+     &                 + BRK*RHS_ze(K,J,1)
+                  qx(K,J,IRK+1) = qx(K,J,irk+1) + qx(K,J,1)
+     &                 + BRK*RHS_qx(K,J,1)
+                  qy(K,J,IRK+1) = qy(K,J,irk+1)  + qy(K,J,1)
+     &                 + BRK*RHS_qy(K,J,1)
                   
 C.......Compute the transported tracer term if flagged
                   
@@ -442,20 +442,20 @@ C.......Compute the dynamic pressure if flagged
 
 
                    !adjust for state variable represenation
-                     ze(J,K,IRK+1) = ze(J,K,IRK+1) 
+                     ze(K,J,IRK+1) = ze(K,J,IRK+1) 
      &                   - BRK*RHS_bed(K,J,irk,l) - ERK*RHS_bed(K,J,1,l)
                      
                   enddo
 #endif
-                  ze(J,K,IRK+1) = ze(J,K,irk+1) + ARK*ze(J,K,1) 
-     &                + CRK*ze(J,K,irk) + DRK*ze(J,K,irk-1) 
-     &                + BRK*RHS_ze(J,K,irk) + ERK*RHS_ze(J,K,1)
-                  qx(J,K,IRK+1) = qx(J,K,irk+1) + ARK*qx(J,K,1)
-     &                + CRK*qx(J,K,irk) + DRK*qx(J,K,irk-1) 
-     &                + BRK*RHS_qx(J,K,irk) + ERK*RHS_qx(J,K,1)
-                  qy(J,K,IRK+1) = qy(J,K,irk+1) + ARK*qy(J,K,1) 
-     &                + CRK*qy(J,K,irk) + DRK*qy(J,K,irk-1)
-     &                + BRK*RHS_qy(J,K,irk) + ERK*RHS_qy(J,K,1)
+                  ze(K,J,IRK+1) = ze(K,J,irk+1) + ARK*ze(K,J,1) 
+     &                + CRK*ze(K,J,irk) + DRK*ze(K,J,irk-1) 
+     &                + BRK*RHS_ze(K,J,irk) + ERK*RHS_ze(K,J,1)
+                  qx(K,J,IRK+1) = qx(K,J,irk+1) + ARK*qx(K,J,1)
+     &                + CRK*qx(K,J,irk) + DRK*qx(K,J,irk-1) 
+     &                + BRK*RHS_qx(K,J,irk) + ERK*RHS_qx(K,J,1)
+                  qy(K,J,IRK+1) = qy(K,J,irk+1) + ARK*qy(K,J,1) 
+     &                + CRK*qy(K,J,irk) + DRK*qy(K,J,irk-1)
+     &                + BRK*RHS_qy(K,J,irk) + ERK*RHS_qy(K,J,1)
 
 
 C.......Compute the transported tracer term if flagged
@@ -657,9 +657,9 @@ C.......Filter the layers if flagged
             enddo
 #endif
 
-            ze(J,K,NRK+1) = sigma*ze(J,K,nrk+1) 
-            qx(J,K,NRK+1) = sigma*qx(J,K,nrk+1)
-            qy(J,K,NRK+1) = sigma*qy(J,K,nrk+1)
+            ze(K,J,NRK+1) = sigma*ze(K,J,nrk+1) 
+            qx(K,J,NRK+1) = sigma*qx(K,J,nrk+1)
+            qy(K,J,NRK+1) = sigma*qy(K,J,nrk+1)
 
 
 C.......Filter the transported tracer term if flagged
@@ -684,9 +684,9 @@ C......Filter chemistry transported terms if flagged
 !$acc parallel loop gang vector async(1) default(present)
       DO J = 1,MNE
          DO K = 1,DOFS(J)
-            ze(J,K,1) = ze(J,K,NRK+1)
-            qx(J,K,1) = qx(J,K,NRK+1)
-            qy(J,K,1) = qy(J,K,NRK+1)
+            ze(K,J,1) = ze(K,J,NRK+1)
+            qx(K,J,1) = qx(K,J,NRK+1)
+            qy(K,J,1) = qy(K,J,NRK+1)
 
 #ifdef TRACE
             iota(K,J,1) = iota(K,J,NRK+1)
@@ -711,12 +711,12 @@ C......Filter chemistry transported terms if flagged
       DO J = 1,MNE
          DO KK = 2,NRK+1
             DO K = 1,DOFH
-               ze(J,K,KK) = 0.0
-               qx(J,K,KK) = 0.0
-               qy(J,K,KK) = 0.0
-               RHS_ze(J,K,KK-1) = 0.0
-               RHS_qx(J,K,KK-1) = 0.0
-               RHS_qy(J,K,KK-1) = 0.0
+               ze(K,J,KK) = 0.0
+               qx(K,J,KK) = 0.0
+               qy(K,J,KK) = 0.0
+               RHS_ze(K,J,KK-1) = 0.0
+               RHS_qx(K,J,KK-1) = 0.0
+               RHS_qy(K,J,KK-1) = 0.0
 #ifdef TRACE
                iota(K,J,KK) = 0.0
                RHS_iota(K,J,KK-1) = 0.0

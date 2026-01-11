@@ -89,14 +89,14 @@ Casey 110111: Create new data structure with discontinuous information for SWAN.
           DO K = 1,3
             N1 = NM(NBOR_EL,K)
             IF (N1.EQ.I) THEN
-              ZE_DG(J) = ze(NBOR_EL,1,1)
-              QX_DG(J) = qx(NBOR_EL,1,1)
-              QY_DG(J) = qy(NBOR_EL,1,1)
+              ZE_DG(J) = ze(1,NBOR_EL,1)
+              QX_DG(J) = qx(1,NBOR_EL,1)
+              QY_DG(J) = qy(1,NBOR_EL,1)
               HB_DG(J) = HB(1,NBOR_EL,1)
               DO KK = 2,DOF
-                ZE_DG(J) = ZE_DG(J) + PHI_CORNER(KK,K,ph)*ze(NBOR_EL,KK,1)
-                QX_DG(J) = QX_DG(J) + PHI_CORNER(KK,K,ph)*qx(NBOR_EL,KK,1)
-                QY_DG(J) = QY_DG(J) + PHI_CORNER(KK,K,ph)*qy(NBOR_EL,KK,1)
+                ZE_DG(J) = ZE_DG(J) + PHI_CORNER(KK,K,ph)*ze(KK,NBOR_EL,1)
+                QX_DG(J) = QX_DG(J) + PHI_CORNER(KK,K,ph)*qx(KK,NBOR_EL,1)
+                QY_DG(J) = QY_DG(J) + PHI_CORNER(KK,K,ph)*qy(KK,NBOR_EL,1)
                 HB_DG(J) = HB_DG(J) + PHI_CORNER(KK,K,ph)*HB(KK,NBOR_EL,1)
               ENDDO
               AREA = 0.5*AREAS(NBOR_EL)

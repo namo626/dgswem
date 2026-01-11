@@ -65,9 +65,9 @@ C.....Declare local variables
 !$acc parallel loop gang vector async(1) private(qx_tmp,qy_tmp,ze_tmp,ze_ins,qx_ins,qy_ins) default(present)
       DO 1000 L = 1, NE
 
-         ze_tmp = rhs_ze(L,:,IRK)
-         qx_tmp = rhs_qx(L,:,IRK)
-         qy_tmp = rhs_qy(L,:,IRK)
+         ze_tmp = rhs_ze(:,L,IRK)
+         qx_tmp = rhs_qx(:,L,IRK)
+         qy_tmp = rhs_qy(:,L,IRK)
 
 C.......Adjust the p values for constants
 
@@ -115,10 +115,10 @@ C.......Retrieve the global node numbers for the element
 C.......Compute avaraged values
 C.......These will be used later when bottom friction is computed
 
-         DEPTH_C = HB(1,L,1) + ze(L,1,IRK)
+         DEPTH_C = HB(1,L,1) + ze(1,L,IRK)
          FH_NL_C = 1.0/(NLEQ*DEPTH_C + LEQ)
-         UX_C = qx(L,1,IRK)*FH_NL_C
-         UY_C = qy(L,1,IRK)*FH_NL_C
+         UX_C = qx(1,L,IRK)*FH_NL_C
+         UY_C = qy(1,L,IRK)*FH_NL_C
          UMAG_C = SQRT(UX_C*UX_C + UY_C*UY_C)
 
 C.......Compute derivatives of Lagrange basis functions at nodes
@@ -144,9 +144,9 @@ C.......Compute ZE, QX, QY, and HB at each area Gauss quadrature point
          DO k = 1,DOFH
             DO I = 1,NAGP(pa)
 #endif
-               ze_ins(i) = ze_ins(i) + ze(L,K,IRK)*PHI_AREA(K,I,pa) 
-               qx_ins(i) = qx_ins(i) + qx(L,K,IRK)*PHI_AREA(K,I,pa) 
-               qy_ins(i) = qy_ins(i) + qy(L,K,IRK)*PHI_AREA(K,I,pa) 
+               ze_ins(i) = ze_ins(i) + ze(K,L,IRK)*PHI_AREA(K,I,pa) 
+               qx_ins(i) = qx_ins(i) + qx(K,L,IRK)*PHI_AREA(K,I,pa) 
+               qy_ins(i) = qy_ins(i) + qy(K,L,IRK)*PHI_AREA(K,I,pa) 
             ENDDO
          ENDDO
          
@@ -158,9 +158,9 @@ C.......Compute ZE, QX, QY, and HB at each area Gauss quadrature point
          DO I = 1,NAGP(pa)
 #endif
 
-c$$$            ZE_IN = ze(L,1,IRK)
-c$$$            QX_IN = qx(L,1,IRK)
-c$$$            QY_IN = qy(L,1,IRK)
+c$$$            ZE_IN = ze(1,L,IRK)
+c$$$            QX_IN = qx(1,L,IRK)
+c$$$            QY_IN = qy(1,L,IRK)
 
 #ifdef TRACE
             iota_IN = iota(1,L,IRK)
@@ -203,8 +203,8 @@ c$$$            QY_IN = qy(L,1,IRK)
                DPHIDY = DRPHI(K,I,pa)*DRDY(L) + DSPHI(K,I,pa)*DSDY(L)
                DHB_X = DHB_X + HB(K,L,irk)*DPHIDX
                DHB_Y = DHB_Y + HB(K,L,irk)*DPHIDY
-               DH_Y = DH_Y + (HB(K,L,irk)+ze(L,K,irk))*DPHIDY
-               DH_X = DH_X + (HB(K,L,irk)+ze(L,K,irk))*DPHIDX
+               DH_Y = DH_Y + (HB(K,L,irk)+ze(K,L,irk))*DPHIDY
+               DH_X = DH_X + (HB(K,L,irk)+ze(K,L,irk))*DPHIDX
             enddo
 #endif
 
@@ -231,9 +231,9 @@ c$$$            QY_IN = qy(L,1,IRK)
 !$acc loop seq
             DO K = 2,DOFH
 
-               ZE_IN = ZE_IN + ze(L,K,IRK)*PHI_AREA(K,I,pa)
-               QX_IN = QX_IN + qx(L,K,IRK)*PHI_AREA(K,I,pa)
-               QY_IN = QY_IN + qy(L,K,IRK)*PHI_AREA(K,I,pa)
+               ZE_IN = ZE_IN + ze(K,L,IRK)*PHI_AREA(K,I,pa)
+               QX_IN = QX_IN + qx(K,L,IRK)*PHI_AREA(K,I,pa)
+               QY_IN = QY_IN + qy(K,L,IRK)*PHI_AREA(K,I,pa)
 
 #ifdef WAVE_DIF
                HZ_X = HZ_X + HZ(K,1,1,L)*PHI_AREA(K,I,pa)
@@ -509,9 +509,9 @@ C.........Build the rhs
 #else
          DO k = 1,DOFH
 #endif
-            RHS_ze(L,K,IRK) = ze_tmp(k)
-            RHS_qx(L,K,IRK) = qx_tmp(k)
-            RHS_qy(L,K,IRK) = qy_tmp(k)
+            RHS_ze(K,L,IRK) = ze_tmp(k)
+            RHS_qx(K,L,IRK) = qx_tmp(k)
+            RHS_qy(K,L,IRK) = qy_tmp(k)
          ENDDO
             
 

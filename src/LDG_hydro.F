@@ -310,10 +310,10 @@ C.....Compute the solution at the interior state
 
             DO K = 1,DOFS(EL_IN)
 #ifdef WAVE_DIF
-               ZE_IN = ZE_IN + ze(EL_IN,K,IRK)*PHI_EDGE(K,I,LED,pa)
+               ZE_IN = ZE_IN + ze(K,EL_IN,IRK)*PHI_EDGE(K,I,LED,pa)
 #endif
-               QX_IN = QX_IN + qx(EL_IN,K,IRK)*PHI_EDGE(K,I,LED,pa)
-               QY_IN = QY_IN + qy(EL_IN,K,IRK)*PHI_EDGE(K,I,LED,pa)
+               QX_IN = QX_IN + qx(K,EL_IN,IRK)*PHI_EDGE(K,I,LED,pa)
+               QY_IN = QY_IN + qy(K,EL_IN,IRK)*PHI_EDGE(K,I,LED,pa)
 #ifdef TRACE
                iota_IN = iota_IN + iota(K,EL_IN,IRK)*PHI_EDGE(K,I,LED,pa)
 #endif
@@ -457,10 +457,10 @@ C.....Compute the solution at the interior state
 
             DO K = 1,DOFS(EL_IN)
 #ifdef WAVE_DIF
-               ZE_IN = ZE_IN + ze(EL_IN,K,IRK)*PHI_EDGE(K,I,LED,pa)
+               ZE_IN = ZE_IN + ze(K,EL_IN,IRK)*PHI_EDGE(K,I,LED,pa)
 #endif
-               QX_IN = QX_IN + qx(EL_IN,K,IRK)*PHI_EDGE(K,I,LED,pa)
-               QY_IN = QY_IN + qy(EL_IN,K,IRK)*PHI_EDGE(K,I,LED,pa)
+               QX_IN = QX_IN + qx(K,EL_IN,IRK)*PHI_EDGE(K,I,LED,pa)
+               QY_IN = QY_IN + qy(K,EL_IN,IRK)*PHI_EDGE(K,I,LED,pa)
 #ifdef TRACE
               iota_IN = iota_IN + iota(K,EL_IN,IRK)*PHI_EDGE(K,I,LED,pa)
 #endif
@@ -654,11 +654,11 @@ C.....Compute the solution at the interior state
             DO K = 1,DOFS(EL_IN)
 
 #ifdef WAVE_DIF
-               ZE_IN = ZE_IN + ze(EL_IN,K,IRK)*PHI_EDGE(K,I,LED,pa)
+               ZE_IN = ZE_IN + ze(K,EL_IN,IRK)*PHI_EDGE(K,I,LED,pa)
 #endif
 
-               QX_IN = QX_IN + qx(EL_IN,K,IRK)*PHI_EDGE(K,I,LED,pa)
-               QY_IN = QY_IN + qy(EL_IN,K,IRK)*PHI_EDGE(K,I,LED,pa)
+               QX_IN = QX_IN + qx(K,EL_IN,IRK)*PHI_EDGE(K,I,LED,pa)
+               QY_IN = QY_IN + qy(K,EL_IN,IRK)*PHI_EDGE(K,I,LED,pa)
 
 #ifdef SED_LAY
                do ll=1,layers
@@ -789,10 +789,10 @@ C.....Compute the solution at the interior state
             DO K = 1,DOFS(EL_IN)
                
 #ifdef WAVE_DIF
-               ZE_IN = ZE_IN + ze(EL_IN,K,IRK)*PHI_EDGE(K,I,LED,pa)
+               ZE_IN = ZE_IN + ze(K,EL_IN,IRK)*PHI_EDGE(K,I,LED,pa)
 #endif
-               QX_IN = QX_IN + qx(EL_IN,K,IRK)*PHI_EDGE(K,I,LED,pa)
-               QY_IN = QY_IN + qy(EL_IN,K,IRK)*PHI_EDGE(K,I,LED,pa)
+               QX_IN = QX_IN + qx(K,EL_IN,IRK)*PHI_EDGE(K,I,LED,pa)
+               QY_IN = QY_IN + qy(K,EL_IN,IRK)*PHI_EDGE(K,I,LED,pa)
 #ifdef TRACE
               iota_IN = iota_IN + iota(K,EL_IN,IRK)*PHI_EDGE(K,I,LED,pa)
 #endif
@@ -927,15 +927,15 @@ C.....Compute ZE, QX, QY, and HB at each edge Gauss quadrature point
             DO K = 1,DOFS(EL)
 
 #ifdef WAVE_DIF
-             ZE_IN = ZE_IN + ze(EL_IN,K,IRK)*PHI_EDGE(K,GP_IN,LED_IN,pa)
+             ZE_IN = ZE_IN + ze(K,EL_IN,IRK)*PHI_EDGE(K,GP_IN,LED_IN,pa)
 #endif
-             QX_IN = QX_IN + qx(EL_IN,K,IRK)*PHI_EDGE(K,GP_IN,LED_IN,pa)
-             QY_IN = QY_IN + qy(EL_IN,K,IRK)*PHI_EDGE(K,GP_IN,LED_IN,pa)
+             QX_IN = QX_IN + qx(K,EL_IN,IRK)*PHI_EDGE(K,GP_IN,LED_IN,pa)
+             QY_IN = QY_IN + qy(K,EL_IN,IRK)*PHI_EDGE(K,GP_IN,LED_IN,pa)
 #ifdef WAVE_DIF
-             ZE_EX = ZE_EX + ze(EL_EX,K,IRK)*PHI_EDGE(K,GP_EX,LED_EX,pa)
+             ZE_EX = ZE_EX + ze(K,EL_EX,IRK)*PHI_EDGE(K,GP_EX,LED_EX,pa)
 #endif
-             QX_EX = QX_EX + qx(EL_EX,K,IRK)*PHI_EDGE(K,GP_EX,LED_EX,pa)
-             QY_EX = QY_EX + qy(EL_EX,K,IRK)*PHI_EDGE(K,GP_EX,LED_EX,pa)
+             QX_EX = QX_EX + qx(K,EL_EX,IRK)*PHI_EDGE(K,GP_EX,LED_EX,pa)
+             QY_EX = QY_EX + qy(K,EL_EX,IRK)*PHI_EDGE(K,GP_EX,LED_EX,pa)
 #ifdef TRACE
        iota_IN = iota_IN + iota(K,EL_IN,IRK)*PHI_EDGE(K,GP_IN,LED_IN,pa)
        iota_EX = iota_EX + iota(K,EL_EX,IRK)*PHI_EDGE(K,GP_EX,LED_EX,pa)
@@ -1210,10 +1210,10 @@ C.....Compute ZE, QX, QY, and HB at each area Gauss quadrature point
             
             DO K = 1,DOFS(L)
 #ifdef WAVE_DIF
-               ZE_IN = ZE_IN + ze(L,K,IRK)*PHI_AREA(K,I,pa)
+               ZE_IN = ZE_IN + ze(K,L,IRK)*PHI_AREA(K,I,pa)
 #endif
-               QX_IN = QX_IN + qx(L,K,IRK)*PHI_AREA(K,I,pa)
-               QY_IN = QY_IN + qy(L,K,IRK)*PHI_AREA(K,I,pa)
+               QX_IN = QX_IN + qx(K,L,IRK)*PHI_AREA(K,I,pa)
+               QY_IN = QY_IN + qy(K,L,IRK)*PHI_AREA(K,I,pa)
 #ifdef TRACE
                iota_IN = iota_IN + iota(K,L,IRK)*PHI_AREA(K,I,pa)
 #endif
@@ -1320,12 +1320,12 @@ C.....Build the rhs
             
             do kk = 2, dofs(L)  !Compute the first sensor
 #ifdef WAVE_DIF 
-               ze_sensor1 = ze_sensor1 + (ze(L,kk,irk)* 
+               ze_sensor1 = ze_sensor1 + (ze(kk,L,irk)* 
      &              phi_area(kk,I,pa))**2.0 * wagp(I,pa)
 #endif
-               qx_sensor1 = qx_sensor1 + (qx(L,kk,irk)* 
+               qx_sensor1 = qx_sensor1 + (qx(kk,L,irk)* 
      &              phi_area(kk,I,pa))**2.0 * wagp(I,pa)
-               qy_sensor1 = qy_sensor1 + (qy(L,kk,irk)* 
+               qy_sensor1 = qy_sensor1 + (qy(kk,L,irk)* 
      &              phi_area(kk,I,pa))**2.0 * wagp(I,pa)
 #ifdef TRACE
                iota_sensor1 = iota_sensor1 + (iota(kk,L,irk)
@@ -1343,12 +1343,12 @@ C.....Build the rhs
             
             do kk = 1,dofs(L) !Compute the second sensor
 #ifdef WAVE_DIF 
-               ze_sensor2 = ze_sensor2 + (ze(L,kk,irk)* 
+               ze_sensor2 = ze_sensor2 + (ze(kk,L,irk)* 
      &              phi_area(kk,I,pa))**2.0 * wagp(I,pa)
 #endif
-               qx_sensor2 = qx_sensor2 + (qx(L,kk,irk)* 
+               qx_sensor2 = qx_sensor2 + (qx(kk,L,irk)* 
      &              phi_area(kk,I,pa))**2.0 * wagp(I,pa)
-               qy_sensor2 = qy_sensor2 + (qy(L,kk,irk)* 
+               qy_sensor2 = qy_sensor2 + (qy(kk,L,irk)* 
      &              phi_area(kk,I,pa))**2.0 * wagp(I,pa)
 #ifdef TRACE
                iota_sensor2 = iota_sensor2 + (iota(kk,L,irk)
