@@ -1,0 +1,4 @@
+option('gpu', type: 'boolean', value: false, description:
+      'Enable GPU compilation.')
+option('precision', type: 'combo', choices: ['single', 'double'], value: 'double', description:
+      'Floating point precision.')
