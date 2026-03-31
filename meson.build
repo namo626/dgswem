@@ -1,7 +1,7 @@
 project('dg-swem', ['cpp', 'fortran'],
         version: '4.0.0',
         default_options: ['buildtype=debugoptimized'],
-        meson_version: '>=1.1.0')
+        meson_version: '>=1.5.0')
 
 add_project_arguments('-DRKSSP',
                       '-DLINUX',
@@ -9,6 +9,7 @@ add_project_arguments('-DRKSSP',
                       language: 'fortran')
 
 compiler_name = meson.get_compiler('fortran').get_id()
+compiler = meson.get_compiler('fortran')
 message('Using compiler', compiler_name)
 
 if get_option('precision') == 'double'
@@ -54,11 +55,25 @@ elif compiler_name == 'intel-llvm'
                         '-xHost',
                         '-132',
                         language: 'fortran')
-
 else
   error(f'Compiler @compiler_name@ not supported.')
 endif
 
+if get_option('netcdf')
+  netcdf_dep = [dependency('netcdf', language: 'fortran')]
+  compiler.run(
+  '''
+  PROGRAM netCDF3Test
+    USE NETCDF
+    IMPLICIT NONE
+    INTEGER :: IERR, NCID
+    IERR = NF90_OPEN('test.nc', NF90_NOWRITE, NCID)
+  END PROGRAM ''' ,
+  required: true,
+  dependencies: netcdf_dep)
+else
+  netcdf_dep = []
+endif
     
 
 
@@ -68,22 +83,25 @@ subdir('prep')
 # Serial DGSWEM Main Program
 executable('dgswem_serial',
            sources: dgswem_src + c_interface_src,
-           dependencies: cpp_dep,
+           dependencies: [cpp_dep] + netcdf_dep,
            link_language: 'fortran')
 
 # Parallel DGSWEM Main Program
 if get_option('parallel')
   mpi_dep = dependency('mpi', language: 'fortran')
   executable('dgswem', sources: dgswem_src + mpi_handlers + c_interface_src,
-             dependencies: [mpi_dep, cpp_dep],
+             dependencies: [mpi_dep] + cpp_dep + netcdf_dep,
              fortran_args: '-DCMPI',
              link_language: 'fortran')
 endif
 
 executable('adcprep', sources: prep_src,
-           dependencies: [metis_dep ],
+           dependencies: [metis_dep] + netcdf_dep,
            c_args: ['-Wno-incompatible-pointer-types'],
            link_language: 'fortran',
         ) #have to specify link_language to avoid meson trying to link with C compiler
 
-executable('adcpost', sources: post_src)
+executable('adcpost',
+           sources: post_src,
+           dependencies: netcdf_dep,
+          link_language: 'fortran')
