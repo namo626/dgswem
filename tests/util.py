@@ -37,11 +37,11 @@ def last_snapshot(filename):
     return last, num_nodes
 
 def run_serial(binpath, testpath, rtol=0.05, atol=0.01):
-    try:
-        subprocess.run(os.path.join(binpath, "dgswem_serial") + " &> run.log",
-                       check=True, cwd=testpath, shell=True)
-    except FileNotFoundError:
-        pytest.skip("dgswem_serial executable not found. Skipping...")
+    if not os.path.exists(os.path.join(binpath, "dgswem_serial")):
+        raise FileNotFoundError('dgswem_serial not found')
+
+    subprocess.run(os.path.join(binpath, "dgswem_serial") + " &> run.log",
+                    check=True, cwd=testpath, shell=True)
 
     d1, _ = last_snapshot(os.path.join(testpath , "fort.63.true"))
     d2, _ = last_snapshot(os.path.join(testpath , "fort.63"))
@@ -50,10 +50,14 @@ def run_serial(binpath, testpath, rtol=0.05, atol=0.01):
 def run_parallel(binpath, testpath, rtol=0.05, atol=0.01):
     if not os.path.exists(os.path.join(binpath, "dgswem")):
         pytest.skip("dgswem executable not found. Skipping...")
+    if not os.path.exists(os.path.join(binpath, "adcprep")):
+        pytest.skip("adcprep executable not found. Skipping...")
+    if not os.path.exists(os.path.join(binpath, "adcpost")):
+        pytest.skip("adcpost executable not found. Skipping...")
 
-    subprocess.run(os.path.join(binpath, "adcprep") + " < in.prep", check=True, cwd=path, shell=True)
-    subprocess.run("mpirun -np 2 " + os.path.join(binpath, "dgswem"), check=True, cwd=path, shell=True)
-    subprocess.run(os.path.join(binpath, "adcpost") + " < out.prep", check=True, cwd=path, shell=True)
+    subprocess.run(os.path.join(binpath, "adcprep") + " < in.prep", check=True, cwd=testpath, shell=True)
+    subprocess.run("mpirun -np 2 " + os.path.join(binpath, "dgswem"), check=True, cwd=testpath, shell=True)
+    subprocess.run(os.path.join(binpath, "adcpost") + " < out.prep", check=True, cwd=testpath, shell=True)
 
     d1, _ = last_snapshot(os.path.join(testpath , "fort.63.true"))
     d2, _ = last_snapshot(os.path.join(testpath , "fort.63"))

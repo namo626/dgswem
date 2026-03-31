@@ -71,14 +71,3 @@ if not cpp_dep.found()
     error('Could not find C++ standard library using the name stdc++. You may need to specify the name using a native file.')
 endif
 
-# Serial DGSWEM Main Program
-executable('dgswem_serial',
-           sources: dgswem_src + c_interface_src,
-           dependencies: cpp_dep,
-           link_language: 'fortran')
-# Parallel DGSWEM Main Program
-# executable('dgswem', sources: dgswem_src + mpi_handlers + c_interface_src,
-#                     dependencies: [mpi_dep, cpp_dep],
-#                     fortran_args: '-DCMPI',
-#                     link_language: 'fortran', 
-#                     )
