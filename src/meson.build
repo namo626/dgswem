@@ -75,8 +75,7 @@ endif
 executable('dgswem_serial',
            sources: dgswem_src + c_interface_src,
            dependencies: cpp_dep,
-           link_language: 'fortran',
-          link_args: extra_link_args)
+           link_language: 'fortran')
 # Parallel DGSWEM Main Program
 # executable('dgswem', sources: dgswem_src + mpi_handlers + c_interface_src,
 #                     dependencies: [mpi_dep, cpp_dep],
