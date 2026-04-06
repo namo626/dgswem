@@ -1,54 +1,54 @@
-C***********************************************************************
-C
-C     SUBROUTINE RHS_DG_HYDRO()
-C
-C     This subroutine computes the area integrals for the DG hydro and
-C     adds them into the RHS.
-C
-C     Written by Ethan Kubatko (06-11-2004)
-C
-C-----------------------------------------------------------------------
-C
-C     Feb 23, 2007, sb, Modified for better performance
-C     Jan 02, 2007, sb, Modified for LDG
-C     Aug xx, 2005, sb, Modified for wetting/drying
-C     01-10-2011 - cem - adapted for p_enrichment and multicomponent
-C
-C***********************************************************************
+!***********************************************************************
+!
+!     SUBROUTINE RHS_DG_HYDRO()
+!
+!     This subroutine computes the area integrals for the DG hydro and
+!     adds them into the RHS.
+!
+!     Written by Ethan Kubatko (06-11-2004)
+!
+!-----------------------------------------------------------------------
+!
+!     Feb 23, 2007, sb, Modified for better performance
+!     Jan 02, 2007, sb, Modified for LDG
+!     Aug xx, 2005, sb, Modified for wetting/drying
+!     01-10-2011 - cem - adapted for p_enrichment and multicomponent
+!
+!***********************************************************************
       SUBROUTINE RHS_DG_HYDRO(IT)
 
-C.....Use appropriate modules
+!.....Use appropriate modules
 
       USE GLOBAL
       USE DG
-      USE NodalAttributes, ONLY : TAU, IFLINBF, IFHYBF, HBREAK, FTHETA,
-     &     FGAMMA,LoadManningsN,ManningsN,CF
+      USE NodalAttributes, ONLY : TAU, IFLINBF, IFHYBF, HBREAK, FTHETA, &
+     FGAMMA,LoadManningsN,ManningsN,CF
 
       USE sizes, ONLY: myproc,layers
       USE PRECIPITATION, only : computeElemTRR, PREC3, PREC2
 
       IMPLICIT NONE
 
-C.....Declare local variables
+!.....Declare local variables
       ! for rain test
-      REAL(SZ) SR1, SR2, SR3, avg_rain
-      real(sz) :: ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex,
-     &  hb_in,hb_ex,sfac_in,sfac_ex, nx, ny
+      REAL(SZ) :: SR1, SR2, SR3, avg_rain
+      real(sz) :: ze_in,ze_ex,qx_in,qx_ex,qy_in,qy_ex, &
+  hb_in,hb_ex,sfac_in,sfac_ex, nx, ny
       real(sz) :: f_hat, g_hat, h_hat
-      INTEGER IT
-      INTEGER L,k,i,ll
-      REAL(SZ) DPSIDX(3), DPSIDY(3)
-      REAL(SZ) AREA, IMASS, TKX, TKY, Xpart, Ypart,H_0,C_1
-      REAL(SZ) PHI_AREA_KI,MN_IN, MassAction1st,MassAction2nd,fx,fy
-      REAL(SZ) LZ_XX, LZ_XY, LZ_YX, LZ_YY, rate, s_mass, s_sed,b_0
-      REAL(SZ) DEPTH, F1_NL, FU_NL, FV_NL, FG_NL, FH_NL, FW_NL
-      REAL(SZ) HUU, HVV, HUV, GH2,MZ_X(layers),MZ_Y(layers), fgauss, sig
-      REAL(SZ) DEPTH_C, FH_NL_C, UX_C, UY_C, UMAG_C, DTDPH,SFACQUAD
-      Real(SZ) discharge_modelX_IN,discharge_modelY_IN
-      Real(SZ) DH_X,DH_Y,phi_tot,C_0,HZ_X,HZ_Y,TZ_X,TZ_Y
+      INTEGER :: IT
+      INTEGER :: L,k,i,ll
+      REAL(SZ) :: DPSIDX(3), DPSIDY(3)
+      REAL(SZ) :: AREA, IMASS, TKX, TKY, Xpart, Ypart,H_0,C_1
+      REAL(SZ) :: PHI_AREA_KI,MN_IN, MassAction1st,MassAction2nd,fx,fy
+      REAL(SZ) :: LZ_XX, LZ_XY, LZ_YX, LZ_YY, rate, s_mass, s_sed,b_0
+      REAL(SZ) :: DEPTH, F1_NL, FU_NL, FV_NL, FG_NL, FH_NL, FW_NL
+      REAL(SZ) :: HUU, HVV, HUV, GH2,MZ_X(layers),MZ_Y(layers), fgauss, sig
+      REAL(SZ) :: DEPTH_C, FH_NL_C, UX_C, UY_C, UMAG_C, DTDPH,SFACQUAD
+      Real(SZ) :: discharge_modelX_IN,discharge_modelY_IN
+      Real(SZ) :: DH_X,DH_Y,phi_tot,C_0,HZ_X,HZ_Y,TZ_X,TZ_Y
 
 
-      real(sz) source_max, source_r
+      real(sz) :: source_max, source_r
 
       source_max = 0.0
       !print *, "max prec2 = ", maxval(prec2)
@@ -56,54 +56,54 @@ C.....Declare local variables
       DTDPH = 1.0/DTDP
 !$acc parallel loop gang vector private(dpsidx, dpsidy) async(1) default(present)
       DO 1000 L = 1, NE
-c     nd
+!     nd
          advectqx(l)=0.0
          advectqx(l)=0.0
          sourceqx(l)=0.0
          sourceqy(l)=0.0
-c     nd
+!     nd
 
-C.......Adjust the p values for constants
+!.......Adjust the p values for constants
 
          pa = PDG_EL(L)
 
 #ifdef P0
-         if (pa.eq.0) then
+         if (pa==0) then
             pa = 1
          endif
 #endif
-C.......Compute rain source term if rain is enabled
+!.......Compute rain source term if rain is enabled
          ! for now, stop rain after 1 day (86400 s)
 
          IF (rainfall > 0) THEN
             IF (rainfall > 1) SOURCE_R = computeElemTRR(L)
             IF (rainfall == 1) SOURCE_R =  7.0556e-6 ! 1 inch/hour
 
-            IF (SOURCE_R .GT. 0.0) THEN
+            IF (SOURCE_R > 0.0) THEN
 !$acc loop seq
               DO I = 1,NAGP(pa)
                 DO K = 1,DOFS(L)
-                  RHS_ZE(K,L,IRK) = RHS_ZE(K,L,IRK) +
-     &                 SRFAC(K,I,L,pa)*SOURCE_R
+                  RHS_ZE(K,L,IRK) = RHS_ZE(K,L,IRK) + &
+                 SRFAC(K,I,L,pa)*SOURCE_R
                 END DO
               END DO
             END IF
          ENDIF
 
-C.......If element is dry then skip calculations
+!.......If element is dry then skip calculations
 
-         IF (WDFLG(L).EQ.0) then
+         IF (WDFLG(L)==0) then
             GOTO 1000
          endif
 
-C.......Retrieve the global node numbers for the element
+!.......Retrieve the global node numbers for the element
 
          N1 = NM(L,1)
          N2 = NM(L,2)
          N3 = NM(L,3)
 
-C.......Compute avaraged values
-C.......These will be used later when bottom friction is computed
+!.......Compute avaraged values
+!.......These will be used later when bottom friction is computed
 
          DEPTH_C = HB(1,L,1) + ZE(1,L,IRK)
          FH_NL_C = 1.0/(NLEQ*DEPTH_C + LEQ)
@@ -111,9 +111,9 @@ C.......These will be used later when bottom friction is computed
          UY_C = QY(1,L,IRK)*FH_NL_C
          UMAG_C = SQRT(UX_C*UX_C + UY_C*UY_C)
 
-C.......Compute derivatives of Lagrange basis functions at nodes
+!.......Compute derivatives of Lagrange basis functions at nodes
 
-         IF ((NWS.NE.0).OR.(NTIP.NE.0)) THEN
+         IF ((NWS/=0).OR.(NTIP/=0)) THEN
             DPSIDX(1) = DRPSI(1)*DRDX(L) + DSPSI(1)*DSDX(L)
             DPSIDX(2) = DRPSI(2)*DRDX(L) + DSPSI(2)*DSDX(L)
             DPSIDX(3) = DRPSI(3)*DRDX(L) + DSPSI(3)*DSDX(L)
@@ -122,7 +122,7 @@ C.......Compute derivatives of Lagrange basis functions at nodes
             DPSIDY(3) = DRPSI(3)*DRDY(L) + DSPSI(3)*DSDY(L)
          ENDIF
 
-C.......Compute ZE, QX, QY, and HB at each area Gauss quadrature point
+!.......Compute ZE, QX, QY, and HB at each area Gauss quadrature point
 
 !$acc loop seq
          DO I = 1,NAGP(pa)
@@ -240,20 +240,20 @@ C.......Compute ZE, QX, QY, and HB at each area Gauss quadrature point
                enddo
                DEPTH = 0.0
                DEPTH = ZE_IN + HB_IN
-C.........Compute sediment discharge model
+!.........Compute sediment discharge model
 
                !Note that the choice of linearization can require this to be changed
           QMag_IN=(QX_IN*QX_IN/(DEPTH**2)+QY_IN*QY_IN/(DEPTH)**2)**(1/2)
-            discharge_modelX_IN = porosity * DEPTH**(-1) * QMag_IN**(2)*
-     &         QX_IN*SFACQUAD
-            discharge_modelY_IN = porosity * DEPTH**(-1) * QMag_IN**(2)*
-     &         QY_IN
+            discharge_modelX_IN = porosity * DEPTH**(-1) * QMag_IN**(2)* &
+         QX_IN*SFACQUAD
+            discharge_modelY_IN = porosity * DEPTH**(-1) * QMag_IN**(2)* &
+         QY_IN
 
 #endif
 
             ENDDO
 
-C.........Compute continuity fluxes
+!.........Compute continuity fluxes
 
             F1_NL = NLEQ + LEQ*HB_IN
 
@@ -268,7 +268,7 @@ C.........Compute continuity fluxes
 #else
             FY_IN = QY_IN*F1_NL
 #endif
-C.........Compute momentum flux terms
+!.........Compute momentum flux terms
 
             FU_NL = NLEQ*QX_IN
             FV_NL = NLEQ*QY_IN
@@ -282,113 +282,106 @@ C.........Compute momentum flux terms
             HUV = FU_NL*V_IN
             GH2 = FG_NL*(0.5D0*ZE_IN + HB_IN) + FG_L*ZE_IN
 
-C.........Compute x momentum fluxes
+!.........Compute x momentum fluxes
 
             GX_IN = (HUU + GH2 + LZ_XX)*SFACQUAD
             GY_IN = HUV + LZ_XY
 
             advectqx(l)=advectqx(l)+gx_in+gy_in
 
-C.........Compute y momentum fluxes
+!.........Compute y momentum fluxes
 
             HX_IN = (HUV + LZ_YX)*SFACQUAD
             HY_IN = HVV + GH2 + LZ_YY
 
             advectqy(l)=advectqy(l)+hx_in+hy_in
 
-C.........Compute the friction factor
+!.........Compute the friction factor
             if (LoadManningsN) then
-               fric_el(L)=G*
-     $              ((ManningsN(n1)+ManningsN(n2)+ManningsN(n3))/3.)**2
-     $              /(DEPTH**(1.0/3.0))
-               if (fric_el(L).lt.CF) fric_el(L)=CF
+               fric_el(L)=G* &
+              ((ManningsN(n1)+ManningsN(n2)+ManningsN(n3))/3.)**2 &
+              /(DEPTH**(1.0/3.0))
+               if (fric_el(L)<CF) fric_el(L)=CF
             endif
             TAU = FRIC_EL(L)
-C     Modified to compute TAU using elemental averages.
-C     This seems necessary to avoid exessive bottom friction
-C     at wetting-drying fronts where the total column height is very
-C     small. S.B. 9-Feb-2008
+!     Modified to compute TAU using elemental averages.
+!     This seems necessary to avoid exessive bottom friction
+!     at wetting-drying fronts where the total column height is very
+!     small. S.B. 9-Feb-2008
 
-            IF (IFLINBF.EQ.0) THEN
+            IF (IFLINBF==0) THEN
                UMAG = SQRT( U_IN*U_IN + V_IN*V_IN )
-c     cnd modified 4/23/10 to test friction
+!     cnd modified 4/23/10 to test friction
                TAU  = TAU*UMAG*FH_NL
-               IF (IFHYBF.EQ.1) TAU = TAU*
-     &              (1.0  + (HBREAK*FH_NL_C)**FTHETA)**(FGAMMA/FTHETA)
-C     It is numerically probable that the bottom friction is large enoght
-C     to reverse the direction of currents backward due to a too small column
-C     height even though it does not happen in reality. To avoid this, the MIN
-C     function bellow is added. It is expected that this MIN function upper-limits
-C     TAU so the bottom friction force does not reverse the currents within
-C     half a time step.  S.B. 9-Feb-2008
+               IF (IFHYBF==1) TAU = TAU* &
+              (1.0  + (HBREAK*FH_NL_C)**FTHETA)**(FGAMMA/FTHETA)
+!     It is numerically probable that the bottom friction is large enoght
+!     to reverse the direction of currents backward due to a too small column
+!     height even though it does not happen in reality. To avoid this, the MIN
+!     function bellow is added. It is expected that this MIN function upper-limits
+!     TAU so the bottom friction force does not reverse the currents within
+!     half a time step.  S.B. 9-Feb-2008
                TAU = MIN(TAU, .9D0*DTDPH)
             ENDIF
 
-C.........Compute the x momentum source/sink terms
+!.........Compute the x momentum source/sink terms
 
-            SOURCE_X =
+            SOURCE_X = &
 
-C.........1.) Friction term
+!.........1.) Friction term &
+           - TAU*QX_IN &
 
-     &           - TAU*QX_IN
+!.........2.) Bathymetric slope term &
+           + FG_NL*DHB_X *SFACQUAD &
 
-C.........2.) Bathymetric slope term
+!.........3.) Coriolis force &
+           + CORI_EL(L)*QY_IN
 
-     &           + FG_NL*DHB_X*SFACQUAD
+!.....Compute the y momentum source/sink terms
 
-C.........3.) Coriolis force
+            SOURCE_Y = &
 
-     &           + CORI_EL(L)*QY_IN
+!.........1.) Friction term &
+           - TAU*QY_IN &
 
-C.....Compute the y momentum source/sink terms
+!.........2) Bathymetric slope term &
+           + FG_NL*DHB_Y &
 
-            SOURCE_Y =
+!.........3.) Coriolis force &
+           - CORI_EL(L)*QX_IN
 
-C.........1.) Friction term
+!.........4.) Wind and pressure forcing (in x and y)
 
-     &           - TAU*QY_IN
-
-C.........2) Bathymetric slope term
-
-
-     &           + FG_NL*DHB_Y
-
-C.........3.) Coriolis force
-
-     &           - CORI_EL(L)*QX_IN
-
-C.........4.) Wind and pressure forcing (in x and y)
-
-            IF (NWS.NE.0) THEN
+            IF (NWS/=0) THEN
                FW_NL = 1.0/F1_NL
-               SOURCE_X = SOURCE_X + FW_NL*( WSX2(N1)*PSI1(I,pa)
-     &              + WSX2(N2)*PSI2(I,pa)  + WSX2(N3)*PSI3(I,pa) )
-     &              - G*SFACQUAD*DEPTH
-     $              *( PR2(N1)*DPSIDX(1)
-     &              + PR2(N2)*DPSIDX(2) + PR2(N3)*DPSIDX(3))
-               SOURCE_Y = SOURCE_Y + FW_NL*( WSY2(N1)*PSI1(I,pa)
-     &              + WSY2(N2)*PSI2(I,pa)  + WSY2(N3)*PSI3(I,pa) )
-     &              - G*DEPTH*( PR2(N1)*DPSIDY(1)
-     &              + PR2(N2)*DPSIDY(2) + PR2(N3)*DPSIDY(3))
+               SOURCE_X = SOURCE_X + FW_NL*( WSX2(N1)*PSI1(I,pa) &
+              + WSX2(N2)*PSI2(I,pa)  + WSX2(N3)*PSI3(I,pa) ) &
+              - G*SFACQUAD*DEPTH &
+              *( PR2(N1)*DPSIDX(1) &
+              + PR2(N2)*DPSIDX(2) + PR2(N3)*DPSIDX(3))
+               SOURCE_Y = SOURCE_Y + FW_NL*( WSY2(N1)*PSI1(I,pa) &
+              + WSY2(N2)*PSI2(I,pa)  + WSY2(N3)*PSI3(I,pa) ) &
+              - G*DEPTH*( PR2(N1)*DPSIDY(1) &
+              + PR2(N2)*DPSIDY(2) + PR2(N3)*DPSIDY(3))
             ENDIF
 
 
-C.........5) Tidal potential forcing (in x and y)
+!.........5) Tidal potential forcing (in x and y)
 
-            IF (NTIP.NE.0) THEN
+            IF (NTIP/=0) THEN
 
-               SOURCE_X = SOURCE_X +
-     $              RAMPDG*G*DEPTH*SFACQUAD*( DPSIDX(1)*TIP2(N1)
-     &              + DPSIDX(2)*TIP2(N2) + DPSIDX(3)*TIP2(N3) )
+               SOURCE_X = SOURCE_X + &
+              RAMPDG*G*DEPTH*SFACQUAD*( DPSIDX(1)*TIP2(N1) &
+              + DPSIDX(2)*TIP2(N2) + DPSIDX(3)*TIP2(N3) )
 
-               SOURCE_Y = SOURCE_Y + RAMPDG*G*DEPTH*( DPSIDY(1)*TIP2(N1)
-     &              + DPSIDY(2)*TIP2(N2) + DPSIDY(3)*TIP2(N3) )
+               SOURCE_Y = SOURCE_Y + RAMPDG*G*DEPTH*( DPSIDY(1)*TIP2(N1) &
+              + DPSIDY(2)*TIP2(N2) + DPSIDY(3)*TIP2(N3) )
             ENDIF
 
             sourceqx(l)=sourceqx(l)+source_x
             sourceqy(l)=sourceqy(l)+source_y
 
-C.........6) Chemical mass action
+!.........6) Chemical mass action
 
 #ifdef CHEM
             MassAction1st = 0.0
@@ -403,12 +396,12 @@ C.........6) Chemical mass action
 
             MassMax(L) = min(MassAction1st,MassAction2nd)
 
-C.........Build the rhs
+!.........Build the rhs
 
-            RHS_iota(1,L,IRK) = RHS_iota(1,L,IRK)
-     &           + MassAction1st*SRFAC(1,I,L,pa)*FH_NL
-            RHS_iota2(1,L,IRK) = RHS_iota2(1,L,IRK)
-     &           + MassAction2nd*SRFAC(1,I,L,pa)*FH_NL
+            RHS_iota(1,L,IRK) = RHS_iota(1,L,IRK) &
+           + MassAction1st*SRFAC(1,I,L,pa)*FH_NL
+            RHS_iota2(1,L,IRK) = RHS_iota2(1,L,IRK) &
+           + MassAction2nd*SRFAC(1,I,L,pa)*FH_NL
 #endif
 
 
@@ -418,48 +411,48 @@ C.........Build the rhs
 !$acc loop seq
             DO K = 2,DOFS(L)
 
-               RHS_ZE(K,L,IRK) = RHS_ZE(K,L,IRK) + XFAC(K,I,L,pa)*FX_IN
-     &                + YFAC(K,I,L,pa)*FY_IN
-               RHS_QX(K,L,IRK) = RHS_QX(K,L,IRK) + XFAC(K,I,L,pa)*GX_IN
-     &              + YFAC(K,I,L,pa)*GY_IN + SRFAC(K,I,L,pa)*SOURCE_X
-               RHS_QY(K,L,IRK) = RHS_QY(K,L,IRK) + XFAC(K,I,L,pa)*HX_IN
-     &              + YFAC(K,I,L,pa)*HY_IN + SRFAC(K,I,L,pa)*SOURCE_Y
+               RHS_ZE(K,L,IRK) = RHS_ZE(K,L,IRK) + XFAC(K,I,L,pa)*FX_IN &
+                + YFAC(K,I,L,pa)*FY_IN
+               RHS_QX(K,L,IRK) = RHS_QX(K,L,IRK) + XFAC(K,I,L,pa)*GX_IN &
+              + YFAC(K,I,L,pa)*GY_IN + SRFAC(K,I,L,pa)*SOURCE_X
+               RHS_QY(K,L,IRK) = RHS_QY(K,L,IRK) + XFAC(K,I,L,pa)*HX_IN &
+              + YFAC(K,I,L,pa)*HY_IN + SRFAC(K,I,L,pa)*SOURCE_Y
 
 #ifdef SED_LAY
 
                do ll = 1,layers !only really makes sense for single layer
 
-                  RHS_bed(K,L,IRK,ll) = RHS_bed(K,L,IRK,ll)
-     &                 + XFAC(K,I,L,pa)*(discharge_modelX_IN+MZ_X(ll)*
-     &                 SFACQUAD) + YFAC(K,I,L,pa)*
-     &                 (discharge_modelY_IN+MZ_Y(ll))
+                  RHS_bed(K,L,IRK,ll) = RHS_bed(K,L,IRK,ll) &
+                 + XFAC(K,I,L,pa)*(discharge_modelX_IN+MZ_X(ll)* &
+                 SFACQUAD) + YFAC(K,I,L,pa)* &
+                 (discharge_modelY_IN+MZ_Y(ll))
 
                enddo
 #endif
 
 #ifdef TRACE
-               RHS_iota(K,L,IRK) = RHS_iota(K,L,IRK)
-     &             + XFAC(K,I,L,pa)*(iota_IN*QX_IN*FH_NL+TZ_X*SFACQUAD)
-     &             + YFAC(K,I,L,pa)*(iota_IN*QY_IN*FH_NL+TZ_Y)
+               RHS_iota(K,L,IRK) = RHS_iota(K,L,IRK) &
+             + XFAC(K,I,L,pa)*(iota_IN*QX_IN*FH_NL+TZ_X*SFACQUAD) &
+             + YFAC(K,I,L,pa)*(iota_IN*QY_IN*FH_NL+TZ_Y)
 #endif
 
 #ifdef CHEM
-               RHS_iota(K,L,IRK) = RHS_iota(K,L,IRK)
-     &              + XFAC(K,I,L,pa)*iota_IN*QX_IN*FH_NL
-     &              + YFAC(K,I,L,pa)*iota_IN*QY_IN*FH_NL
-     &              + MassAction1st*SRFAC(K,I,L,pa)*FH_NL
+               RHS_iota(K,L,IRK) = RHS_iota(K,L,IRK) &
+              + XFAC(K,I,L,pa)*iota_IN*QX_IN*FH_NL &
+              + YFAC(K,I,L,pa)*iota_IN*QY_IN*FH_NL &
+              + MassAction1st*SRFAC(K,I,L,pa)*FH_NL
 
-               RHS_iota2(K,L,IRK) = RHS_iota2(K,L,IRK)
-     &              + XFAC(K,I,L,pa)*iota2_IN*QX_IN*FH_NL
-     &              + YFAC(K,I,L,pa)*iota2_IN*QY_IN*FH_NL
-     &              + MassAction2nd*SRFAC(K,I,L,pa)*FH_NL
+               RHS_iota2(K,L,IRK) = RHS_iota2(K,L,IRK) &
+              + XFAC(K,I,L,pa)*iota2_IN*QX_IN*FH_NL &
+              + YFAC(K,I,L,pa)*iota2_IN*QY_IN*FH_NL &
+              + MassAction2nd*SRFAC(K,I,L,pa)*FH_NL
 #endif
 
 #ifdef DYNP
-               RHS_dynP(K,L,IRK) = RHS_dynP(K,L,IRK)
-     &              + XFAC(K,I,L,pa)*dynP_IN*QX_IN*FH_NL
-     &              + YFAC(K,I,L,pa)*dynP_IN*QY_IN*FH_NL
-     &              + subphi_IN*SRFAC(K,I,L,pa)*FH_NL
+               RHS_dynP(K,L,IRK) = RHS_dynP(K,L,IRK) &
+              + XFAC(K,I,L,pa)*dynP_IN*QX_IN*FH_NL &
+              + YFAC(K,I,L,pa)*dynP_IN*QY_IN*FH_NL &
+              + subphi_IN*SRFAC(K,I,L,pa)*FH_NL
 #endif
 
             ENDDO
@@ -470,4 +463,4 @@ C.........Build the rhs
  1000 CONTINUE
       !print *, "max source = ", source_max
       RETURN
-      END SUBROUTINE
+      END SUBROUTINE RHS_DG_HYDRO
