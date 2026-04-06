@@ -13,7 +13,7 @@ if compiler.get_id() == 'gcc'
     c_args = ['-Wno-incompatible-pointer-types']
 endif
 
-metis_lib = library('metis',
+metis_lib = static_library('metis',
     sources,
     dependencies: math_dep, 
     include_directories: inc,
