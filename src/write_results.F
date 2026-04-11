@@ -1115,7 +1115,7 @@ C
      &        (MOD(IT,NSCREEN_INC).EQ.0) ) THEN
              WRITE(output_unit,1991) IT,percent_complete,TIME_A/86400.0,
      $            ELMAX,KEMAX,VELMAX,KVMAX,MYPROC
- 1991        FORMAT(1X,'TIME STEP =',I8,1X, F6.2 '% COMPLETE',
+ 1991        FORMAT(1X,'TIME STEP =',I8,1X, F6.2, '% COMPLETE',
      &            5X, 'TIME = ',F12.6,
      &            /,2X,'ELMAX = ', E11.4,' AT NODE',I7,
      &            2X,'SPEEDMAX = ',E11.4,' AT NODE',I7,
