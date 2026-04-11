@@ -170,16 +170,21 @@ C.....to single nodal values
        ENDDO
       end subroutine
 
-      pure function compute_cfl()
+      function compute_cfl()
+#ifdef CMPI
+      use mpi
+      use messenger_elem, only : realtype
+#endif
       use DG
       use GLOBAL
       implicit none
 
-      integer :: i
+      integer :: i, ierr
       real(sz) :: u, depth, u_avg, v_avg
-      real(sz) :: compute_cfl, courant
+      real(sz) :: compute_cfl, courant, max_courant
 
       courant = 0.
+      compute_cfl = 0.
 !$acc parallel loop reduction(max:courant) default(present)
       do i = 1, NE
          u_avg = qx(1,i,1)
@@ -188,7 +193,11 @@ C.....to single nodal values
          depth = ze(1,i,1) + HB(1,i,1)
          courant = max(courant, real(wdflg(i))*(u + sqrt(G*depth)) * dtdp / elem_size(i))
       enddo   
-
+#ifdef CMPI
+      call MPI_ALLREDUCE( courant, max_courant, 1,
+     &     realtype, MPI_MAX, MPI_COMM_world, ierr)
+      courant = max_courant
+#endif
       compute_cfl = courant
       end function
 
