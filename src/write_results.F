@@ -171,13 +171,16 @@ C.....to single nodal values
       end subroutine
 
       function compute_cfl()
-#ifdef CMPI
-      use mpi
-      use messenger_elem, only : realtype
-#endif
       use DG
       use GLOBAL
+#ifdef CMPI
+      use messenger_elem, only : realtype
       implicit none
+      include 'mpif.h'
+      !use mpi
+#else
+      implicit none
+#endif
 
       integer :: i, ierr
       real(sz) :: u, depth, u_avg, v_avg
@@ -1102,7 +1105,9 @@ C
 
 #ifdef CFL
           courant = compute_cfl()
-          write(output_unit, '(2x, "MAX COURANT NUMBER = ", F6.4)') courant
+          if (myproc == 0) then
+             write(output_unit, '(2x, "MAX COURANT NUMBER = ", F6.4)') courant
+          endif
 #endif
 
 #ifdef CMPI
