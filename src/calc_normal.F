@@ -56,9 +56,12 @@ C.....Compute the components of the normal vector
          l2 = XLEN(NELED(2,i))
          l3 = XLEN(NELED(3,i))
          s = 0.5 * (l1 + l2 + l3)
-         elem_size(i) = 2 * sqrt( (s-l1)*(s-l2)*(s-l3) / s ) ! diameter of the incircle
+         !elem_size(i) = 2 * sqrt( (s-l1)*(s-l2)*(s-l3) / s ) ! diameter of the incircle
+         elem_size(i) = min(l1,min(l2,l3))
+         !elem_size(i) = 30
       ENDDO
       write(output_unit, '( "Smallest triangle diameter = ", F9.2, " m")') minval(elem_size)
+      print *, 'Min edge length = ', minval(xlen)
         
       RETURN
       END
